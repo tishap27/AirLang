@@ -63,8 +63,8 @@
 #define STR_LANGNAME	"AirLang"
 
 /* Logical constants - adapt for your language */
-#define AirLang_TRUE  1
-#define AirLang_FALSE 0
+#define AirLang_TRUE  1        //afirmative
+#define AirLang_FALSE 0		  // negative 
 
 #define INVALID NULL
 #define EOF_CHAR '\0'
@@ -90,7 +90,6 @@ typedef unsigned char	airlang_byte;
 typedef long			airlang_long;
 typedef double			airlang_doub;
 
-
 typedef airlang_strg    airlang_airport;   // Airport code (e.g., "YOW")
 typedef airlang_strg    airlang_aircraft;  // Aircraft type or registration (e.g., "B747", "N123AB")
 typedef airlang_real    airlang_speed;     // Speed in knots
@@ -100,6 +99,39 @@ typedef airlang_real    airlang_eta;       // Estimated time of arrival (hours)
 typedef airlang_strg    airlang_status;    // Flight status (e.g., "delayed", "on_time")
 typedef airlang_strg    airlang_weather;   // Weather condition (e.g., "clear", "storm")
 typedef airlang_strg    airlang_date;      // Date string (e.g., "2025-05-14")
+
+
+
+// fuel calc , W/B might be a tricky CG = MOMENT*WEIGHT (Weight will need acc distance from arm) . no need  to get that done nwo 
+
+typedef struct Coordinates {
+	airlang_real latitude; 
+	airlang_real longitude; 
+} coord;
+
+typedef struct airportInformation {
+	airlang_airport code; 
+	airlang_strg name; 
+	coord location; 
+}airport;
+
+typedef struct aircraftInfomation {
+	airlang_aircraft registration; 
+	airlang_strg type; 
+	airlang_real fuelCapacity; 
+	airlang_intg cruiseSpeed; 
+}aircraft;
+
+typedef struct flightInfo {
+	airlang_date date; 
+	airlang_real time; 
+	airlang_status status; 
+	airlang_weather weather; 
+	airlang_eta eta; 
+}flight;
+
+// calculates the grt circle distance (km) btw two coords.
+airlang_real haversine(coord coord1, coord coord2);
 
 /*
 ------------------------------------------------------------

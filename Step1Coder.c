@@ -101,13 +101,44 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
         return NULL;
     }
 
+    fseek(inputFile, 0, SEEK_END);
+    airlang_intg fileSize = ftell(inputFile);
+    rewind(inputFile);
+
+    airlang_strg output = (airlang_strg)malloc(fileSize + 1);
+    if (output == NULL) {
+        errorPrint("Error: memory allocation failed");
+        fclose(inputFile); 
+        return NULL; 
+    }
+
+    //if key is empty 
+
+
 	// TO_DO define the return type and local variables
     airlang_intg keyIndex = 0;
-    airlang_intg outputIndex = 0;
+    airlang_intg keyLen = strlen(key); 
+    //airlang_strg output = NULL;
     airlang_intg ch;
+    long i = 0; 
 
+    //process chars
+    while ((ch = fgetc(inputFile)) != EOF) {
+        if (ch >= ASCII_START && ch <= ASCII_END) {
+            int shift = key[keyIndex % keyLen]; 
+            if (encode == CYPHER) {
+                ch = ((ch - ASCII_START) + (shift - ASCII_START)) % ASCII_RANGE + ASCII_START;
+            }
+            else if (encode = DECYPHER) {
+                ch = ((ch - ASCII_START) - (shift - ASCII_START)) % ASCII_RANGE + ASCII_START;
+                keyIndex++; 
+            }
+            output[i++] = (char)ch; 
+        }
+        output[i] = '\0'; 
+    }
 
-	airlang_strg output = NULL;
+	// + airlang_strg output = NULL;
 	// TO_DO: Check defensive programming
 	// TO_DO: Use the logic to code/decode - consider the logic about visible chars only
 
@@ -138,6 +169,18 @@ airlang_intg getSizeOfFile(const airlang_strg filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         errorPrint("Error: Cannot open file %s", filename);
+        return -1;
+    }
+
+    if (fseek(file, 0, SEEK_END) != 0) {
+        errorPrint("Error: fseek failed for file %s", filename);
+            fclose(file);
+            return -1; 
+    }
+    size = (airlang_intg)ftell(file);
+    if (size < 0) {
+        errorPrint("Error: ftell failed for file %s", filename);
+        fclose(file);
         return -1;
     }
 
