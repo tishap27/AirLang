@@ -83,7 +83,21 @@ void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFil
     airlang_intg keyIndex = 0;
     airlang_intg ch;
 	// TO_DO: Logic: check if it is encode / decode to change the char (using Vigenere algorithm) - next function
-	// TO_DO: Close the files
+	
+    while ((ch = fgetc(inputFile)) != EOF) {
+        if (ch >= ASCII_START && ch <= ASCII_END) {
+            int shift = key[keyIndex % keyLen]; 
+            if (encode == CYPHER) {
+                ch = ((ch - ASCII_START) + (shift - ASCII_START)) % ASCII_RANGE + ASCII_START;
+            }
+            else
+                ch = ((ch - ASCII_START) - (shift - ASCII_START) + ASCII_RANGE) % ASCII_RANGE + ASCII_START;
+            keyIndex++;
+        }
+        fputc(ch, outputFile);
+    }
+
+    // TO_DO: Close the files
     fclose(inputFile);
     fclose(outputFile);
 }
@@ -118,9 +132,10 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
 	// TO_DO define the return type and local variables
     airlang_intg keyIndex = 0;
     airlang_intg keyLen = strlen(key); 
+    airlang_intg outputIndex = 0;
     //airlang_strg output = NULL;
     airlang_intg ch;
-    long i = 0; 
+     
 
     //process chars
     while ((ch = fgetc(inputFile)) != EOF) {
@@ -129,20 +144,19 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
             if (encode == CYPHER) {
                 ch = ((ch - ASCII_START) + (shift - ASCII_START)) % ASCII_RANGE + ASCII_START;
             }
-            else if (encode = DECYPHER) {
-                ch = ((ch - ASCII_START) - (shift - ASCII_START)) % ASCII_RANGE + ASCII_START;
-                keyIndex++; 
+            else if (encode == DECYPHER) {
+                ch = ((ch - ASCII_START) - (shift - ASCII_START) + ASCII_RANGE) % ASCII_RANGE + ASCII_START;
             }
-            output[i++] = (char)ch; 
+            keyIndex++;
         }
-        output[i] = '\0'; 
+        output[outputIndex++] = (airlang_char)ch;
     }
 
 	// + airlang_strg output = NULL;
 	// TO_DO: Check defensive programming
 	// TO_DO: Use the logic to code/decode - consider the logic about visible chars only
 
-
+    output[outputIndex] = '\0';
     fclose(inputFile);
 	return output;
 }
