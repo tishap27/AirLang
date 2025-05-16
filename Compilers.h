@@ -131,7 +131,7 @@ typedef struct flightInfo {
 }flight;
 
 // calculates the grt circle distance (km) btw two coords.
-airlang_real haversine(coord coord1, coord coord2);
+airlang_real AirRange(coord coord1, coord coord2);
 
 /*
 ------------------------------------------------------------
@@ -160,7 +160,7 @@ Main functions signatures
 airlang_intg main1Coder	(airlang_intg argc, airlang_strg* argv);
 
 airlang_void printLogo();
-airlang_void errorPrint(airlang_strg fmt, ...);
+airlang_void printError(airlang_strg fmt, ...);
 
 #endif
 

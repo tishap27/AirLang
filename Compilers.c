@@ -162,7 +162,7 @@ airlang_void printLogo() {
 ************************************************************
 */
 
-airlang_void errorPrint(airlang_strg fmt, ...) {
+airlang_void printError(airlang_strg fmt, ...) {
 	/* Initialize variable list */
 	va_list ap;
 	va_start(ap, fmt);
@@ -172,5 +172,5 @@ airlang_void errorPrint(airlang_strg fmt, ...) {
 
 	/* Move to new line */
 	if (strchr(fmt, '\n') == NULL)
-		fprintf(stderr, "\n");
+		printError(stderr, "\n");
 }
