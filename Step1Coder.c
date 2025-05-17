@@ -54,40 +54,52 @@
 #include "Step1Coder.h"
 #endif
 
-// Function to perform the Vigenère cipher (encoding or decoding)
+ /*
+ ***********************************************************
+ * Function name: vigenereFile
+ * Purpose: Perform Vigenère cipher (encode or decode) on a file and write to output file.
+ * Parameters:
+ *   - inputFileName: Name of the input file (string)
+ *   - outputFileName: Name of the output file (string)
+ *   - key: AIRLANG (string)
+ *   - encode: CYPHER or DECYPHER mode (int) defined in step1coder.h
+ * Returns: void
+ ************************************************************
+ */
 void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFileName, const airlang_strg key, airlang_intg encode) {
 	// TO_DO: Define the input and output files (ex: FILE* inputFile, FILE* outputFile)
     
-    if (inputFileName == NULL || outputFileName == NULL || key == NULL) {
+    //check input parameters
+    if (inputFileName == NULL || outputFileName == NULL) {
         printError("Error: Invalid input parameters.\n");
         return;
     }
 
     
-    //opening the input file in read mode
     FILE* inputFile = fopen(inputFileName, "r");
     if (inputFile == NULL) {
         printError("Error: Cannot open input file %s\n", inputFileName);
         return;
     }
-    //opening the input file in write mode
+   
     FILE* outputFile = fopen(outputFileName, "w");
     if (outputFile == NULL) {
         printError("Error: Cannot open output file %s\n", outputFileName);
         fclose(inputFile);
         return;
     }
-	// TO_DO: Use defensive programming (checking files)
+
+
 	// TO_DO: Define local variables
-    airlang_intg keyLen = (airlang_intg) strlen(key);      // getting the length of the key AIRLANG
-    airlang_intg keyIndex = 0;              //tracking the position in the key 
-    airlang_intg ch;                        //to store charc read from input
+    airlang_intg keyLen = (airlang_intg) strlen(key);        // getting the length of the key AIRLANG
+    airlang_intg keyIndex = 0;                               //tracking the position in the key 
+    airlang_intg ch;                                         //to store charc read from input
 
 	// TO_DO: Logic: check if it is encode / decode to change the char (using Vigenere algorithm) - next function
 	
-    //reads each charcfrom the input file until EOF. Than applies cipher to charc within ASCII Range defined in step1Coder.h
-    // to encode: shift character forward
-    //to decode shift character backward
+    /*reads each charcfrom the input file until EOF.Than applies cipher to charc within ASCII Range defined in step1Coder.h
+     to encode: shift character forward to decode shift character backward
+    */
     while ((ch = fgetc(inputFile)) != EOF) {
         if (ch >= ASCII_START && ch <= ASCII_END) {
             int shift = key[keyIndex % keyLen];         //gets corresponding key character
@@ -98,7 +110,7 @@ void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFil
                 ch = ((ch - ASCII_START) - (shift - ASCII_START) + ASCII_RANGE) % ASCII_RANGE + ASCII_START;
             keyIndex++;     // move to the next key 
         }
-        fputc(ch, outputFile); //write to output file
+        fputc(ch, outputFile); 
     }
 
     // TO_DO: Close the files
@@ -106,7 +118,17 @@ void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFil
     fclose(outputFile);
 }
 
-// Function to perform the Vigenère cipher (encoding or decoding)
+/*
+***********************************************************
+* Function: vigenereMem
+* Purpose : Perform Vigenère cipher (encode/decode) on a file and return result as string.
+* Parameters: 
+*    - inputFileName: input file name
+*    - key : AIRLANG (cipher key str)
+*    -encode: CYPHER or DECYPHER mode (int) defined in step1coder.h
+* Returns : Pointer to result string (must be freed by caller)
+************************************************************
+*/
 /* then finds the size of the file by moving the file pointer to EOF, then getting current position of fp via ftell 
 and so finding fsize rewind file pointer back to the start of the file.
 */
@@ -158,8 +180,7 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
     airlang_intg outputIndex = 0;
     airlang_intg ch;
      
-
-    //process chars
+    // TO_DO: Use the logic to code/decode - consider the logic about visible chars only
     while ((ch = fgetc(inputFile)) != EOF && outputIndex < fileSize) {
         if (ch >= ASCII_START && ch <= ASCII_END) {
             int shift = key[keyIndex % keyLen]; 
@@ -173,11 +194,6 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
         }
         output[outputIndex++] = (airlang_char)ch;
     }
-
-	// + airlang_strg output = NULL;
-	// TO_DO: Check defensive programming
-	// TO_DO: Use the logic to code/decode - consider the logic about visible chars only
-
     output[outputIndex] = '\0';
     
     fclose(inputFile);
@@ -194,7 +210,16 @@ void decypher(const airlang_strg inputFileName, const airlang_strg outputFileNam
     vigenereFile(inputFileName, outputFileName, key, DECYPHER);
 }
 
-// TO_DO: Get file size (util method)
+
+/*
+***********************************************************
+* Function name: getSizeOfFile
+* Purpose: Utility to get the size of a file.
+* Parameters:
+*   - filename: Name of the file (string)
+* Returns: Size of the file in bytes (int), or -1 on error.
+************************************************************
+*/
 airlang_intg getSizeOfFile(const airlang_strg filename) {
 	airlang_intg size = 0;
 
