@@ -2,30 +2,21 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2025
-* Author: TO_DO
+* Author: Tisha Patel
 * Professors: Paulo Sousa
 ************************************************************
 #
 # ECHO "=---------------------------------------="
 # ECHO "|  COMPILERS - ALGONQUIN COLLEGE (S25)  |"
 # ECHO "=---------------------------------------="
-# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@           %&@@@@@@@@@@@     @@    ”
-# ECHO "    @@       @%% (@@@@@@@@@  @     @@    ”
-# ECHO "    @@      @& @   @ @       @     @@    ”
-# ECHO "    @@     @ @ %  / /   @@@@@@     @@    ”
-# ECHO "    @@      & @ @  @@              @@    ”
-# ECHO "    @@       @/ @*@ @ @   @        @@    ”
-# ECHO "    @@           @@@@  @@ @ @      @@    ”
-# ECHO "    @@            /@@    @@@ @     @@    ”
-# ECHO "    @@     @      / /     @@ @     @@    ”
-# ECHO "    @@     @ @@   /@/   @@@ @      @@    ”
-# ECHO "    @@     @@@@@@@@@@@@@@@         @@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@       A I R L A N G         @@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
+# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@           __|__             @@    "
+# ECHO "    @@------@--o--(_)--o--@------- @@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@        A I R L A N G        @@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    "
 # ECHO "                                         "
 # ECHO "[CODER SCRIPT ..........................]"
 # ECHO "                                         "
@@ -65,36 +56,42 @@
 
 // Function to perform the Vigenère cipher (encoding or decoding)
 void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFileName, const airlang_strg key, airlang_intg encode) {
-	// TO_DO: Define the input and output files (ex: FILE* inputFile, FILE* outputFile
+	// TO_DO: Define the input and output files (ex: FILE* inputFile, FILE* outputFile)
+    //opening the input file in read mode
     FILE* inputFile = fopen(inputFileName, "r");
     if (inputFile == NULL) {
-        printError(stderr, "Error: Cannot open input file %s\n", inputFileName);
+        printError("Error: Cannot open input file %s\n", inputFileName);
         return;
     }
+    //opening the input file in write mode
     FILE* outputFile = fopen(outputFileName, "w");
     if (outputFile == NULL) {
-        printError(stderr, "Error: Cannot open output file %s\n", outputFileName);
+        printError("Error: Cannot open output file %s\n", outputFileName);
         fclose(inputFile);
         return;
     }
 	// TO_DO: Use defensive programming (checking files)
 	// TO_DO: Define local variables
-    airlang_intg keyLen = strlen(key);
-    airlang_intg keyIndex = 0;
-    airlang_intg ch;
+    airlang_intg keyLen = strlen(key);      // getting the length of the key AIRLANG
+    airlang_intg keyIndex = 0;              //tracking the position in the key 
+    airlang_intg ch;                        //to store charc read from input
+
 	// TO_DO: Logic: check if it is encode / decode to change the char (using Vigenere algorithm) - next function
 	
+    //reads each charcfrom the input file until EOF. Than applies cipher to charc within ASCII Range defined in step1Coder.h
+    // to encode: shift character forward
+    //to decode shift character backward
     while ((ch = fgetc(inputFile)) != EOF) {
         if (ch >= ASCII_START && ch <= ASCII_END) {
-            int shift = key[keyIndex % keyLen]; 
+            int shift = key[keyIndex % keyLen];         //gets corresponding key character
             if (encode == CYPHER) {
                 ch = ((ch - ASCII_START) + (shift - ASCII_START)) % ASCII_RANGE + ASCII_START;
             }
             else
                 ch = ((ch - ASCII_START) - (shift - ASCII_START) + ASCII_RANGE) % ASCII_RANGE + ASCII_START;
-            keyIndex++;
+            keyIndex++;     // move to the next key 
         }
-        fputc(ch, outputFile);
+        fputc(ch, outputFile); //write to output file
     }
 
     // TO_DO: Close the files
@@ -115,10 +112,15 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
         return NULL;
     }
 
+    //finding the size of the file
+    //by moving the file pointer to EOF, then getting current position of fp via ftell and so finding fsize 
+    //rewind file pointer back to the start of the file.
     fseek(inputFile, 0, SEEK_END);
     airlang_intg fileSize = ftell(inputFile);
     rewind(inputFile);
 
+
+    //allocating memory for output string +1 for nullterminator
     airlang_strg output = (airlang_strg)malloc(fileSize + 1);
     if (output == NULL) {
         printError("Error: memory allocation failed");
@@ -127,7 +129,7 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
     }
 
     //if key is empty 
-
+    
 
 	// TO_DO define the return type and local variables
     airlang_intg keyIndex = 0;
@@ -182,18 +184,18 @@ airlang_intg getSizeOfFile(const airlang_strg filename) {
 
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        printError(stderr,"Error: Cannot open file %s", filename);
+        printError("Error: Cannot open file %s", filename);
         return -1;
     }
 
     if (fseek(file, 0, SEEK_END) != 0) {
-        printError(stderr,"Error: fseek failed for file %s", filename);
+        printError("Error: fseek failed for file %s", filename);
             fclose(file);
             return -1; 
     }
     size = (airlang_intg)ftell(file);
     if (size < 0) {
-        printError(stderr,"Error: ftell failed for file %s", filename);
+        printError("Error: ftell failed for file %s", filename);
         fclose(file);
         return -1;
     }

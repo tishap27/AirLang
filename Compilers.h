@@ -2,30 +2,21 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2025
-* Author: TO_DO
+* Author: Tisha Patel
 * Professors: Paulo Sousa
 ************************************************************
 #
 # ECHO "=---------------------------------------="
 # ECHO "|  COMPILERS - ALGONQUIN COLLEGE (S25)  |"
 # ECHO "=---------------------------------------="
-# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@           %&@@@@@@@@@@@     @@    ”
-# ECHO "    @@       @%% (@@@@@@@@@  @     @@    ”
-# ECHO "    @@      @& @   @ @       @     @@    ”
-# ECHO "    @@     @ @ %  / /   @@@@@@     @@    ”
-# ECHO "    @@      & @ @  @@              @@    ”
-# ECHO "    @@       @/ @*@ @ @   @        @@    ”
-# ECHO "    @@           @@@@  @@ @ @      @@    ”
-# ECHO "    @@            /@@    @@@ @     @@    ”
-# ECHO "    @@     @      / /     @@ @     @@    ”
-# ECHO "    @@     @ @@   /@/   @@@ @      @@    ”
-# ECHO "    @@     @@@@@@@@@@@@@@@         @@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@       A I R L A N G         @@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
+# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@           __|__             @@    "
+# ECHO "    @@------@--o--(_)--o--@------- @@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@        A I R L A N G        @@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    "
 # ECHO "                                         "
 # ECHO "[COMPILER SCRIPT .......................]"
 # ECHO "                                         "
@@ -59,7 +50,7 @@
  */
 
 /* TO_DO: Adjust your language (cannot be "Sofia") */
-/* Language name */
+/* AirLang */
 #define STR_LANGNAME	"AirLang"
 
 /* Logical constants - adapt for your language */
@@ -68,6 +59,9 @@
 
 #define INVALID NULL
 #define EOF_CHAR '\0'
+#define EARTH_RADIUS 6371  //km
+#define PI 3.1415926
+#define DEG_TO_RAD (PI/180.0)
 
 /*
 ------------------------------------------------------------
@@ -104,17 +98,34 @@ typedef airlang_strg    airlang_date;      // Date string (e.g., "2025-05-14")
 
 // fuel calc , W/B might be a tricky CG = MOMENT*WEIGHT (Weight will need acc distance from arm) . no need  to get that done nwo 
 
+/* 
+------------------------------------------------------------
+Coordinates Structure
+------------------------------------------------------------
+*/
+
 typedef struct Coordinates {
 	airlang_real latitude; 
 	airlang_real longitude; 
 } coord;
 
+
+/*
+------------------------------------------------------------
+AirportInformation  Structure
+------------------------------------------------------------
+*/
 typedef struct airportInformation {
 	airlang_airport code; 
 	airlang_strg name; 
 	coord location; 
 }airport;
 
+/*
+------------------------------------------------------------
+AircraftInformation  Structure
+------------------------------------------------------------
+*/
 typedef struct aircraftInfomation {
 	airlang_aircraft registration; 
 	airlang_strg type; 
@@ -122,6 +133,11 @@ typedef struct aircraftInfomation {
 	airlang_intg cruiseSpeed; 
 }aircraft;
 
+/*
+------------------------------------------------------------
+flightInformation  Structure
+------------------------------------------------------------
+*/
 typedef struct flightInfo {
 	airlang_date date; 
 	airlang_real time; 
