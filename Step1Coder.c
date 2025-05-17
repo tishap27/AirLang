@@ -57,6 +57,13 @@
 // Function to perform the Vigenère cipher (encoding or decoding)
 void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFileName, const airlang_strg key, airlang_intg encode) {
 	// TO_DO: Define the input and output files (ex: FILE* inputFile, FILE* outputFile)
+    
+    if (inputFileName == NULL || outputFileName == NULL || key == NULL) {
+        printError("Error: Invalid input parameters.\n");
+        return;
+    }
+
+    
     //opening the input file in read mode
     FILE* inputFile = fopen(inputFileName, "r");
     if (inputFile == NULL) {
@@ -72,7 +79,7 @@ void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFil
     }
 	// TO_DO: Use defensive programming (checking files)
 	// TO_DO: Define local variables
-    airlang_intg keyLen = strlen(key);      // getting the length of the key AIRLANG
+    airlang_intg keyLen = (airlang_intg) strlen(key);      // getting the length of the key AIRLANG
     airlang_intg keyIndex = 0;              //tracking the position in the key 
     airlang_intg ch;                        //to store charc read from input
 
@@ -100,6 +107,9 @@ void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFil
 }
 
 // Function to perform the Vigenère cipher (encoding or decoding)
+/* then finds the size of the file by moving the file pointer to EOF, then getting current position of fp via ftell 
+and so finding fsize rewind file pointer back to the start of the file.
+*/
 airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg key, airlang_intg encode) {
     if (inputFileName == NULL || key == NULL) {
         printError("Error: Invalid input parameters");
@@ -112,16 +122,27 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
         return NULL;
     }
 
-    //finding the size of the file
-    //by moving the file pointer to EOF, then getting current position of fp via ftell and so finding fsize 
-    //rewind file pointer back to the start of the file.
-    fseek(inputFile, 0, SEEK_END);
+    if (fseek(inputFile, 0, SEEK_END) != 0) {
+        printError("Error: fseek failed on the file %s\n", inputFileName);
+        fclose(inputFile);
+        return NULL; 
+    }
+
+ 
+    
+    
     airlang_intg fileSize = ftell(inputFile);
+    if (fileSize < 0) {
+        printError("Error: ftell failed on the file %s\n", inputFileName);
+        fclose(inputFile);
+        return NULL;
+    }
     rewind(inputFile);
 
 
     //allocating memory for output string +1 for nullterminator
-    airlang_strg output = (airlang_strg)malloc(fileSize + 1);
+    airlang_strg output = NULL;
+    output = (airlang_strg)malloc(fileSize + 1);
     if (output == NULL) {
         printError("Error: memory allocation failed");
         fclose(inputFile); 
@@ -133,14 +154,13 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
 
 	// TO_DO define the return type and local variables
     airlang_intg keyIndex = 0;
-    airlang_intg keyLen = strlen(key); 
+    airlang_intg keyLen = (airlang_intg) strlen(key); 
     airlang_intg outputIndex = 0;
-    //airlang_strg output = NULL;
     airlang_intg ch;
      
 
     //process chars
-    while ((ch = fgetc(inputFile)) != EOF) {
+    while ((ch = fgetc(inputFile)) != EOF && outputIndex < fileSize) {
         if (ch >= ASCII_START && ch <= ASCII_END) {
             int shift = key[keyIndex % keyLen]; 
             if (encode == CYPHER) {
@@ -159,6 +179,7 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
 	// TO_DO: Use the logic to code/decode - consider the logic about visible chars only
 
     output[outputIndex] = '\0';
+    
     fclose(inputFile);
 	return output;
 }

@@ -70,7 +70,6 @@ NOTE: Some types may not be directly used by your language,
 		but they can be necessary for conversions.
 ------------------------------------------------------------
 */
-
 /* TO_DO: Define your typedefs */
 typedef char			airlang_char;
 typedef char*			airlang_strg;
