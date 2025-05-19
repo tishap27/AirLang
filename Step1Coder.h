@@ -57,6 +57,8 @@
 #define DECYPHER 0
 
 /* FUNCTIONS DECLARATION:  .................................. */
+// calculates the grt circle distance (km) btw two coords.
+airlang_real AirRange(coord coord1, coord coord2);
 
 /* General Operations */
 void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFileName, const airlang_strg key, airlang_intg encode);

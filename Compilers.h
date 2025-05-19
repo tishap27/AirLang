@@ -145,8 +145,7 @@ typedef struct flightInfo {
 	airlang_eta eta; 
 }flight;
 
-// calculates the grt circle distance (km) btw two coords.
-airlang_real AirRange(coord coord1, coord coord2);
+
 
 /*
 ------------------------------------------------------------
