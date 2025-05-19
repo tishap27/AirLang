@@ -130,6 +130,7 @@ typedef struct aircraftInfomation {
 	airlang_strg type; 
 	airlang_real fuelCapacity; 
 	airlang_intg cruiseSpeed; 
+	airlang_real fuelPerNM;
 }aircraft;
 
 /*

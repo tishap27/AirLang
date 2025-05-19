@@ -60,6 +60,18 @@
 // calculates the grt circle distance (km) btw two coords.
 airlang_real AirRange(coord coord1, coord coord2);
 
+/*will return ETA IN HOURS . example distance = 600 (nm) , speed = 150 (knots) ETA = 4.0 (hours)  */
+airlang_eta calculateETA(airlang_distance distance, airlang_speed cruiseSpeed);
+
+/*given departure time and calculated ETA return actual arrival time(hours)*/
+airlang_real calculateArrivalTime(airlang_real departureTime , airlang_eta eta);
+
+/*Estimated fuel consumption*/
+airlang_real fuelConsumption(airlang_distance distance, airlang_real fuelPerNM);
+
+void printAircraft(const aircraft* ac);
+
+
 /* General Operations */
 void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFileName, const airlang_strg key, airlang_intg encode);
 airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg key, airlang_intg encode);
