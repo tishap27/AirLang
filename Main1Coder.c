@@ -114,7 +114,7 @@ airlang_intg main1Coder(airlang_intg argc, airlang_strg* argv) {
 		else if (atoi(operation) == DECYPHER)
 			decypher(inputFileName, outputFileName, key);
 		else {
-			printError("%s%s%s", "Error: Unknown operation ", operation, ". Use 'cypher' or 'decypher'.\n");
+			errorPrint("%s%s%s", "Error: Unknown operation ", operation, ". Use 'cypher' or 'decypher'.\n");
 			return EXIT_FAILURE;
 		}
 		printf("Operation '%s' completed successfully.\n", operation);

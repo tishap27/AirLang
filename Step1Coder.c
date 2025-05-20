@@ -79,24 +79,24 @@ void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFil
     
     //check input parameters
     if (inputFileName == NULL || outputFileName == NULL || key == NULL) {
-        printError("Error: Invalid input parameters.\n");
+        errorPrint("Error: Invalid input parameters.\n");
         return;
     }
     if (strlen(key) == 0) {
-        printError("Error: Key cannot be empty.\n");
+        errorPrint("Error: Key cannot be empty.\n");
         return;
     }
 
     //opens the output file
     FILE* inputFile = fopen(inputFileName, "r");
     if (inputFile == NULL) {
-        printError("Error: Cannot open input file %s\n", inputFileName);
+        errorPrint("Error: Cannot open input file %s\n", inputFileName);
         return;
     }
    
     FILE* outputFile = fopen(outputFileName, "w");
     if (outputFile == NULL) {
-        printError("Error: Cannot open output file %s\n", outputFileName);
+        errorPrint("Error: Cannot open output file %s\n", outputFileName);
         fclose(inputFile);
         return;
     }
@@ -131,7 +131,7 @@ void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFil
                 ch = ((ch - ASCII_START) - (shift - ASCII_START) + ASCII_RANGE) % ASCII_RANGE + ASCII_START;
             }
             else {
-                printError("Error: Invalid encode parameter %d - Must be 1(CYPHER) or 0(DECYPHER)\n", encode);
+                errorPrint("Error: Invalid encode parameter %d - Must be 1(CYPHER) or 0(DECYPHER)\n", encode);
                 fclose(inputFile);
                 fclose(outputFile);
                 return;
@@ -174,24 +174,24 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
 
 
     if (inputFileName == NULL || key == NULL) {
-        printError("Error: Invalid input parameters");
+        errorPrint("Error: Invalid input parameters");
         return NULL;
     }
 
     if (strlen(key) == 0) {
-        printError("Error: Key cannot be empty");
+        errorPrint("Error: Key cannot be empty");
         return NULL;
     }
 
     FILE* inputFile = fopen(inputFileName, "r");
     if (inputFile ==  NULL) {
-        printError("Error: Cannot open input file %s", inputFileName);
+        errorPrint("Error: Cannot open input file %s", inputFileName);
         return NULL;
     }
 
     // Get file size by seeking to end, getting position, then rewinding
     if (fseek(inputFile, 0, SEEK_END) != 0) {
-        printError("Error: fseek failed on the file %s\n", inputFileName);
+        errorPrint("Error: fseek failed on the file %s\n", inputFileName);
         fclose(inputFile);
         return NULL; 
     }
@@ -200,7 +200,7 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
     // Get current position (size of file)
     airlang_intg fileSize = ftell(inputFile);
     if (fileSize < 0) {
-        printError("Error: ftell failed on the file %s\n", inputFileName);
+        errorPrint("Error: ftell failed on the file %s\n", inputFileName);
         fclose(inputFile);
         return NULL;
     }
@@ -211,7 +211,7 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
     airlang_strg output = NULL;
     output = (airlang_strg)malloc(fileSize + 1);
     if (output == NULL) {
-        printError("Error: memory allocation failed");
+        errorPrint("Error: memory allocation failed");
         fclose(inputFile); 
         return NULL; 
     }
@@ -242,7 +242,7 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
             }
             else {
                 //Invalid Operation
-                printError("Error: Invalid encode parameter %d - Must be 1(CYPHER) OR 0(DECYPHER)\n", encode);
+                errorPrint("Error: Invalid encode parameter %d - Must be 1(CYPHER) OR 0(DECYPHER)\n", encode);
                 free(output);     
                 fclose(inputFile);
                 return NULL;
@@ -289,20 +289,20 @@ airlang_intg getSizeOfFile(const airlang_strg filename) {
 
     //validate the file 
     if (filename == NULL) {
-        printError("Error: NULL filename passed to getSizeOfFile");
+        errorPrint("Error: NULL filename passed to getSizeOfFile");
         return -1;               // file size is always zero or positive.
     }
 
     //open the file 
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        printError("Error: Cannot open file %s", filename);
+        errorPrint("Error: Cannot open file %s", filename);
         return -1;
     }
 
     //go (seek) to the EOF
     if (fseek(file, 0, SEEK_END) != 0) {
-        printError("Error: fseek failed for file %s", filename);
+        errorPrint("Error: fseek failed for file %s", filename);
             fclose(file);
             return -1; 
     }
@@ -310,7 +310,7 @@ airlang_intg getSizeOfFile(const airlang_strg filename) {
     //Get current position(size of file)
     size = (airlang_intg)ftell(file);
     if (size < 0) {
-        printError("Error: ftell failed for file %s", filename);
+        errorPrint("Error: ftell failed for file %s", filename);
         fclose(file);
         return -1;
     }
