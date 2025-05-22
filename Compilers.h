@@ -49,7 +49,6 @@
  * ............................................................................
  */
 
-/* TO_DO: Adjust your language (cannot be "Sofia") */
 /* AirLang */
 #define STR_LANGNAME	"AirLang"
 
@@ -95,7 +94,7 @@ typedef airlang_strg    airlang_date;      // Date string (e.g., "2025-05-14")
 
 
 
-// fuel calc , W/B might be a tricky CG = MOMENT*WEIGHT (Weight will need acc distance from arm) . no need  to get that done nwo 
+// fuel calc , W/B might be a tricky CG = MOMENT*WEIGHT (Weight will need acc distance from arm) . no need  to get that done now 
 
 /* 
 ------------------------------------------------------------
