@@ -1,0 +1,33 @@
+Welcome to AirLang! Safe flights.
+
+[AIRCRAFT]
+Aircraft: C-GHPQ
+Type: B747
+Fuel Capacity: 26000
+Cruise Speed: 430
+Fuel per NM: 35
+
+[FLIGHT]
+Flight: AL123
+Date: 2025-05-15
+Status: on time
+Weather: clear
+ETA: 1.5
+Estimated fuel required: 1575
+
+[DEPARTURE]
+Departure Airport: YOW
+Departure Name: Ottawa International Airport
+Departure Coordinates: 45.3225,-75.6692
+
+[ARRIVAL]
+Arrival Airport: YYZ
+Arrival Name: Toronto Pearson International Airport
+Arrival Coordinates: 43.6777,-79.6248
+
+[REMARKS]
+NONE
+
+DISTANCE: 45.3225,-75.6692,43.6777,-79.6248
+
+
