@@ -5,13 +5,11 @@
     {
       "type": "default",
       "project": "CMakeLists.txt",
-      "projectTarget": "Compilers.exe",
-      "name": "Compilers.exe",
+      "projectTarget": "AirLang.exe",
+      "name": "AirLang.exe",
       "args": [
-		1,
-		1,
-		"README.txt",
-		"CODED.txt"
+		2,
+		"code.txt"
 	  ]
     }
   ]
