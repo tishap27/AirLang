@@ -81,41 +81,48 @@
 */
 
 BufferPointer readerCreate(airlang_intg size) {
-	
+	BufferPointer readerPointer = NULL; 
+
+	/* TO_DO: Defensive programming: size */
 	if (size <= 0) {
+		errorPrint("Invalid size for buffer reader: %d ", size);
 		return NULL;
 	}
 
-	BufferPointer readerPointer = (BufferPointer)calloc(1, sizeof(Buffer));
+	/* TO_DO: readerPointer allocation */
+	/* TO_DO: Defensive programming: readerPointer */
+	/*readerPointer = calloc(1, sizeof(Buffer));*/
+	readerPointer = (BufferPointer)calloc(1, sizeof(Buffer));
 	if (readerPointer == NULL) {
 		printf("Error");
 		return NULL;
 	}
-	readerPointer->content = (airlang_strg)malloc(size * sizeof(airlang_char));
-	if (readerPointer->content == NULL) {
-		printf("Error");
-		free(readerPointer->content);
-		return;
+	
+	/* TO_DO: content allocation */
+	airlang_strg content = (airlang_strg)malloc(size * sizeof(airlang_char));
+	
+	/* TO_DO: Defensive programming: content */
+	if (content == NULL) {
+		free(readerPointer);
+		return NULL; 
 	}
 	
-	
-	readerPointer->size = size; 
-	readerPointer->flags = READER_SET_FLAG_EMP;  //EMPTY BUFFER
-	/* TO_DO: Defensive programming: size */
-	/* TO_DO: readerPointer allocation */
-	/* TO_DO: Defensive programming: readerPointer */
-	/*readerPointer = calloc(1, sizeof(Buffer));
-	/* TO_DO: content allocation */
-	airlang_strg content = malloc(size);
 	if (readerPointer!=NULL && content!=NULL) {
 		readerPointer->content = content;
 	}
-	/* TO_DO: Defensive programming: content */
+	
 	/* TO_DO: Initialize the histogram */
+	for (airlang_intg i = 0; i < NCHAR; ++i) {
+		readerPointer->histogram[i] = 0;
+	}
 	/* TO_DO: Initialize errors */
+	readerPointer->numReaderErrors = 0;
+
 	/* TO_DO: Update the properties */
+	readerPointer->size = size; 
 	/* TO_DO: Initialize flags */
 	/* TO_DO: The created flag must be signalized as EMP */
+	readerPointer->flags = READER_SET_FLAG_EMP;
 	return readerPointer;
 }
 
@@ -139,18 +146,31 @@ BufferPointer readerCreate(airlang_intg size) {
 BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) {
 	airlang_strg tempReader = NULL;
 	airlang_intg newSize = 0;
+
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL || readerPointer->content == NULL) {
+		return NULL; 
+	}
 	/* TO_DO: Test the inclusion of chars */
-	if (readerPointer->position.wrte * (airlang_intg)sizeof(airlang_char) < readerPointer->size) {
+	if (readerPointer->position.wrte >= readerPointer->size){
 		/* TO_DO: Buffer not full: set flag */
+		readerPointer->flags |= READER_SET_FLAG_FUL; 
+		return NULL; 
 	}
 	else {
 		/* TO_DO: Reset Full flag */
+		readerPointer->flags &= ~READER_SET_FLAG_FUL;
 		/* TO_DO: Adjust the size to be duplicated */
+		//newSize = readerPointer->size * 2;
 		/* TO_DO: Defensive programming */
 	}
 	/* TO_DO: Add the char */
+	readerPointer->content[readerPointer->position.wrte++] = ch; 
+	
 	/* TO_DO: Updates histogram */
+	readerPointer->histogram[(unsigned char)ch]++ ;
+
+
 	return readerPointer;
 }
 
