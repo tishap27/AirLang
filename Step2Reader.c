@@ -81,7 +81,20 @@
 */
 
 BufferPointer readerCreate(airlang_intg size) {
-	BufferPointer readerPointer = NULL;
+	if (size <= 0) {
+		return NULL;
+	}
+
+	BufferPointer readerPointer = (BufferPointer)calloc(1, sizeof(Buffer));
+	if (readerPointer == NULL) {
+		printf("Error");
+		return NULL;
+	}
+	readerPointer->content = (airlang_strg)malloc(size * sizeof(airlang_char));
+	//if(readerPointer->contentis null free)
+
+	readerPointer->size = size; 
+	readerPointer->flags = READER_SET_FLAG_EMP;  //EMPTY BUFFER
 	/* TO_DO: Defensive programming: size */
 	/* TO_DO: readerPointer allocation */
 	/* TO_DO: Defensive programming: readerPointer */
@@ -171,6 +184,7 @@ airlang_boln readerClear(BufferPointer const readerPointer) {
 *************************************************************
 */
 airlang_boln readerFree(BufferPointer const readerPointer) {
+
 	/* TO_DO: Defensive programming */
 	/* Free memory (buffer/content) */
 	return AirLang_FALSE;
