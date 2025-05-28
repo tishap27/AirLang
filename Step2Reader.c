@@ -81,6 +81,7 @@
 */
 
 BufferPointer readerCreate(airlang_intg size) {
+	
 	if (size <= 0) {
 		return NULL;
 	}
@@ -91,14 +92,19 @@ BufferPointer readerCreate(airlang_intg size) {
 		return NULL;
 	}
 	readerPointer->content = (airlang_strg)malloc(size * sizeof(airlang_char));
-	//if(readerPointer->contentis null free)
-
+	if (readerPointer->content == NULL) {
+		printf("Error");
+		free(readerPointer->content);
+		return;
+	}
+	
+	
 	readerPointer->size = size; 
 	readerPointer->flags = READER_SET_FLAG_EMP;  //EMPTY BUFFER
 	/* TO_DO: Defensive programming: size */
 	/* TO_DO: readerPointer allocation */
 	/* TO_DO: Defensive programming: readerPointer */
-	readerPointer = calloc(1, sizeof(Buffer));
+	/*readerPointer = calloc(1, sizeof(Buffer));
 	/* TO_DO: content allocation */
 	airlang_strg content = malloc(size);
 	if (readerPointer!=NULL && content!=NULL) {
