@@ -75,13 +75,13 @@
 #define READER_DEFAULT_FLAG 0x00 		/* (0b00000000) = (0x00)_16 = (000)_10 */
 
 /* TO_DO: BIT 3: END = End of buffer flag */
-#define READER_SET_FLAG_END 0x00
+#define READER_SET_FLAG_END 0x08       // Bit 3 : 00001000
 /* TO_DO: BIT 2: REL = Rellocation memory flag */
-#define READER_SET_FLAG_REL 0x00
+#define READER_SET_FLAG_REL 0x04       //Bit 2 :  00000100 
 /* TO_DO: BIT 1: EMP = Buffer empty flag */
-#define READER_SET_FLAG_FUL 0x00
+#define READER_SET_FLAG_FUL 0x02      // Bit 1 : 00000010
 /* TO_DO: BIT 0: FUL = Buffer full flag */
-#define READER_SET_FLAG_EMP 0x00
+#define READER_SET_FLAG_EMP 0x01     // Bit 0 : 00000001 no flags set ( doesnt mean empty)
 
 #define NCHAR				128			/* Chars from 0 to 127 */
 
