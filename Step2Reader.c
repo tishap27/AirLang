@@ -381,7 +381,7 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 	FILE* file = fopen(fileName, "r");
 	if (file == NULL) {
 		errorPrint("Error: couldn't open fiel to read");
-		return 0; 
+		return READER_ERROR; 
 	}
 
 	airlang_intg count = 0; 
@@ -395,13 +395,16 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 	readerPointer->position.wrte = count; 
 
 	/* TO_DO: Creates the string calling vigenereMem(fileName, STR_LANGNAME, DECYPHER) */
-	airlang_strg output = vigenereMem(fileName, STR_LANGNAME, DECYPHER);
-	size = (airlang_intg)strlen(output);
-	for (airlang_intg i = 0; i < size; i++) {
-		readerAddChar(readerPointer, output[i]);
-	}
+	airlang_strg output = vigenereMem(readerPointer->content, STR_LANGNAME, DECYPHER);
+	 if (output) {
+	    for (airlang_intg i = 0; i < (airlang_intg)strlen(output) && count < readerPointer->size; i++) {
+	         readerAddChar(readerPointer, output[i]);
+	     }
+	     free(output); // if it was dynamically allocated
+	 }
 
-	return size;
+	
+	return count;
 	//return count;
 }
 

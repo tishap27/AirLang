@@ -98,6 +98,13 @@ typedef struct position {
 	airlang_intg mark;			/* the offset to the mark position (in chars) */
 } Position;
 
+typedef struct flag {
+	airlang_boln isEmpty; /* checks if there is no content */
+	airlang_boln isFull; /* the content is using all size */
+	airlang_boln isRead; /* all content was read */
+	airlang_boln isMoved; /* the content was moved in reallocation */
+} Flag;
+
 /* Buffer structure */
 typedef struct bufferReader {
 	airlang_strg		content;			/* pointer to the beginning of character array (character buffer) */
@@ -106,6 +113,7 @@ typedef struct bufferReader {
 	Position		position;			/* Offset / position field */
 	airlang_intg		histogram[NCHAR];	/* Statistics of chars */
 	airlang_intg		numReaderErrors;	/* Number of errors from Reader */
+	airlang_byte		checkSum;			/* Sum of bytes(chars) */
 } Buffer, *BufferPointer;
 
 /* FUNCTIONS DECLARATION:  .................................. */
