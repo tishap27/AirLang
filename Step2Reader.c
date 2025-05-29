@@ -559,7 +559,7 @@ airlang_strg readerGetContent(BufferPointer const readerPointer, airlang_intg po
 airlang_intg readerGetPosRead(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL ) {
-		return NULL; 
+		return READER_ERROR;
 	}
 	/* TO_DO: Return read */
 	return readerPointer->position.read;
@@ -583,7 +583,7 @@ airlang_intg readerGetPosRead(BufferPointer const readerPointer) {
 airlang_intg readerGetPosWrte(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL) {
-		return NULL; 
+		return READER_ERROR;
 	}
 	/* TO_DO: Return wrte */
 	return readerPointer->position.wrte;
@@ -607,7 +607,7 @@ airlang_intg readerGetPosWrte(BufferPointer const readerPointer) {
 airlang_intg readerGetPosMark(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL) {
-		return NULL; 
+		return READER_ERROR;
 	}
 	/* TO_DO: Return mark */
 	return readerPointer->position.mark;
@@ -654,7 +654,7 @@ airlang_intg readerGetSize(BufferPointer const readerPointer) {
 airlang_byte readerGetFlags(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL) {
-		return NULL; 
+		return READER_ERROR;
 	}
 	/* TO_DO: Return flags */
 	return readerPointer->flags;
@@ -675,12 +675,12 @@ airlang_byte readerGetFlags(BufferPointer const readerPointer) {
 airlang_void readerPrintStat(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL) {
-		return NULL;
+		return;
 	}
 	/* TO_DO: Print statistics */
 	for (airlang_intg i = 0; i < NCHAR; ++i) {
 		if (readerPointer->histogram[i])
-			printf("char c: %d\t", i, readerPointer->histogram[i]);	
+			printf("char c: %d count: %d\t", i, readerPointer->histogram[i]);	
 	}
 }
 
