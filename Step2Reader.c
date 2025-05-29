@@ -530,8 +530,16 @@ airlang_char readerGetChar(BufferPointer const readerPointer) {
 */
 airlang_strg readerGetContent(BufferPointer const readerPointer, airlang_intg pos) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL || readerPointer->content == NULL) {
+		return	NULL;
+	}
+	if (pos <0  || pos > readerPointer->position.wrte) {
+		return NULL;
+	}
+
 	/* TO_DO: Return content (string) */
-	return NULL;
+
+	return readerPointer->content + pos;
 }
 
 /*
@@ -550,8 +558,11 @@ airlang_strg readerGetContent(BufferPointer const readerPointer, airlang_intg po
 */
 airlang_intg readerGetPosRead(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL ) {
+		return NULL; 
+	}
 	/* TO_DO: Return read */
-	return 0;
+	return readerPointer->position.read;
 }
 
 
@@ -571,8 +582,11 @@ airlang_intg readerGetPosRead(BufferPointer const readerPointer) {
 */
 airlang_intg readerGetPosWrte(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return NULL; 
+	}
 	/* TO_DO: Return wrte */
-	return 0;
+	return readerPointer->position.wrte;
 }
 
 
@@ -592,8 +606,11 @@ airlang_intg readerGetPosWrte(BufferPointer const readerPointer) {
 */
 airlang_intg readerGetPosMark(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return NULL; 
+	}
 	/* TO_DO: Return mark */
-	return 0;
+	return readerPointer->position.mark;
 }
 
 
@@ -636,8 +653,11 @@ airlang_intg readerGetSize(BufferPointer const readerPointer) {
 */
 airlang_byte readerGetFlags(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return NULL; 
+	}
 	/* TO_DO: Return flags */
-	return 0;
+	return readerPointer->flags;
 }
 
 /*
@@ -654,7 +674,14 @@ airlang_byte readerGetFlags(BufferPointer const readerPointer) {
 */
 airlang_void readerPrintStat(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return NULL;
+	}
 	/* TO_DO: Print statistics */
+	for (airlang_intg i = 0; i < NCHAR; ++i) {
+		if (readerPointer->histogram[i])
+			printf("char c: %d\t", i, readerPointer->histogram[i]);	
+	}
 }
 
 /*
@@ -672,8 +699,11 @@ airlang_void readerPrintStat(BufferPointer const readerPointer) {
 */
 airlang_intg readerNumErrors(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return 0; 
+	}
 	/* TO_DO: Return the number of errors */
-	return 0;
+	return readerPointer->numReaderErrors;
 }
 
 /*
