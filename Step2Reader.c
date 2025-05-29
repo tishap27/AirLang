@@ -190,9 +190,17 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 */
 airlang_boln readerClear(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL || readerPointer->content == NULL) {
+		return AirLang_FALSE;
+	}
 	/* TO_DO: Adjust positions to zero */
+	readerPointer->position.read = 0; 
+	readerPointer->position.wrte = 0; 
+	readerPointer->position.mark = 0; 
+
 	/* TO_DO: Adjust flags original */
-	return AirLang_FALSE;
+	readerPointer->flags = READER_SET_FLAG_EMP; 
+	return AirLang_TRUE;
 }
 
 /*
@@ -210,10 +218,16 @@ airlang_boln readerClear(BufferPointer const readerPointer) {
 *************************************************************
 */
 airlang_boln readerFree(BufferPointer const readerPointer) {
-
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return AirLang_FALSE;
+	}
 	/* Free memory (buffer/content) */
-	return AirLang_FALSE;
+	if (readerPointer->content) {
+		free(readerPointer->content);
+	}
+	free(readerPointer);
+	return AirLang_TRUE;
 }
 
 /*
@@ -232,8 +246,13 @@ airlang_boln readerFree(BufferPointer const readerPointer) {
 */
 airlang_boln readerIsFull(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return AirLang_FALSE; 
+	}
+
 	/* TO_DO: Check flag if buffer is FUL */
-	return AirLang_FALSE;
+
+	return(readerPointer -> flags & READER_SET_FLAG_FUL) ? AirLang_TRUE: AirLang_FALSE;
 }
 
 
@@ -253,8 +272,13 @@ airlang_boln readerIsFull(BufferPointer const readerPointer) {
 */
 airlang_boln readerIsEmpty(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return AirLang_FALSE;
+	}
+
 	/* TO_DO: Check flag if buffer is EMP */
-	return AirLang_FALSE;
+
+	return(readerPointer->flags & READER_SET_FLAG_EMP) ? AirLang_TRUE : AirLang_FALSE;
 }
 
 /*
@@ -274,8 +298,12 @@ airlang_boln readerIsEmpty(BufferPointer const readerPointer) {
 */
 airlang_boln readerSetMark(BufferPointer const readerPointer, airlang_intg mark) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL || mark <0 || mark > readerPointer->position.wrte) {
+		return AirLang_FALSE;
+	}
 	/* TO_DO: Adjust mark */
-	return AirLang_FALSE;
+	readerPointer->position.mark = mark; 
+	return AirLang_TRUE;
 }
 
 
@@ -295,8 +323,14 @@ airlang_boln readerSetMark(BufferPointer const readerPointer, airlang_intg mark)
 */
 airlang_intg readerPrint(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming (including invalid chars) */
+	if (readerPointer == NULL || readerPointer->content == NULL) {
+		return 0; 
+	}
 	/* TO_DO: Print the buffer content */
-	return 0;
+	for (airlang_intg i = 0; i < readerPointer->position.wrte; ++i) {
+		putchar(readerPointer->content[i]);
+	}
+	return readerPointer->position.wrte;
 }
 
 /*
@@ -316,10 +350,37 @@ airlang_intg readerPrint(BufferPointer const readerPointer) {
 *************************************************************
 */
 airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName) {
+	airlang_intg size = 0;
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL || readerPointer->content == NULL || fileName == NULL) {
+		return READER_ERROR;
+	}
 	/* TO_DO: Loads the file */
+	FILE* file = fopen(fileName, "r");
+	if (file == NULL) {
+		errorPrint("Error: couldn't open fiel to read");
+		return 0; 
+	}
+
+	airlang_intg count = 0; 
+	airlang_intg ch;
+	while ((ch = fgetc(file)) != EOF && count < readerPointer->size) {
+		readerPointer->content[count] = (airlang_char)ch; 
+		readerPointer->histogram[(unsigned char)ch]++; 
+		count++; 
+	}
+	fclose(file);
+	readerPointer->position.wrte = count; 
+
 	/* TO_DO: Creates the string calling vigenereMem(fileName, STR_LANGNAME, DECYPHER) */
-	return 0;
+	airlang_strg output = vigenereMem(fileName, STR_LANGNAME, DECYPHER);
+	size = (airlang_intg)strlen(output);
+	for (airlang_intg i = 0; i < size; i++) {
+		readerAddChar(readerPointer, output[i]);
+	}
+
+	return size;
+	//return count;
 }
 
 /*
@@ -338,8 +399,14 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 */
 airlang_boln readerRecover(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return AirLang_FALSE; 
+	}
 	/* TO_DO: Adjust read and mark to zero */
-	return AirLang_FALSE;
+	readerPointer->position.read = 0; 
+	readerPointer->position.mark = 0;
+
+	return AirLang_TRUE;
 }
 
 
@@ -359,7 +426,14 @@ airlang_boln readerRecover(BufferPointer const readerPointer) {
 */
 airlang_boln readerRetract(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return AirLang_FALSE;
+	}
 	/* TO_DO: Retract (return 1 pos read) */
+	if (readerPointer->position.read > 0) {
+		readerPointer->position.read--;
+		return AirLang_TRUE;
+	}
 	return AirLang_FALSE;
 }
 
@@ -380,7 +454,11 @@ airlang_boln readerRetract(BufferPointer const readerPointer) {
 */
 airlang_boln readerRestore(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL) {
+		return AirLang_FALSE; 
+	}
 	/* TO_DO: Restore read to mark */
+	readerPointer->position.read = readerPointer->position.mark;
 	return AirLang_TRUE;
 }
 
@@ -402,8 +480,14 @@ airlang_boln readerRestore(BufferPointer const readerPointer) {
 */
 airlang_char readerGetChar(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == NULL || readerPointer->content == NULL) {
+		return READER_TERMINATOR;
+	}
 	/* TO_DO: Returns size in the read position and updates read */
-	return '\0';
+	if (readerPointer->position.read >= readerPointer->position.wrte) {
+		return READER_TERMINATOR;
+	}
+	return readerPointer->content[readerPointer->position.read++];
 }
 
 
