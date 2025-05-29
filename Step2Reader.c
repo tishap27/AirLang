@@ -152,23 +152,45 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 		return NULL; 
 	}
 	/* TO_DO: Test the inclusion of chars */
-	if (readerPointer->position.wrte >= readerPointer->size){
+	if (readerPointer->position.wrte *(airlang_intg) sizeof(airlang_char)< readerPointer->size){
 		/* TO_DO: Buffer not full: set flag */
 		readerPointer->flags |= READER_SET_FLAG_FUL; 
+		//readerPointer->flags.isFull = AirLang_FALSE;  /*BUFFER  is not full acc to video will have to update flag struct*/
 		return NULL; 
 	}
 	else {
 		/* TO_DO: Reset Full flag */
 		readerPointer->flags &= ~READER_SET_FLAG_FUL;
+		//readerPointer->flags.isFull = AirLang_TRUE;
 		/* TO_DO: Adjust the size to be duplicated */
-		//newSize = readerPointer->size * 2;
+		 newSize = readerPointer->size * 2;
 		/* TO_DO: Defensive programming */
+		 if (newSize > 0) {
+			 tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char)); 
+			 if (tempReader == NULL) {
+				 errorPrint("%s%s", "Error:  Cannot reallocate memory for Buffer Reader. \n");
+				 return INVALID; 
+			 }
+			 if (tempReader != readerPointer->content) {        // they are different (!=) u moved	 
+				 //readerPointer->flags.ismoved = AirLang_TRUE; 
+				 //errorPrint("%s%s", "Reallocation did not change the memory");   /*FOR EQUAL */
+				 //return INVALID;
+			 }
+			 readerPointer->content = tempReader; /*UPDATING CONTENT pointer*/
+			 readerPointer->size = newSize; /*updating Size*/
+			 
+		 }
+		 else {
+			 errorPrint("%s%s", "Invalid Size for reallocation");
+			 return INVALID;
+		 }
+		 
 	}
 	/* TO_DO: Add the char */
 	readerPointer->content[readerPointer->position.wrte++] = ch; 
 	
 	/* TO_DO: Updates histogram */
-	readerPointer->histogram[(unsigned char)ch]++ ;
+	readerPointer->histogram[(airlang_char )ch]++ ;
 
 
 	return readerPointer;
@@ -591,8 +613,11 @@ airlang_intg readerGetPosMark(BufferPointer const readerPointer) {
 */
 airlang_intg readerGetSize(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
+	if (readerPointer == INVALID) {
+		return 0; 
+	}
 	/* TO_DO: Return size */
-	return 0;
+	return readerPointer->size;
 }
 
 /*
@@ -667,7 +692,17 @@ airlang_intg readerNumErrors(BufferPointer const readerPointer) {
 */
 
 airlang_intg readerChecksum(BufferPointer readerPointer) {
+	airlang_intg  checksum = 0;
+
 	/* TO_DO: Defensive programming */
+	if (readerPointer == INVALID || readerPointer->content == NULL) {
+		errorPrint("%s%s", "Invalid buffer reader or content ");
+		return 0; 
+	}
 	/* TO_DO: Return the checksum (given by the content) */
-	return 0;
+	for (airlang_intg i = 0; i < readerPointer->position.wrte; ++i) {
+		checksum += readerPointer->content[i];
+	}
+	
+	return checksum;
 }
