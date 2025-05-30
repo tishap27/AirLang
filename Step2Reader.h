@@ -66,9 +66,9 @@
 /* CONSTANTS DEFINITION: PREFIXED BY LANGUAGE NAME .................................. */
 
 /* TO_DO: You should add your own constant definitions here */
-#define READER_MAX_SIZE	0					/* maximum capacity */ 
+#define READER_MAX_SIZE	1000					/* maximum capacity */ 
 
-#define READER_DEFAULT_SIZE			0		/* default initial buffer reader capacity */
+#define READER_DEFAULT_SIZE			250		/* default initial buffer reader capacity */
 
 /* Add your bit-masks constant definitions here */
 /* BITS                                    (  76543210) */
@@ -109,7 +109,7 @@ typedef struct flag {
 typedef struct bufferReader {
 	airlang_strg		content;			/* pointer to the beginning of character array (character buffer) */
 	airlang_intg		size;				/* current dynamic memory size (in bytes) allocated to character buffer */
-	airlang_byte		flags;				/* contains character array reallocation flag and end-of-buffer flag */
+	Flag		flags;				/* contains character array reallocation flag and end-of-buffer flag */
 	Position		position;			/* Offset / position field */
 	airlang_intg		histogram[NCHAR];	/* Statistics of chars */
 	airlang_intg		numReaderErrors;	/* Number of errors from Reader */

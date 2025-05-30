@@ -122,7 +122,10 @@ BufferPointer readerCreate(airlang_intg size) {
 	readerPointer->size = size; 
 	/* TO_DO: Initialize flags */
 	/* TO_DO: The created flag must be signalized as EMP */
-	readerPointer->flags = READER_SET_FLAG_EMP;
+	readerPointer->flags.isEmpty = AirLang_TRUE;
+	readerPointer->flags.isFull = AirLang_FALSE;
+	readerPointer->flags.isRead = AirLang_FALSE;
+	readerPointer->flags.isMoved = AirLang_FALSE;
 	return readerPointer;
 }
 
@@ -154,14 +157,13 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 	/* TO_DO: Test the inclusion of chars */
 	if (readerPointer->position.wrte *(airlang_intg) sizeof(airlang_char)< readerPointer->size){
 		/* TO_DO: Buffer not full: set flag */
-		readerPointer->flags |= READER_SET_FLAG_FUL; 
-		//readerPointer->flags.isFull = AirLang_FALSE;  /*BUFFER  is not full acc to video will have to update flag struct*/
+		 
+		readerPointer->flags.isFull = AirLang_FALSE;  /*BUFFER  is not full acc to video will have to update flag struct*/
 		return NULL; 
 	}
 	else {
 		/* TO_DO: Reset Full flag */
-		readerPointer->flags &= ~READER_SET_FLAG_FUL;
-		//readerPointer->flags.isFull = AirLang_TRUE;
+		readerPointer->flags.isFull = AirLang_TRUE;
 		/* TO_DO: Adjust the size to be duplicated */
 		 newSize = readerPointer->size * 2;
 		/* TO_DO: Defensive programming */
@@ -221,7 +223,10 @@ airlang_boln readerClear(BufferPointer const readerPointer) {
 	readerPointer->position.mark = 0; 
 
 	/* TO_DO: Adjust flags original */
-	readerPointer->flags = READER_SET_FLAG_EMP; 
+	readerPointer->flags.isEmpty = AirLang_TRUE;
+	readerPointer->flags.isFull = AirLang_FALSE;
+	readerPointer->flags.isRead = AirLang_FALSE;
+	readerPointer->flags.isMoved = AirLang_FALSE;
 	return AirLang_TRUE;
 }
 
@@ -274,7 +279,7 @@ airlang_boln readerIsFull(BufferPointer const readerPointer) {
 
 	/* TO_DO: Check flag if buffer is FUL */
 
-	return(readerPointer -> flags & READER_SET_FLAG_FUL) ? AirLang_TRUE: AirLang_FALSE;
+	return (readerPointer->flags.isFull == AirLang_TRUE) ? AirLang_TRUE: AirLang_FALSE;
 }
 
 
@@ -300,7 +305,7 @@ airlang_boln readerIsEmpty(BufferPointer const readerPointer) {
 
 	/* TO_DO: Check flag if buffer is EMP */
 
-	return(readerPointer->flags & READER_SET_FLAG_EMP) ? AirLang_TRUE : AirLang_FALSE;
+	return(readerPointer->flags.isEmpty == AirLang_TRUE) ? AirLang_TRUE : AirLang_FALSE;
 }
 
 /*
@@ -660,7 +665,12 @@ airlang_byte readerGetFlags(BufferPointer const readerPointer) {
 		return READER_ERROR;
 	}
 	/* TO_DO: Return flags */
-	return readerPointer->flags;
+	airlang_byte result = 0; 
+	if (readerPointer->flags.isEmpty) result |= 0x01; // bit 0
+	if (readerPointer->flags.isFull)  result |= 0x02; // bit 1
+	if (readerPointer->flags.isRead)  result |= 0x04; // bit 2
+	if (readerPointer->flags.isMoved) result |= 0x08; // bit 3
+	return result;
 }
 
 /*
