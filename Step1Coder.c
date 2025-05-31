@@ -90,7 +90,7 @@ void vigenereFile(const airlang_strg inputFileName, const airlang_strg outputFil
     //opens the output file
     FILE* inputFile = fopen(inputFileName, "r");
     if (inputFile == NULL) {
-        errorPrint("Error: Cannot open input file %s\n", inputFileName);
+        //errorPrint("Error: Cannot open input file %s\n", inputFileName);
         return;
     }
    
@@ -185,7 +185,7 @@ airlang_strg vigenereMem(const airlang_strg inputFileName, const airlang_strg ke
 
     FILE* inputFile = fopen(inputFileName, "r");
     if (inputFile ==  NULL) {
-        errorPrint("Error: Cannot open input file %s", inputFileName);
+        //errorPrint("Error: Cannot open input file %s", inputFileName);
         return NULL;
     }
 

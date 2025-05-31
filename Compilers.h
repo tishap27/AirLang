@@ -56,6 +56,8 @@
 #define AirLang_TRUE  1        //afirmative
 #define AirLang_FALSE 0		  // negative 
 
+#define ERROR (-1)
+
 #define INVALID NULL
 #define EOF_CHAR '\0'
 #define EARTH_RADIUS 6371  //km

@@ -76,6 +76,7 @@
 #define ANSI_C 1
 #endif
 
+#define SUFFIX_READER ".dal" 
 /*
  * TODO .......................................................................
  * Basically, change all datatypes to your language definitions
@@ -108,13 +109,14 @@ airlang_intg main2Reader(airlang_intg argc, airlang_strg* argv) {
 	airlang_strg program = argv[0];
 	airlang_strg input = argv[2];
 	airlang_intg size = 0;
-	///airlang_strg output = (char*)malloc(strlen(input) + strlen(SUFFIX_READER) + 1);
-    ///if (output == NULL) {  
-    ///   errorPrint("Memory allocation failed for 'output'.");  
-    ///   exit(EXIT_FAILURE);  
-    ///}
-    ///strcpy(output, input);
-	///strcat(output, SUFFIX_READER);
+	airlang_strg output = (char*)malloc(strlen(input) + strlen(SUFFIX_READER) + 1);
+    if (output == NULL) {  
+       errorPrint("Memory allocation failed for 'output'.");  
+       exit(EXIT_FAILURE);  
+    }
+    strcpy(output, input);
+	strcat(output, SUFFIX_READER);
+
 	/* Missing file name or/and mode parameter */
 	if (argc <= 2) {
 		errorPrint("\nDate: %s  Time: %s", __DATE__, __TIME__);

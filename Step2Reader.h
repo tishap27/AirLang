@@ -66,7 +66,7 @@
 /* CONSTANTS DEFINITION: PREFIXED BY LANGUAGE NAME .................................. */
 
 /* TO_DO: You should add your own constant definitions here */
-#define READER_MAX_SIZE	1000					/* maximum capacity */ 
+#define READER_MAX_SIZE	32768					/* maximum capacity */ 
 
 #define READER_DEFAULT_SIZE			250		/* default initial buffer reader capacity */
 

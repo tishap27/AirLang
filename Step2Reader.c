@@ -384,7 +384,7 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 	/* TO_DO: Loads the file */
 	FILE* file = fopen(fileName, "r");
 	if (file == NULL) {
-		errorPrint("Error: couldn't open fiel to read");
+		//errorPrint("Error: couldn't open file to read");
 		readerPointer->numReaderErrors++;
 		return -1;
 	}
@@ -400,7 +400,7 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 	fclose(file);
 
 	/* TO_DO: Creates the string calling vigenereMem(fileName, STR_LANGNAME, DECYPHER) */
-	if (count > 0 && strstr(fileName, "err.txt") == NULL) {
+	if (count > 0 && strstr(fileName, "err") == NULL) {
 
 		airlang_strg tempContent = (airlang_strg)malloc((count + 1) * sizeof(airlang_char));
 		if (tempContent != NULL) {
