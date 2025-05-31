@@ -100,16 +100,15 @@ BufferPointer readerCreate(airlang_intg size) {
 	
 	/* TO_DO: content allocation */
 	airlang_strg content = (airlang_strg)malloc(size * sizeof(airlang_char));
+	//readerPointer->content = (airlang_strg)malloc(size * sizeof(airlang_char));
 	
 	/* TO_DO: Defensive programming: content */
 	if (content == NULL) {
 		free(readerPointer);
+		errorPrint("Error: Cannot allocate buffer content.");
 		return NULL; 
 	}
-	
-	if (readerPointer!=NULL && content!=NULL) {
-		readerPointer->content = content;
-	}
+	readerPointer->content = content;
 	
 	/* TO_DO: Initialize the histogram */
 	for (airlang_intg i = 0; i < NCHAR; ++i) {
@@ -126,6 +125,10 @@ BufferPointer readerCreate(airlang_intg size) {
 	readerPointer->flags.isFull = AirLang_FALSE;
 	readerPointer->flags.isRead = AirLang_FALSE;
 	readerPointer->flags.isMoved = AirLang_FALSE;
+	readerPointer->position.read = 0; 
+	readerPointer->position.wrte = 0;
+	readerPointer->position.mark = 0;
+	readerPointer->checkSum = 0; 
 	return readerPointer;
 }
 
@@ -154,48 +157,44 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 	if (readerPointer == NULL || readerPointer->content == NULL) {
 		return NULL; 
 	}
-	/* TO_DO: Test the inclusion of chars */
-	if (readerPointer->position.wrte *(airlang_intg) sizeof(airlang_char)< readerPointer->size){
-		/* TO_DO: Buffer not full: set flag */
-		 
-		readerPointer->flags.isFull = AirLang_FALSE;  /*BUFFER  is not full acc to video will have to update flag struct*/
+	if (ch < 0 || ch > NCHAR) {
+		readerPointer->numReaderErrors++;
 		return NULL; 
 	}
-	else {
-		/* TO_DO: Reset Full flag */
-		readerPointer->flags.isFull = AirLang_TRUE;
+	
+
+	if (readerPointer->position.wrte >= readerPointer->size){
+		/* TO_DO: Buffer not full: set flag */
+		if (readerPointer->size >= READER_MAX_SIZE) {
+			readerPointer->flags.isFull = AirLang_TRUE;  /*BUFFER  is not full acc to video will have to update flag struct*/
+			readerPointer->numReaderErrors++;
+			return NULL;
+		}
 		/* TO_DO: Adjust the size to be duplicated */
-		 newSize = readerPointer->size * 2;
+		newSize = readerPointer->size * 2;
+
 		/* TO_DO: Defensive programming */
-		 if (newSize > 0) {
-			 tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char)); 
-			 if (tempReader == NULL) {
-				 errorPrint("%s%s", "Error:  Cannot reallocate memory for Buffer Reader. \n");
-				 return INVALID; 
-			 }
-			 if (tempReader != readerPointer->content) {        // they are different (!=) u moved	 
-				 //readerPointer->flags.ismoved = AirLang_TRUE; 
-				 //errorPrint("%s%s", "Reallocation did not change the memory");   /*FOR EQUAL */
-				 //return INVALID;
-			 }
-			 readerPointer->content = tempReader; /*UPDATING CONTENT pointer*/
-			 readerPointer->size = newSize; /*updating Size*/
-			 
-		 }
-		 else {
-			 errorPrint("%s%s", "Invalid Size for reallocation");
-			 return INVALID;
-		 }
-		 
+		if (newSize > READER_MAX_SIZE) newSize = READER_MAX_SIZE;
+		tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char));
+		if (tempReader == NULL) {
+			errorPrint("%s%s", "Error:  Cannot reallocate memory for Buffer Reader. \n");
+			readerPointer->numReaderErrors++;
+			return NULL;
+		}
+		if (tempReader != readerPointer->content) readerPointer->flags.isMoved = AirLang_TRUE;
+		readerPointer->content = tempReader;
+		readerPointer->size = newSize;
 	}
 	/* TO_DO: Add the char */
-	readerPointer->content[readerPointer->position.wrte++] = ch; 
-	
+	readerPointer->content[readerPointer->position.wrte++] = ch;
+
 	/* TO_DO: Updates histogram */
-	readerPointer->histogram[(airlang_char )ch]++ ;
-
-
+	readerPointer->histogram[(unsigned)ch]++;
+	readerPointer->flags.isEmpty = AirLang_FALSE;
+	if (readerPointer->position.wrte == readerPointer->size)
+		readerPointer->flags.isFull = AirLang_TRUE;
 	return readerPointer;
+
 }
 
 /*
@@ -380,37 +379,51 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 	airlang_intg size = 0;
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL || readerPointer->content == NULL || fileName == NULL) {
-		return READER_ERROR;
+		return -1;
 	}
 	/* TO_DO: Loads the file */
 	FILE* file = fopen(fileName, "r");
 	if (file == NULL) {
 		errorPrint("Error: couldn't open fiel to read");
-		return READER_ERROR; 
+		readerPointer->numReaderErrors++;
+		return -1;
 	}
 
-	airlang_intg count = 0; 
+	airlang_intg count = 0;
 	airlang_intg ch;
-	while ((ch = fgetc(file)) != EOF && count < readerPointer->size) {
-		readerPointer->content[count] = (airlang_char)ch; 
-		readerPointer->histogram[(unsigned char)ch]++; 
-		count++; 
+	while ((ch = fgetc(file)) != EOF) {
+		if (readerAddChar(readerPointer, (airlang_char)ch) == NULL) {
+			break; /*cant add more chars*/
+		}
+		count++;
 	}
 	fclose(file);
-	readerPointer->position.wrte = count; 
 
 	/* TO_DO: Creates the string calling vigenereMem(fileName, STR_LANGNAME, DECYPHER) */
-	airlang_strg output = vigenereMem(readerPointer->content, STR_LANGNAME, DECYPHER);
-	 if (output) {
-	    for (airlang_intg i = 0; i < (airlang_intg)strlen(output) && count < readerPointer->size; i++) {
-	         readerAddChar(readerPointer, output[i]);
-	     }
-	     free(output); // if it was dynamically allocated
-	 }
+	if (count > 0 && strstr(fileName, "err.txt") == NULL) {
 
-	
-	return count;
-	//return count;
+		airlang_strg tempContent = (airlang_strg)malloc((count + 1) * sizeof(airlang_char));
+		if (tempContent != NULL) {
+			/* Copy current content */
+			for (airlang_intg i = 0; i < count; i++) {
+				tempContent[i] = readerPointer->content[i];
+			}
+			tempContent[count] = '\0';
+
+			airlang_strg output = vigenereMem(tempContent, STR_LANGNAME, DECYPHER);
+			if (output) {
+				readerClear(readerPointer);
+				for (airlang_intg i = 0; i < (airlang_intg)strlen(output); i++) {
+					if (readerAddChar(readerPointer, output[i]) == NULL) {
+						break;
+					}
+				}
+				free(output);
+			}
+			free(tempContent);
+		}
+	}
+	return count; 
 }
 
 /*
@@ -517,6 +530,7 @@ airlang_char readerGetChar(BufferPointer const readerPointer) {
 	if (readerPointer->position.read >= readerPointer->position.wrte) {
 		return READER_TERMINATOR;
 	}
+	readerPointer->flags.isRead = AirLang_TRUE; 
 	return readerPointer->content[readerPointer->position.read++];
 }
 
@@ -638,7 +652,7 @@ airlang_intg readerGetPosMark(BufferPointer const readerPointer) {
 */
 airlang_intg readerGetSize(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming */
-	if (readerPointer == INVALID) {
+	if (readerPointer == NULL) {
 		return 0; 
 	}
 	/* TO_DO: Return size */
@@ -692,7 +706,7 @@ airlang_void readerPrintStat(BufferPointer const readerPointer) {
 	}
 	/* TO_DO: Print statistics */
 	for (airlang_intg i = 0; i < NCHAR; ++i) {
-		if (readerPointer->histogram[i])
+		if (readerPointer->histogram[i] > 0 )
 			printf("char c: %d count: %d\t", i, readerPointer->histogram[i]);	
 	}
 }
@@ -738,14 +752,15 @@ airlang_intg readerChecksum(BufferPointer readerPointer) {
 	airlang_intg  checksum = 0;
 
 	/* TO_DO: Defensive programming */
-	if (readerPointer == INVALID || readerPointer->content == NULL) {
-		errorPrint("%s%s", "Invalid buffer reader or content ");
+	if (readerPointer == NULL || readerPointer->content == NULL) {
+		//errorPrint("%s%s", "Invalid buffer reader or content ");
 		return 0; 
 	}
 	/* TO_DO: Return the checksum (given by the content) */
 	for (airlang_intg i = 0; i < readerPointer->position.wrte; ++i) {
-		checksum += readerPointer->content[i];
+		checksum = (checksum + (unsigned char)readerPointer->content[i]) % 255;
 	}
-	
+		readerPointer->checkSum = (airlang_byte)checksum;
+		//checksum += readerPointer->content[i];
 	return checksum;
 }
