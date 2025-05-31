@@ -164,19 +164,7 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 
 
 	if (readerPointer->position.wrte >= readerPointer->size) {
-		readerPointer->flags.isFull = AirLang_FALSE;
-	}
-	/* TO_DO: Buffer not full: set flag */
-	/*if (readerPointer->size >= READER_MAX_SIZE) {
-		readerPointer->flags.isFull = AirLang_TRUE;  //BUFFER  is not full acc to video will have to update flag struct
-		readerPointer->numReaderErrors++;
-		return NULL;
-	}*/
 
-
-	/* TO_DO: Defensive programming */
-	else {
-		/* TO_DO: Adjust the size to be duplicated */
 		newSize = readerPointer->size * 2;
 		if (newSize > 0) {
 			tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char));
@@ -191,8 +179,15 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 			readerPointer->content = tempReader;
 			readerPointer->size = newSize;
 		}
-
+		readerPointer->flags.isFull = AirLang_FALSE;
 	}
+	/* TO_DO: Buffer not full: set flag */
+	/*if (readerPointer->size >= READER_MAX_SIZE) {
+		readerPointer->flags.isFull = AirLang_TRUE;  //BUFFER  is not full acc to video will have to update flag struct
+		readerPointer->numReaderErrors++;
+		return NULL;
+	}*/
+
 	/* TO_DO: Add the char */
 	readerPointer->content[readerPointer->position.wrte++] = ch;
 	/* TO_DO: Updates histogram */
