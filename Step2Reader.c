@@ -155,47 +155,51 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL || readerPointer->content == NULL) {
-		return NULL; 
+		return NULL;
 	}
 	if (ch < 0 || ch > NCHAR) {
 		readerPointer->numReaderErrors++;
-		return NULL; 
+		return NULL;
 	}
-	
 
-	if (readerPointer->position.wrte >= readerPointer->size){
-		/* TO_DO: Buffer not full: set flag */
-		if (readerPointer->size >= READER_MAX_SIZE) {
-			readerPointer->flags.isFull = AirLang_TRUE;  /*BUFFER  is not full acc to video will have to update flag struct*/
-			readerPointer->numReaderErrors++;
-			return NULL;
-		}
+
+	if (readerPointer->position.wrte >= readerPointer->size) {
+		readerPointer->flags.isFull = AirLang_FALSE;
+	}
+	/* TO_DO: Buffer not full: set flag */
+	/*if (readerPointer->size >= READER_MAX_SIZE) {
+		readerPointer->flags.isFull = AirLang_TRUE;  //BUFFER  is not full acc to video will have to update flag struct
+		readerPointer->numReaderErrors++;
+		return NULL;
+	}*/
+
+
+	/* TO_DO: Defensive programming */
+	else {
 		/* TO_DO: Adjust the size to be duplicated */
 		newSize = readerPointer->size * 2;
-
-		/* TO_DO: Defensive programming */
-		if (newSize > READER_MAX_SIZE) newSize = READER_MAX_SIZE;
-		tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char));
-		if (tempReader == NULL) {
-			errorPrint("%s%s", "Error:  Cannot reallocate memory for Buffer Reader. \n");
-			readerPointer->numReaderErrors++;
-			return NULL;
+		if (newSize > 0) {
+			tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char));
+			if (tempReader == NULL) {
+				errorPrint("%s%s", "Error:  Cannot reallocate memory for Buffer Reader.\n");
+				readerPointer->numReaderErrors++;
+				return NULL;
+			}
+			if (tempReader != readerPointer->content) {
+				readerPointer->flags.isMoved = AirLang_TRUE;
+			}
+			readerPointer->content = tempReader;
+			readerPointer->size = newSize;
 		}
-		if (tempReader != readerPointer->content) readerPointer->flags.isMoved = AirLang_TRUE;
-		readerPointer->content = tempReader;
-		readerPointer->size = newSize;
+
 	}
 	/* TO_DO: Add the char */
 	readerPointer->content[readerPointer->position.wrte++] = ch;
-
 	/* TO_DO: Updates histogram */
 	readerPointer->histogram[(unsigned)ch]++;
-	readerPointer->flags.isEmpty = AirLang_FALSE;
-	if (readerPointer->position.wrte == readerPointer->size)
-		readerPointer->flags.isFull = AirLang_TRUE;
 	return readerPointer;
-
 }
+
 
 /*
 ***********************************************************
@@ -753,14 +757,15 @@ airlang_intg readerChecksum(BufferPointer readerPointer) {
 
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL || readerPointer->content == NULL) {
-		//errorPrint("%s%s", "Invalid buffer reader or content ");
+		errorPrint("%s%s", "Invalid buffer reader or content ");
 		return 0; 
 	}
 	/* TO_DO: Return the checksum (given by the content) */
 	for (airlang_intg i = 0; i < readerPointer->position.wrte; ++i) {
-		checksum = (checksum + (unsigned char)readerPointer->content[i]) % 255;
+		//checksum = (checksum + (unsigned char)readerPointer->content[i]) % 255;
+		checksum += readerPointer->content[i];
 	}
-		readerPointer->checkSum = (airlang_byte)checksum;
+		//readerPointer->checkSum = (airlang_byte)checksum;
 		//checksum += readerPointer->content[i];
 	return checksum;
 }
