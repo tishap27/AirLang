@@ -374,56 +374,44 @@ airlang_intg readerPrint(BufferPointer const readerPointer) {
 *	- Adjust for your LANGUAGE.
 *************************************************************
 */
+
+
 airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName) {
-	airlang_intg size = 0;
-	/* TO_DO: Defensive programming */
-	if (readerPointer == NULL || readerPointer->content == NULL || fileName == NULL) {
+	// TO_DO: Defensive programming 
+	if (readerPointer == NULL || fileName == NULL) {
 		return -1;
 	}
-	/* TO_DO: Loads the file */
+	/* TO_DO: Loads the file */ 
 	FILE* file = fopen(fileName, "r");
 	if (file == NULL) {
 		//errorPrint("Error: couldn't open file to read");
 		readerPointer->numReaderErrors++;
 		return -1;
 	}
+	// Clear the buffer before loading new content
+	readerClear(readerPointer);
 
+	/* TO_DO: Creates the string calling vigenereMem(fileName, STR_LANGNAME, DECYPHER)*/
+	airlang_strg output = vigenereMem(fileName, STR_LANGNAME, DECYPHER);
+	if (output == NULL) {
+		readerPointer->numReaderErrors++;
+		return -1;
+	}
+
+	// Add output to buffer and count successful adds
+	airlang_intg size = (airlang_intg)strlen(output);
 	airlang_intg count = 0;
-	airlang_intg ch;
-	while ((ch = fgetc(file)) != EOF) {
-		if (readerAddChar(readerPointer, (airlang_char)ch) == NULL) {
-			break; /*cant add more chars*/
+	for (airlang_intg i = 0; i < size; i++) {
+		if (readerAddChar(readerPointer, output[i]) == NULL) {
+			break;
 		}
 		count++;
 	}
-	fclose(file);
+	free(output); 
 
-	/* TO_DO: Creates the string calling vigenereMem(fileName, STR_LANGNAME, DECYPHER) */
-	if (count > 0 && strstr(fileName, "err") == NULL) {
-
-		airlang_strg tempContent = (airlang_strg)malloc((count + 1) * sizeof(airlang_char));
-		if (tempContent != NULL) {
-			/* Copy current content */
-			for (airlang_intg i = 0; i < count; i++) {
-				tempContent[i] = readerPointer->content[i];
-			}
-			tempContent[count] = '\0';
-
-			airlang_strg output = vigenereMem(tempContent, STR_LANGNAME, DECYPHER);
-			if (output) {
-				readerClear(readerPointer);
-				for (airlang_intg i = 0; i < (airlang_intg)strlen(output); i++) {
-					if (readerAddChar(readerPointer, output[i]) == NULL) {
-						break;
-					}
-				}
-				free(output);
-			}
-			free(tempContent);
-		}
-	}
 	return count; 
 }
+
 
 /*
 ***********************************************************
