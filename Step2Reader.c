@@ -166,7 +166,7 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 	if (readerPointer->position.wrte >= readerPointer->size) {
 
 		newSize = readerPointer->size * 2;
-		if (newSize > 0 && newSize <= READER_MAX_SIZE) {
+		if (newSize > 0) {
 			tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char));
 			if (tempReader == NULL) {
 				errorPrint("%s%s", "Error:  Cannot reallocate memory for Buffer Reader.\n");
@@ -224,7 +224,7 @@ airlang_boln readerClear(BufferPointer const readerPointer) {
 	readerPointer->flags.isEmpty = AirLang_TRUE;
 	readerPointer->flags.isFull = AirLang_FALSE;
 	readerPointer->flags.isRead = AirLang_FALSE;
-	//readerPointer->flags.isMoved = AirLang_FALSE;
+	readerPointer->flags.isMoved = AirLang_FALSE;
 	return AirLang_TRUE;
 }
 
@@ -387,6 +387,7 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 	if (file == NULL) {
 		//errorPrint("Error: couldn't open file to read");
 		readerPointer->numReaderErrors++;
+		fclose(file);
 		return -1;
 	}
 	// Clear the buffer before loading new content
