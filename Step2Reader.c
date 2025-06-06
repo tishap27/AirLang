@@ -693,9 +693,27 @@ airlang_void readerPrintStat(BufferPointer const readerPointer) {
 	}
 	/* TO_DO: Print statistics */
 	for (airlang_intg i = 0; i < NCHAR; ++i) {
-		if (readerPointer->histogram[i] > 0 )
-			printf("char c: %d count: %d\t", i, readerPointer->histogram[i]);	
+		if (readerPointer->histogram[i] > 0) {
+			//printf("char c: %d count: %d\t", i, readerPointer->histogram[i]);
+			if (i == ' ') {
+				printf("B[ ] = %d\t", readerPointer->histogram[i]);
+			}
+			else if (i == '\n') {
+				printf("B[\\n] = %d\t", readerPointer->histogram[i]);
+			}
+			else if (i == '\t') {
+				printf("B[\\t] = %d\t", readerPointer->histogram[i]);
+			}
+			else if (i >= 32 && i <= 126) {
+				printf("B[%c] = %d\t", i, readerPointer->histogram[i]);
+			}
+			else {
+				printf("B[%02X] = %d\t", i, readerPointer->histogram[i]);
+			}
+		}
 	}
+	printf("\n");
+
 }
 
 /*
