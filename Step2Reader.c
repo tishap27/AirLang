@@ -166,7 +166,7 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 	if (readerPointer->position.wrte >= readerPointer->size) {
 
 		newSize = readerPointer->size * 2;
-		if (newSize > 0) {
+		if (newSize > 0 && newSize <= READER_MAX_SIZE) {
 			tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char));
 			if (tempReader == NULL) {
 				errorPrint("%s%s", "Error:  Cannot reallocate memory for Buffer Reader.\n");
@@ -184,6 +184,12 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 
 	/* TO_DO: Add the char */
 	readerPointer->content[readerPointer->position.wrte++] = ch;
+	readerPointer->flags.isEmpty = AirLang_FALSE;           // No longer empty
+
+	/* Check if buffer is now full */
+	if (readerPointer->position.wrte >= readerPointer->size) {
+		readerPointer->flags.isFull = AirLang_TRUE;
+	}
 	/* TO_DO: Updates histogram */
 	readerPointer->histogram[(unsigned)ch]++;
 	return readerPointer;
@@ -218,7 +224,7 @@ airlang_boln readerClear(BufferPointer const readerPointer) {
 	readerPointer->flags.isEmpty = AirLang_TRUE;
 	readerPointer->flags.isFull = AirLang_FALSE;
 	readerPointer->flags.isRead = AirLang_FALSE;
-	readerPointer->flags.isMoved = AirLang_FALSE;
+	//readerPointer->flags.isMoved = AirLang_FALSE;
 	return AirLang_TRUE;
 }
 
@@ -271,7 +277,7 @@ airlang_boln readerIsFull(BufferPointer const readerPointer) {
 
 	/* TO_DO: Check flag if buffer is FUL */
 
-	return (readerPointer->flags.isFull == AirLang_TRUE) ? AirLang_TRUE: AirLang_FALSE;
+	return (readerPointer->flags.isFull == AirLang_TRUE || readerPointer->position.wrte>=readerPointer->size) ? AirLang_TRUE: AirLang_FALSE;
 }
 
 
@@ -297,7 +303,8 @@ airlang_boln readerIsEmpty(BufferPointer const readerPointer) {
 
 	/* TO_DO: Check flag if buffer is EMP */
 
-	return(readerPointer->flags.isEmpty == AirLang_TRUE) ? AirLang_TRUE : AirLang_FALSE;
+	return(readerPointer->flags.isEmpty == AirLang_TRUE ||
+		readerPointer->position.wrte == 0) ? AirLang_TRUE : AirLang_FALSE;
 }
 
 /*
@@ -389,6 +396,7 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 	airlang_strg output = vigenereMem(fileName, STR_LANGNAME, DECYPHER);
 	if (output == NULL) {
 		readerPointer->numReaderErrors++;
+		fclose(file);
 		return -1;
 	}
 
@@ -401,7 +409,11 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 		}
 		count++;
 	}
-	free(output); 
+	free(output);
+
+	if (count > 0) {
+		readerPointer->flags.isEmpty = AirLang_FALSE;
+	}
 
 	return count; 
 }
@@ -512,7 +524,8 @@ airlang_char readerGetChar(BufferPointer const readerPointer) {
 		return READER_TERMINATOR;
 	}
 	readerPointer->flags.isRead = AirLang_TRUE; 
-	return readerPointer->content[readerPointer->position.read++];
+	airlang_char ch = readerPointer->content[readerPointer->position.read++];
+	return ch;
 }
 
 
@@ -661,10 +674,10 @@ airlang_byte readerGetFlags(BufferPointer const readerPointer) {
 	}
 	/* TO_DO: Return flags */
 	airlang_byte result = 0; 
-	if (readerPointer->flags.isEmpty) result |= 0x01; // bit 0
-	if (readerPointer->flags.isFull)  result |= 0x02; // bit 1
-	if (readerPointer->flags.isRead)  result |= 0x04; // bit 2
-	if (readerPointer->flags.isMoved) result |= 0x08; // bit 3
+	if (readerPointer->flags.isEmpty) result |= READER_SET_FLAG_EMP; // bit 0
+	if (readerPointer->flags.isFull)  result |= READER_SET_FLAG_FUL; // bit 1
+	if (readerPointer->flags.isRead)  result |= READER_SET_FLAG_REL; // bit 2
+	if (readerPointer->flags.isMoved) result |= READER_SET_FLAG_END; // bit 3
 	return result;
 }
 
