@@ -181,12 +181,6 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 		}
 		readerPointer->flags.isFull = AirLang_FALSE;
 	}
-	/* TO_DO: Buffer not full: set flag */
-	/*if (readerPointer->size >= READER_MAX_SIZE) {
-		readerPointer->flags.isFull = AirLang_TRUE;  //BUFFER  is not full acc to video will have to update flag struct
-		readerPointer->numReaderErrors++;
-		return NULL;
-	}*/
 
 	/* TO_DO: Add the char */
 	readerPointer->content[readerPointer->position.wrte++] = ch;
@@ -763,10 +757,8 @@ airlang_intg readerChecksum(BufferPointer readerPointer) {
 	}
 	/* TO_DO: Return the checksum (given by the content) */
 	for (airlang_intg i = 0; i < readerPointer->position.wrte; ++i) {
-		//checksum = (checksum + (unsigned char)readerPointer->content[i]) % 255;
 		checksum += readerPointer->content[i];
 	}
 		//readerPointer->checkSum = (airlang_byte)checksum;
-		//checksum += readerPointer->content[i];
 	return checksum;
 }
