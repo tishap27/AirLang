@@ -180,6 +180,8 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 			readerPointer->size = newSize;
 		}
 		readerPointer->flags.isFull = AirLang_FALSE;
+		readerPointer->flags.isMoved = AirLang_TRUE;
+		readerPointer->flags.isRead = AirLang_TRUE;
 	}
 
 	/* TO_DO: Add the char */
@@ -351,7 +353,7 @@ airlang_intg readerPrint(BufferPointer const readerPointer) {
 	/* TO_DO: Defensive programming (including invalid chars) */
 	if (readerPointer == NULL || readerPointer->content == NULL) {
 		return 0; 
-	}
+	} 
 	/* TO_DO: Print the buffer content */
 	for (airlang_intg i = 0; i < readerPointer->position.wrte; ++i) {
 		putchar(readerPointer->content[i]);
@@ -387,7 +389,6 @@ airlang_intg readerLoad(BufferPointer const readerPointer, airlang_strg fileName
 	if (file == NULL) {
 		//errorPrint("Error: couldn't open file to read");
 		readerPointer->numReaderErrors++;
-		fclose(file);
 		return -1;
 	}
 	// Clear the buffer before loading new content
