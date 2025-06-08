@@ -94,7 +94,7 @@ BufferPointer readerCreate(airlang_intg size) {
 	/*readerPointer = calloc(1, sizeof(Buffer));*/
 	readerPointer = (BufferPointer)calloc(1, sizeof(Buffer));
 	if (readerPointer == NULL) {
-		printf("Error");
+		errorPrint("Error: Cannot allocate memory for buffer reader");
 		return NULL;
 	}
 	
@@ -157,28 +157,34 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 	if (readerPointer == NULL || readerPointer->content == NULL) {
 		return NULL;
 	}
-	if (ch < 0 || ch > NCHAR) {
+	if (ch < 0 || ch >= NCHAR) {
 		readerPointer->numReaderErrors++;
-		return NULL;
+		return readerPointer;
 	}
 
 
 	if (readerPointer->position.wrte >= readerPointer->size) {
 
 		newSize = readerPointer->size * 2;
-		if (newSize > 0) {
+
+		// Check for overflow
+		if (newSize <= readerPointer->size) {
+			readerPointer->numReaderErrors++;
+			return readerPointer;
+		}
+		//if (newSize > 0) {
 			tempReader = realloc(readerPointer->content, newSize * sizeof(airlang_char));
 			if (tempReader == NULL) {
 				errorPrint("%s%s", "Error:  Cannot reallocate memory for Buffer Reader.\n");
 				readerPointer->numReaderErrors++;
-				return NULL;
+				return readerPointer;
 			}
 			if (tempReader != readerPointer->content) {
 				readerPointer->flags.isMoved = AirLang_TRUE;
 			}
 			readerPointer->content = tempReader;
 			readerPointer->size = newSize;
-		}
+		
 		readerPointer->flags.isFull = AirLang_FALSE;
 		readerPointer->flags.isMoved = AirLang_TRUE;
 		readerPointer->flags.isRead = AirLang_TRUE;
@@ -193,7 +199,11 @@ BufferPointer readerAddChar(BufferPointer const readerPointer, airlang_char ch) 
 		readerPointer->flags.isFull = AirLang_TRUE;
 	}
 	/* TO_DO: Updates histogram */
-	readerPointer->histogram[(unsigned)ch]++;
+	if ((unsigned char)ch < NCHAR) {
+		readerPointer->histogram[(unsigned char)ch]++;
+	}
+	// Update checksum: sum of all chars modulo 255
+	readerPointer->checkSum = (readerPointer->checkSum + (unsigned char)ch) % 255;
 	return readerPointer;
 }
 
@@ -250,9 +260,10 @@ airlang_boln readerFree(BufferPointer const readerPointer) {
 		return AirLang_FALSE;
 	}
 	/* Free memory (buffer/content) */
-	if (readerPointer->content) {
+	if (readerPointer->content != NULL) {
 		free(readerPointer->content);
 	}
+	// readerPointer is const but cast away might create more issues. 
 	free(readerPointer);
 	return AirLang_TRUE;
 }
@@ -279,7 +290,8 @@ airlang_boln readerIsFull(BufferPointer const readerPointer) {
 
 	/* TO_DO: Check flag if buffer is FUL */
 
-	return (readerPointer->flags.isFull == AirLang_TRUE || readerPointer->position.wrte>=readerPointer->size) ? AirLang_TRUE: AirLang_FALSE;
+	return (readerPointer->flags.isFull == AirLang_TRUE ||
+		readerPointer->position.wrte>=readerPointer->size) ? AirLang_TRUE: AirLang_FALSE;
 }
 
 
@@ -329,6 +341,7 @@ airlang_boln readerSetMark(BufferPointer const readerPointer, airlang_intg mark)
 	if (readerPointer == NULL || mark <0 || mark > readerPointer->position.wrte) {
 		return AirLang_FALSE;
 	}
+	
 	/* TO_DO: Adjust mark */
 	readerPointer->position.mark = mark; 
 	return AirLang_TRUE;
@@ -523,9 +536,10 @@ airlang_char readerGetChar(BufferPointer const readerPointer) {
 	}
 	/* TO_DO: Returns size in the read position and updates read */
 	if (readerPointer->position.read >= readerPointer->position.wrte) {
+		readerPointer->flags.isRead = AirLang_TRUE;
 		return READER_TERMINATOR;
 	}
-	readerPointer->flags.isRead = AirLang_TRUE; 
+	readerPointer->flags.isRead = AirLang_FALSE; 
 	airlang_char ch = readerPointer->content[readerPointer->position.read++];
 	return ch;
 }
@@ -551,7 +565,7 @@ airlang_strg readerGetContent(BufferPointer const readerPointer, airlang_intg po
 	if (readerPointer == NULL || readerPointer->content == NULL) {
 		return	NULL;
 	}
-	if (pos <0  || pos > readerPointer->position.wrte) {
+	if (pos <0  || pos >= readerPointer->position.wrte) {
 		return NULL;
 	}
 
@@ -763,7 +777,7 @@ airlang_intg readerNumErrors(BufferPointer const readerPointer) {
 */
 
 airlang_intg readerChecksum(BufferPointer readerPointer) {
-	airlang_intg  checksum = 0;
+	airlang_intg checksum = 0;
 
 	/* TO_DO: Defensive programming */
 	if (readerPointer == NULL || readerPointer->content == NULL) {

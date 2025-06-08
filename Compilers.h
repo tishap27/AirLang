@@ -33,6 +33,7 @@
 * Purpose: This file defines the functions called by main function.
 * Function list: mainReader(), mainScanner(), mainParser().
 *************************************************************/
+//#include <crtdbg.h>  // added this to check memory leaks
 
 #ifndef COMPILERS_H_
 #define COMPILERS_H_

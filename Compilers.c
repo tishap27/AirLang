@@ -69,7 +69,7 @@
 */
 
 airlang_intg main(int argc, char** argv) {
-
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // to check memory leaks included in compilers.h
 	airlang_intg i;
 	printLogo();
 	if (DEBUG) {
