@@ -122,7 +122,7 @@ airlang_intg startScanner(BufferPointer psc_buf) {
  ***********************************************************
  */
 
-Token tokenize(airlang_void) {
+Token tokenizer(airlang_void) {
 
 	/* TO_DO: Follow the standard and adjust datatypes */
 

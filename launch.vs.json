@@ -8,7 +8,7 @@
       "projectTarget": "AirLang.exe",
       "name": "AirLang.exe",
       "args": [
-		2,
+		3,
 		"code.txt"
 	  ]
     }
