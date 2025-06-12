@@ -147,7 +147,7 @@ typedef struct scannerData {
 #define UND_CHR '_'		// CH02
 #define AMP_CHR '&'		// CH03
 #define QUT_CHR '"'		// CH04
-#define HST_CHR '#'		// CH05
+#define HST_CHR '%'		// CH05
 #define TAB_CHR '\t'	// CH06
 #define SPC_CHR ' '		// CH07
 #define NWL_CHR '\n'	// CH08
@@ -265,11 +265,11 @@ Language keywords
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
-	"data",		/* KW00 */
-	"code",		/* KW01 */
-	"int",		/* KW02 */
-	"real",		/* KW03 */
-	"string",	/* KW04 */
+	"main",		/* KW00 */
+	"aircraft",		/* KW01 */
+	"flight",		/* KW02 */
+	"route",		/* KW03 */
+	"dispatch",	/* KW04 */
 	"if",		/* KW05 */
 	"then",		/* KW06 */
 	"else",		/* KW07 */
