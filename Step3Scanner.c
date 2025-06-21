@@ -400,8 +400,7 @@ Token funcIL(airlang_strg lexeme) {
  ***********************************************************
  */
  /* TO_DO: Adjust the function for ID */
-
-Token funcID(airlang_strg lexeme) {
+/*Token funcID(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	size_t length = strlen(lexeme);
 	airlang_char lastch = lexeme[length - 1];
@@ -418,12 +417,44 @@ Token funcID(airlang_strg lexeme) {
 			currentToken = funcKEY(lexeme);
 			break;
 	}
-	if (isID == AirLang_TRUE) {
+	if (currentToken.code == ERR_T) {               //isID == AirLang_TRUE
+		currentToken.code = ID_T;
+		scData.scanHistogram[currentToken.code]++;
 		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
 		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
 	}
 	return currentToken;
+}*/
+Token funcID(airlang_strg lexeme) {
+	Token currentToken = { 0 };
+	size_t length = strlen(lexeme);
+
+	// Check for method identifier (ending with &)
+	if (lexeme[length - 1] == AMP_CHR) {
+		currentToken.code = MNID_T;
+		scData.scanHistogram[currentToken.code]++;
+		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
+		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
+		return currentToken;
+	}
+
+	// Check if it is a keyword
+	currentToken = funcKEY(lexeme);
+
+	// If not a keyword, treat as regular identifier (ID_T)
+	if (currentToken.code == ERR_T) {
+		currentToken.code = ID_T;
+		scData.scanHistogram[currentToken.code]++;
+		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
+		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
+	}
+
+	return currentToken;
 }
+
+
+
+
 
 
 /*
@@ -552,6 +583,9 @@ airlang_void printToken(Token t) {
 		break;
 	case MNID_T:
 		printf("MNID_T\t\t%s\n", t.attribute.idLexeme);
+		break;
+	case ID_T:
+		printf("ID_T\t\t%s\n", t.attribute.idLexeme);
 		break;
 	case STR_T:
 		printf("STR_T\t\t%d\t ", (airlang_intg)t.attribute.codeType);

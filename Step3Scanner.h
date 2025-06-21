@@ -59,12 +59,13 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 13
+#define NUM_TOKENS 14
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
 	ERR_T,		/*  0: Error token */
 	MNID_T,		/*  1: Method name identifier token (start: &) */
+	ID_T ,
 	INL_T,		/*  2: Integer literal token */
 	STR_T,		/*  3: String literal token */
 	LPR_T,		/*  4: Left parenthesis token */
@@ -75,13 +76,14 @@ enum TOKENS {
 	EOS_T,		/*  9: End of statement (semicolon) */
 	RTE_T,		/* 10: Run-time error token */
 	SEOF_T,		/* 11: Source end-of-file token */
-	CMT_T		/* 12: Comment token */
+	CMT_T 	/* 12: Comment token */
 };
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"ERR_T",
 	"MNID_T",
+	"ID_T",
 	"INL_T",
 	"STR_T",
 	"LPR_T",
@@ -245,7 +247,7 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	NULL,		/* -    [00] */
 	NULL,		/* -    [01] */
 	funcID,		/* MNID	[02] */
-	funcKEY,	/* KEY  [03] */
+	funcID,	/* KEY  [03] */
 	NULL,		/* -    [04] */
 	funcSL,		/* SL   [05] */
 	NULL,		/* -    [06] */
