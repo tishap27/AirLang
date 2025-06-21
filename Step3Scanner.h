@@ -166,7 +166,7 @@ typedef struct scannerData {
 /* TO_DO: Error states and illegal state */
 #define ESNR	8		/* Error state with no retract */
 #define ESWR	9		/* Error state with retract */
-#define FS		-11		/* Illegal state */
+#define FS		11		/* Illegal state */
 
  /* TO_DO: State transition table definition */
 #define NUM_STATES		11
