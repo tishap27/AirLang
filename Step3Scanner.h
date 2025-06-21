@@ -172,7 +172,7 @@ typedef struct scannerData {
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
-/*    [A-z],[0-9],    _,    &,   \', SEOF,    #, other
+/*    [A-z],[0-9],    _,    &,   \', SEOF,    %, other
 	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
 	{     1, ESNR, ESNR, ESNR,    4, ESWR,	  6, ESNR},	// S0: NOAS
 	{     1,    1,    1,    2,	  3,    3,   3,    3},	// S1: NOAS
@@ -227,7 +227,7 @@ Automata definitions
 /* TO_DO: Pointer to function (of one char * argument) returning Token */
 typedef Token(*PTR_ACCFUN)(airlang_strg lexeme);
 
-/* Declare accepting states functions */
+/* Declare accepting states functions */ /*can i declare funcAircraftID? , fncflightId?*/
 Token funcSL	(airlang_strg lexeme);
 Token funcIL	(airlang_strg lexeme);
 Token funcID	(airlang_strg lexeme);
@@ -261,21 +261,27 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 11
+#define KWT_SIZE 17
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
-	"main",		/* KW00 */
-	"aircraft",		/* KW01 */
-	"flight",		/* KW02 */
-	"route",		/* KW03 */
-	"dispatch",	/* KW04 */
-	"if",		/* KW05 */
-	"then",		/* KW06 */
-	"else",		/* KW07 */
-	"while",	/* KW08 */
-	"do",		/* KW09 */
-	"return"	/* KW10 */
+	"MAIN",		    /* KW00 */
+	"BRIEING",		/* KW01 */
+	"AIRCRAFT",		/* KW02 */
+	"FLIGHT",		/* KW03 */
+	"ROUTE",		/* KW04 */
+	"DISPATCH",	    /* KW05 */
+	"if",		    /* KW06 */
+	"then",			/* KW07 */
+	"else",			/* KW08 */
+	"end",			/* KW09 */
+	"print",		/* KW010 */
+	"report",		/* KW11 */
+	"calculate"	,	/* KW12 */
+	"endbriefing",	/* KW13 */
+	"endreport"	,	/* KW14 */
+	"enddispatch",	/* KW15 */
+	"endmain",		/* KW16 */
 };
 
 /* NEW SECTION: About indentation */
