@@ -66,7 +66,7 @@ enum TOKENS {
 	ERR_T,		/*  0: Error token */
 	MNID_T,		/*  1: Method name identifier token (start: &) */
 	ID_T ,
-	INL_T,		/*  2: Integer literal token */
+	INT_T,		/*  2: Integer literal token */
 	STR_T,		/*  3: String literal token */
 	LPR_T,		/*  4: Left parenthesis token */
 	RPR_T,		/*  5: Right parenthesis token */
@@ -84,7 +84,7 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"ERR_T",
 	"MNID_T",
 	"ID_T",
-	"INL_T",
+	"INT_T",
 	"STR_T",
 	"LPR_T",
 	"RPR_T",
@@ -166,17 +166,17 @@ typedef struct scannerData {
 /* TO_DO: Error states and illegal state */
 #define ESNR	8		/* Error state with no retract */
 #define ESWR	9		/* Error state with retract */
-#define FS		10		/* Illegal state */
+#define FS		-11		/* Illegal state */
 
  /* TO_DO: State transition table definition */
-#define NUM_STATES		10
+#define NUM_STATES		11
 #define CHAR_CLASSES	8
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 /*    [A-z],[0-9],    _,    &,   \', SEOF,    %, other
 	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
-	{     1, ESNR, ESNR, ESNR,    4, ESWR,	  6, ESNR},	// S0: NOAS
+	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR},	// S0: NOAS
 	{     1,    1,    1,    2,	  3,    3,   3,    3},	// S1: NOAS
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S2: ASNR (MVID)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S3: ASWR (KEY)
@@ -185,7 +185,8 @@ static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	{     6,    6,    6,    6,    6, ESWR,	  7,    6},	// S6: NOAS
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S7: ASNR (COM)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S8: ASNR (ES)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS}  // S9: ASWR (ER)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS}, // S9: ASWR (ER)
+	{    FS,  10,  FS,   FS,   FS,   FS,	 FS,   FS  } // S10: ASWR (IL) - New state for integers
 };
 
 /* Define accepting states types */
@@ -204,7 +205,8 @@ static airlang_intg stateType[NUM_STATES] = {
 	NOFS, /* 06 */
 	FSNR, /* 07 (COM) */
 	FSNR, /* 08 (Err1 - no retract) */
-	FSWR  /* 09 (Err2 - retract) */
+	FSWR,  /* 09 (Err2 - retract) */
+	FSNR  /* 10 (IL) - New state for integer literals */
 };
 
 /*
@@ -247,13 +249,14 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	NULL,		/* -    [00] */
 	NULL,		/* -    [01] */
 	funcID,		/* MNID	[02] */
-	funcID,	/* KEY  [03] */
+	funcID,	    /* KEY  [03] */
 	NULL,		/* -    [04] */
 	funcSL,		/* SL   [05] */
 	NULL,		/* -    [06] */
 	funcCMT,	/* COM  [07] */
 	funcErr,	/* ERR1 [06] */
-	funcErr		/* ERR2 [07] */
+	funcErr,		/* ERR2 [07] */
+	funcIL		/* IL   [10] - New function for integer literals */
 };
 
 /*

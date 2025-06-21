@@ -369,19 +369,43 @@ Token funcCMT(airlang_strg lexeme) {
 Token funcIL(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_long tlong;
-	if (lexeme[0] != EOS_CHR && strlen(lexeme) > NUM_LEN) {
-		currentToken = (*finalStateTable[ESNR])(lexeme);
+	char tempLexeme[NUM_LEN + 2]; // Enough space
+	size_t len = strlen(lexeme);
+
+	// If lexeme ends with a semicolon, strip it
+	if (len > 0 && lexeme[len - 1] == ';') {
+		strncpy(tempLexeme, lexeme, len - 1);
+		tempLexeme[len - 1] = '\0';
+		lexeme = tempLexeme;
+		len--;
 	}
-	else {
+
+	// Check if lexeme is all digits
+	int isAllDigits = 1;
+	for (size_t i = 0; i < len; ++i) {
+		if (!isdigit(lexeme[i])) {
+			isAllDigits = 0;
+			break;
+		}
+	}
+
+	if (isAllDigits && len > 0) {
 		tlong = atol(lexeme);
 		if (tlong >= 0 && tlong <= SHRT_MAX) {
-			currentToken.code = INL_T;
+			currentToken.code = INT_T;
 			scData.scanHistogram[currentToken.code]++;
 			currentToken.attribute.intValue = (airlang_intg)tlong;
 		}
 		else {
+			// Out of range, handle as error
 			currentToken = (*finalStateTable[ESNR])(lexeme);
 		}
+	}
+	else {
+		// Not all digits, treat as identifier or error
+		currentToken.code = ID_T;
+		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN - 1);
+		currentToken.attribute.idLexeme[VID_LEN - 1] = '\0';
 	}
 	return currentToken;
 }
@@ -586,6 +610,9 @@ airlang_void printToken(Token t) {
 		break;
 	case ID_T:
 		printf("ID_T\t\t%s\n", t.attribute.idLexeme);
+		break;
+	case INT_T:  // Added case for integer literals
+		printf("INT_T\t\t%d\n", t.attribute.intValue);
 		break;
 	case STR_T:
 		printf("STR_T\t\t%d\t ", (airlang_intg)t.attribute.codeType);
