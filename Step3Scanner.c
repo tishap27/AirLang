@@ -199,6 +199,11 @@ Token tokenizer(airlang_void) {
 			scData.scanHistogram[currentToken.code]++;
 			currentToken.attribute.seofType = SEOF_255;
 			return currentToken;
+		case COLON_CHR :
+			currentToken.code = COLON_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+
 
 		/* ------------------------------------------------------------------------
 			Part 2: Implementation of Finite State Machine (DFA) or Transition Table driven Scanner
@@ -638,6 +643,9 @@ airlang_void printToken(Token t) {
 		break;
 	case EOS_T:
 		printf("EOS_T\n");
+		break;
+	case COLON_T:
+		printf("COLON_T\n");
 		break;
 	default:
 		printf("Scanner error: invalid token code: %d\n", t.code);
