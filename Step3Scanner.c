@@ -223,7 +223,12 @@ Token tokenizer(airlang_void) {
 			readerSetMark(sourceBuffer, lexStart);
 
 			/* Special handling for numbers */
-			if (isdigit(c) || c == '.') {
+			if (isdigit(c) || c == '.' || c == '-') {
+				if (c == '-' && !isdigit(readerGetChar(sourceBuffer))) {
+					readerRetract(sourceBuffer);
+					break;  // Not a number, just a minus operator
+				}
+
 				while (1) {
 					c = readerGetChar(sourceBuffer);
 					if (isdigit(c) || c == '.') {
@@ -352,7 +357,11 @@ airlang_intg nextClass(airlang_char c) {
 		val =  9;
 		break; 
 	case SCL_CHR:        
-	val = 10; break;
+		val = 10;
+		break;
+	case '-' :
+		val = 11;
+		break; 
 	case EOS_CHR:
 	case (airlang_char) EOF_CHR:
 		val = 5;
@@ -460,7 +469,7 @@ Token funcIL(airlang_strg lexeme) {
 	if (dotPos != NULL) {
 		/* It's a float */
 		currentToken.code = FLOAT_T;
-		currentToken.attribute.floatValue = atof(lexeme);
+		currentToken.attribute.floatValue = strtof(lexeme , NULL);
 	}
 	else {
 		/* It's an integer */
