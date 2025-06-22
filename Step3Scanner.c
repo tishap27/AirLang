@@ -172,6 +172,10 @@ Token tokenizer(airlang_void) {
 			currentToken.code = EOS_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
+		case DEC_CHR:
+			currentToken.code = DEC_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case LPR_CHR:
 			currentToken.code = LPR_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -217,14 +221,30 @@ Token tokenizer(airlang_void) {
 			state = nextState(state, c);
 			lexStart = readerGetPosRead(sourceBuffer) - 1;
 			readerSetMark(sourceBuffer, lexStart);
-			int pos = 0;
-			while (stateType[state] == NOFS) {
-				c = readerGetChar(sourceBuffer);
-				state = nextState(state, c);
-				pos++;
+
+			/* Special handling for numbers */
+			if (isdigit(c) || c == '.') {
+				while (1) {
+					c = readerGetChar(sourceBuffer);
+					if (isdigit(c) || c == '.') {
+						state = nextState(state, c);
+					}
+					else {
+						readerRetract(sourceBuffer);
+						break;
+					}
+				}
 			}
-			if (stateType[state] == FSWR)
-				readerRetract(sourceBuffer);
+			else {
+				/* Normal token processing */
+				while (stateType[state] == NOFS) {
+					c = readerGetChar(sourceBuffer);
+					state = nextState(state, c);
+				}
+				if (stateType[state] == FSWR)
+					readerRetract(sourceBuffer);
+			}
+
 			lexEnd = readerGetPosRead(sourceBuffer);
 			lexLength = lexEnd - lexStart;
 			lexemeBuffer = readerCreate((airlang_intg)lexLength + 2);
@@ -329,7 +349,10 @@ airlang_intg nextClass(airlang_char c) {
 		val = 6;
 		break;
 	case '.':
-		return 9;
+		val =  9;
+		break; 
+	case SCL_CHR:        
+	val = 10; break;
 	case EOS_CHR:
 	case (airlang_char) EOF_CHR:
 		val = 5;
@@ -427,6 +450,32 @@ Token funcIL(airlang_strg lexeme) {
 */
 
 
+//just check if int or float forget everything else
+Token funcIL(airlang_strg lexeme) {
+	Token currentToken = { 0 };
+
+	/* Check if lexeme contains a decimal point */
+	char* dotPos = strchr(lexeme, '.');
+
+	if (dotPos != NULL) {
+		/* It's a float */
+		currentToken.code = FLOAT_T;
+		currentToken.attribute.floatValue = atof(lexeme);
+	}
+	else {
+		/* It's an integer */
+		currentToken.code = INT_T;
+		currentToken.attribute.intValue = atoi(lexeme);
+	}
+
+	scData.scanHistogram[currentToken.code]++;
+	return currentToken;
+}
+
+
+
+
+/*
 Token funcIL(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_long tlong;
@@ -513,7 +562,7 @@ Token funcIL(airlang_strg lexeme) {
 	return currentToken;
 }
 
-
+*/
 
 
 
@@ -732,8 +781,9 @@ airlang_void printToken(Token t) {
 		printf("INT_T\t\t%d\n", t.attribute.intValue);
 		break;
 	case FLOAT_T:
-	printf("FLOAT_T\t\t%.6f\n", t.attribute.floatValue);
+	printf("FLOAT_T\t\t%g\n", t.attribute.floatValue);
 	break;
+
 	case STR_T:
 		printf("STR_T\t\t%d\t ", (airlang_intg)t.attribute.codeType);
 		printf("%s\n", readerGetContent(stringLiteralTable, (airlang_intg)t.attribute.codeType));
@@ -750,6 +800,9 @@ airlang_void printToken(Token t) {
 	case RBR_T:
 		printf("RBR_T\n");
 		break;
+	case DEC_T:
+		printf("DEC_T\n");
+		break; 
 	case KW_T:
 		printf("KW_T\t\t%s\n", keywordTable[t.attribute.codeType]);
 		break;
