@@ -328,6 +328,8 @@ airlang_intg nextClass(airlang_char c) {
 	case HST_CHR:
 		val = 6;
 		break;
+	case '.':
+		return 9;
 	case EOS_CHR:
 	case (airlang_char) EOF_CHR:
 		val = 5;
@@ -376,10 +378,11 @@ Token funcCMT(airlang_strg lexeme) {
   ***********************************************************
   */
   /* TO_DO: Adjust the function for IL */
-
+/*
 Token funcIL(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_long tlong;
+	double tfloat;
 	char tempLexeme[NUM_LEN + 2]; // Enough space
 	size_t len = strlen(lexeme);
 
@@ -391,35 +394,127 @@ Token funcIL(airlang_strg lexeme) {
 		len--;
 	}
 
-	// Check if lexeme is all digits
-	int isAllDigits = 1;
-	for (size_t i = 0; i < len; ++i) {
-		if (!isdigit(lexeme[i])) {
-			isAllDigits = 0;
-			break;
+		// Check if lexeme is all digits
+		int isAllDigits = 1;
+		for (size_t i = 0; i < len; ++i) {
+			if (!isdigit(lexeme[i])) {
+				isAllDigits = 0;
+				break;
+			}
 		}
-	}
 
-	if (isAllDigits && len > 0) {
-		tlong = atol(lexeme);
-		if (tlong >= 0 && tlong <= SHRT_MAX) {
-			currentToken.code = INT_T;
-			scData.scanHistogram[currentToken.code]++;
-			currentToken.attribute.intValue = (airlang_intg)tlong;
+		if (isAllDigits && len > 0) {
+			tlong = atol(lexeme);
+			if (tlong >= 0 && tlong <= SHRT_MAX) {
+				currentToken.code = INT_T;
+				scData.scanHistogram[currentToken.code]++;
+				currentToken.attribute.intValue = (airlang_intg)tlong;
+			}
+			else {
+				// Out of range, handle as error
+				currentToken = (*finalStateTable[ESNR])(lexeme);
+			}
 		}
 		else {
-			// Out of range, handle as error
+			// Not all digits, treat as identifier or error
+			currentToken.code = ID_T;
+			strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN - 1);
+			currentToken.attribute.idLexeme[VID_LEN - 1] = '\0';
+		}
+	
+	return currentToken;
+}
+*/
+
+
+Token funcIL(airlang_strg lexeme) {
+	Token currentToken = { 0 };
+	airlang_long tlong;
+	double tfloat;
+	char tempLexeme[NUM_LEN + 10]; // Increased buffer size
+	size_t len = strlen(lexeme);
+
+	// Copy lexeme to temp buffer for processing
+	strncpy(tempLexeme, lexeme, sizeof(tempLexeme) - 1);
+	tempLexeme[sizeof(tempLexeme) - 1] = '\0';
+
+	// If lexeme ends with a semicolon, strip it
+	if (len > 0 && tempLexeme[len - 1] == ';') {
+		tempLexeme[len - 1] = '\0';
+		len--;
+	}
+
+	// Check if lexeme contains a decimal point
+	char* decimalPos = strchr(tempLexeme, '.');
+
+	if (decimalPos != NULL) {
+		// Handle floating-point number
+		int isValidFloat = 1;
+
+		// Check if all characters except decimal point are digits
+		for (size_t i = 0; i < len; ++i) {
+			if (tempLexeme[i] != '.' && !isdigit(tempLexeme[i])) {
+				isValidFloat = 0;
+				break;
+			}
+		}
+
+		// Ensure there's at least one digit before and after decimal point
+		if (decimalPos == tempLexeme || decimalPos == tempLexeme + len - 1) {
+			isValidFloat = 0; // Decimal point at start or end
+		}
+
+		// Count decimal points (should be exactly one)
+		int decimalCount = 0;
+		for (size_t i = 0; i < len; ++i) {
+			if (tempLexeme[i] == '.') decimalCount++;
+		}
+		if (decimalCount != 1) isValidFloat = 0;
+
+		if (isValidFloat && len > 2) { // At least "x.y" format
+			tfloat = atof(tempLexeme);
+			currentToken.code = FLOAT_T;
+			scData.scanHistogram[currentToken.code]++;
+			currentToken.attribute.floatValue = (airlang_real)tfloat;
+		}
+		else {
+			// Invalid float format, handle as error
 			currentToken = (*finalStateTable[ESNR])(lexeme);
 		}
 	}
 	else {
-		// Not all digits, treat as identifier or error
-		currentToken.code = ID_T;
-		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN - 1);
-		currentToken.attribute.idLexeme[VID_LEN - 1] = '\0';
+		// Handle integer
+		// Check if lexeme is all digits
+		int isAllDigits = 1;
+		for (size_t i = 0; i < len; ++i) {
+			if (!isdigit(tempLexeme[i])) {
+				isAllDigits = 0;
+				break;
+			}
+		}
+
+		if (isAllDigits && len > 0) {
+			tlong = atol(tempLexeme);
+			if (tlong >= 0 && tlong <= SHRT_MAX) {
+				currentToken.code = INT_T;
+				scData.scanHistogram[currentToken.code]++;
+				currentToken.attribute.intValue = (airlang_intg)tlong;
+			}
+			else {
+				// Out of range, handle as error
+				currentToken = (*finalStateTable[ESNR])(lexeme);
+			}
+		}
+		else {
+			// Not all digits, shouldn't reach here in IL function
+			currentToken = (*finalStateTable[ESNR])(lexeme);
+		}
 	}
 	return currentToken;
 }
+
+
+
 
 
 /*
@@ -636,6 +731,9 @@ airlang_void printToken(Token t) {
 	case INT_T:  // Added case for integer literals
 		printf("INT_T\t\t%d\n", t.attribute.intValue);
 		break;
+	case FLOAT_T:
+	printf("FLOAT_T\t\t%.6f\n", t.attribute.floatValue);
+	break;
 	case STR_T:
 		printf("STR_T\t\t%d\t ", (airlang_intg)t.attribute.codeType);
 		printf("%s\n", readerGetContent(stringLiteralTable, (airlang_intg)t.attribute.codeType));

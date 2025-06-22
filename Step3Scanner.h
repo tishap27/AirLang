@@ -59,7 +59,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 15
+#define NUM_TOKENS 16
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -67,6 +67,7 @@ enum TOKENS {
 	MNID_T,		/*  1: Method name identifier token (start: &) */
 	ID_T ,
 	INT_T,		/*  2: Integer literal token */
+	FLOAT_T,	/*      Float token */
 	STR_T,		/*  3: String literal token */
 	LPR_T,		/*  4: Left parenthesis token */
 	RPR_T,		/*  5: Right parenthesis token */
@@ -86,6 +87,7 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"MNID_T",
 	"ID_T",
 	"INT_T",
+	"FLOAT_T",
 	"STR_T",
 	"LPR_T",
 	"RPR_T",
@@ -170,28 +172,30 @@ typedef struct scannerData {
 /* TO_DO: Error states and illegal state */
 #define ESNR	8		/* Error state with no retract */
 #define ESWR	9		/* Error state with retract */
-#define FS		12		/* Illegal state */
+#define FS		13		/* Illegal state */
 
  /* TO_DO: State transition table definition */
-#define NUM_STATES		12
-#define CHAR_CLASSES	9
+#define NUM_STATES		14
+#define CHAR_CLASSES	10
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
-/*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )
-	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8) */
-	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR},	// S0: NOAS
-	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3},	// S1: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S2: ASNR (MVID)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S3: ASWR (KEY)
-	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4},	// S4: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S5: ASNR (SL)
-	{     6,    6,    6,    6,    6, ESWR,	  7,    6, 6},	// S6: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S7: ASNR (COM)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S8: ASNR (ES)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS }, // S9: ASWR (ER)
-	{    FS,  10,  FS,   FS,   FS,   FS,	 FS,   FS , FS  }, // S10: ASWR (IL) - New state for integers
-	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 }  // S11: NOAS - On ')' go to S2 (MVID)
+/*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )     .
+	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8)  DOT(9)*/
+	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR , ESNR},	// S0: NOAS
+	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR},	// S1: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS},	// S2: ASNR (MVID)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS},	// S3: ASWR (KEY)
+	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4 , 4 },	// S4: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS},	// S5: ASNR (SL)
+	{     6,    6,    6,    6,    6, ESWR,	  7,    6, 6, 6 },	// S6: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS},	// S7: ASNR (COM)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS},	// S8: ASNR (ES)
+	{    FS,   10,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS }, // S9: ASWR (ER)
+	{    FS,  FS,  FS,   FS,   FS,   FS,	 FS,   FS , FS , 12 }, // S10: ASWR (IL) - New state for integers
+	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 , FS } , // S11: NOAS - On ')' go to S2 (MVID)
+	{ ESNR,   13, ESNR, ESNR, ESNR, ESWR, ESNR, ESNR, ESNR, ESNR }, // S12: NOAS - Decimal point state
+	{ ESWR,   13, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR}  // S13: FSNR (FL) - Float state
 };
 
 /* Define accepting states types */
@@ -212,7 +216,9 @@ static airlang_intg stateType[NUM_STATES] = {
 	FSNR, /* 08 (Err1 - no retract) */
 	FSWR,  /* 09 (Err2 - retract) */
 	FSNR,  /* 10 (IL) - New state for integer literals */
-	NOFS  /* 11 - Waiting for closing parenthesis */
+	NOFS,  /* 11 - Waiting for closing parenthesis */
+	NOFS, /* 12 - Decimal point (non-accepting) */
+	FSWR  /* 13 (FL) - Float literals */
 };
 
 /*
@@ -263,7 +269,9 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	funcErr,	/* ERR1 [06] */
 	funcErr,		/* ERR2 [07] */
 	funcIL,		/* IL   [10] - New function for integer literals */
-	NULL		/* -    [11] - Non-final state */
+	NULL ,		/* -    [11] - Non-final state */
+	NULL,		/* -    [12] - Decimal point (non-final) */
+	funcIL		/* FL   [13] - Float literals  */
 };
 
 /*
