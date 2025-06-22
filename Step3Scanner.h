@@ -149,7 +149,7 @@ typedef struct scannerData {
 #define EOS_CHR '\0'	// CH00
 #define EOF_CHR 0xFF	// CH01
 #define UND_CHR '_'		// CH02
-#define AMP_CHR '&'		// CH03
+//#define AMP_CHR '&'		// CH03
 #define QUT_CHR '"'		// CH04
 #define HST_CHR '%'		// CH05
 #define TAB_CHR '\t'	// CH06
@@ -285,7 +285,7 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"else",			/* KW08 */
 	"end",			/* KW09 */
 	"print",		/* KW010 */
-	"report",		/* KW11 */
+	"REPORT",		/* KW11 */
 	"calculate"	,	/* KW12 */
 	"endbriefing",	/* KW13 */
 	"endreport"	,	/* KW14 */

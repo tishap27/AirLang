@@ -199,7 +199,7 @@ Token tokenizer(airlang_void) {
 			scData.scanHistogram[currentToken.code]++;
 			currentToken.attribute.seofType = SEOF_255;
 			return currentToken;
-		case COLON_CHR :
+		case COLON_CHR:
 			currentToken.code = COLON_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
@@ -304,7 +304,7 @@ airlang_intg nextState(airlang_intg state, airlang_char c) {
 /* TO_DO: Use your column configuration */
 
 /* Adjust the logic to return next column in TT */
-/*    [A-z],[0-9],    _,    &,   \', SEOF,    #, other
+/*    [A-z],[0-9],    _,    &,   \', SEOF,    %, other
 	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
 
 airlang_intg nextClass(airlang_char c) {
@@ -313,9 +313,15 @@ airlang_intg nextClass(airlang_char c) {
 	case UND_CHR:
 		val = 2;
 		break;
-	case AMP_CHR:
+	/*case AMP_CHR:
+		val = 3;
+		break;*/
+	case LPR_CHR:
 		val = 3;
 		break;
+	//case ')':
+		//val = 4;
+		//break;
 	case QUT_CHR:
 		val = 4;
 		break;
@@ -459,13 +465,24 @@ Token funcID(airlang_strg lexeme) {
 	size_t length = strlen(lexeme);
 
 	// Check for method identifier (ending with &)
-	if (lexeme[length - 1] == AMP_CHR) {
+	/*if (lexeme[length - 1] == AMP_CHR) {
 		currentToken.code = MNID_T;
 		scData.scanHistogram[currentToken.code]++;
 		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
 		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
 		return currentToken;
 	}
+	*/
+
+	// Check for method identifier (ending with ())
+	if (lexeme[length - 1] == LPR_CHR){// && lexeme[length - 2] == ')') {
+		currentToken.code = MNID_T;
+		scData.scanHistogram[currentToken.code]++;
+		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
+		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
+		return currentToken;
+	}
+
 
 	// Check if it is a keyword
 	currentToken = funcKEY(lexeme);
