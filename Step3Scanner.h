@@ -170,27 +170,28 @@ typedef struct scannerData {
 /* TO_DO: Error states and illegal state */
 #define ESNR	8		/* Error state with no retract */
 #define ESWR	9		/* Error state with retract */
-#define FS		11		/* Illegal state */
+#define FS		12		/* Illegal state */
 
  /* TO_DO: State transition table definition */
-#define NUM_STATES		11
-#define CHAR_CLASSES	8
+#define NUM_STATES		12
+#define CHAR_CLASSES	9
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
-/*    [A-z],[0-9],    _,    &,   \', SEOF,    %, other
-	   L(0), D(1), U(2), M(3), Q(4), E(5), C(6),  O(7) */
-	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR},	// S0: NOAS
-	{     1,    1,    1,    2,	  3,    3,   3,    3},	// S1: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S2: ASNR (MVID)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S3: ASWR (KEY)
-	{     4,    4,    4,    4,    5, ESWR,	  4,    4},	// S4: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S5: ASNR (SL)
-	{     6,    6,    6,    6,    6, ESWR,	  7,    6},	// S6: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S7: ASNR (COM)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS},	// S8: ASNR (ES)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS}, // S9: ASWR (ER)
-	{    FS,  10,  FS,   FS,   FS,   FS,	 FS,   FS  } // S10: ASWR (IL) - New state for integers
+/*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )
+	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8) */
+	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR},	// S0: NOAS
+	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3},	// S1: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S2: ASNR (MVID)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S3: ASWR (KEY)
+	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4},	// S4: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S5: ASNR (SL)
+	{     6,    6,    6,    6,    6, ESWR,	  7,    6, 6},	// S6: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S7: ASNR (COM)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS},	// S8: ASNR (ES)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS }, // S9: ASWR (ER)
+	{    FS,  10,  FS,   FS,   FS,   FS,	 FS,   FS , FS  }, // S10: ASWR (IL) - New state for integers
+	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 }  // S11: NOAS - On ')' go to S2 (MVID)
 };
 
 /* Define accepting states types */
@@ -210,7 +211,8 @@ static airlang_intg stateType[NUM_STATES] = {
 	FSNR, /* 07 (COM) */
 	FSNR, /* 08 (Err1 - no retract) */
 	FSWR,  /* 09 (Err2 - retract) */
-	FSNR  /* 10 (IL) - New state for integer literals */
+	FSNR,  /* 10 (IL) - New state for integer literals */
+	NOFS  /* 11 - Waiting for closing parenthesis */
 };
 
 /*
@@ -260,7 +262,8 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	funcCMT,	/* COM  [07] */
 	funcErr,	/* ERR1 [06] */
 	funcErr,		/* ERR2 [07] */
-	funcIL		/* IL   [10] - New function for integer literals */
+	funcIL,		/* IL   [10] - New function for integer literals */
+	NULL		/* -    [11] - Non-final state */
 };
 
 /*

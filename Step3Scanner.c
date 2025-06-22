@@ -319,9 +319,9 @@ airlang_intg nextClass(airlang_char c) {
 	case LPR_CHR:
 		val = 3;
 		break;
-	//case ')':
-		//val = 4;
-		//break;
+	case RPR_CHR:
+		val = 8;
+		break;
 	case QUT_CHR:
 		val = 4;
 		break;
@@ -475,7 +475,7 @@ Token funcID(airlang_strg lexeme) {
 	*/
 
 	// Check for method identifier (ending with ())
-	if (lexeme[length - 1] == LPR_CHR){// && lexeme[length - 2] == ')') {
+	if (length >= 2 && lexeme[length - 1] == RPR_CHR  && lexeme[length - 2] == LPR_CHR) {
 		currentToken.code = MNID_T;
 		scData.scanHistogram[currentToken.code]++;
 		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
