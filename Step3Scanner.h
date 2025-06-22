@@ -59,7 +59,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 17
+#define NUM_TOKENS 18
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -79,7 +79,8 @@ enum TOKENS {
 	SEOF_T,		/* 11: Source end-of-file token */
 	CMT_T, 		/* 12: Comment token */
 	COLON_T,
-	DEC_T		/*DECIMAL*/
+	DEC_T,		/*DECIMAL*/
+	COMMA_T   
 };
 
 /* TO_DO: Define the list of keywords */
@@ -100,7 +101,8 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"SEOF_T",
 	"CMT_T",
 	"COLON_T", 
-	"DEC_T"
+	"DEC_T", 
+	"COMMA_T"
 };
 
 /* TO_DO: Operators token attributes */
@@ -166,6 +168,7 @@ typedef struct scannerData {
 #define RBR_CHR '}'		// CH13
 #define COLON_CHR ':'     // CH 14
 #define DEC_CHR '.'
+#define COMMA_CHR ','
 
 
 /*  Special case tokens processed separately one by one in the token-driven part of the scanner:

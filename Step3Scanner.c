@@ -176,6 +176,11 @@ Token tokenizer(airlang_void) {
 			currentToken.code = DEC_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
+		case COMMA_CHR:
+			currentToken.code = COMMA_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+
 		case LPR_CHR:
 			currentToken.code = LPR_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -671,6 +676,15 @@ Token funcID(airlang_strg lexeme) {
 Token funcSL(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_intg i = 0, len = (airlang_intg)strlen(lexeme);
+
+	/* Add tab separator if table is not empty */
+	if (readerGetPosWrte(stringLiteralTable) > 0) {
+		if (!readerAddChar(stringLiteralTable, '\t')) {  // Tab separator
+			currentToken.code = RTE_T;
+			return currentToken;
+		}
+	}
+
 	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
 	for (i = 1; i < len - 1; i++) {
 		if (lexeme[i] == NWL_CHR)
@@ -812,6 +826,9 @@ airlang_void printToken(Token t) {
 	case DEC_T:
 		printf("DEC_T\n");
 		break; 
+	case COMMA_T:
+		printf("COMMA_T\n");
+		break;
 	case KW_T:
 		printf("KW_T\t\t%s\n", keywordTable[t.attribute.codeType]);
 		break;
