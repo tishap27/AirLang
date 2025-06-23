@@ -213,7 +213,50 @@ Token tokenizer(airlang_void) {
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
 
+		case SLCOM_CHR:
+		{
+			// Check if it's a comment (^^)
+			airlang_char next_c = readerGetChar(sourceBuffer);
+			if (next_c == '^') {
+				// It's a comment
+				lexStart = readerGetPosRead(sourceBuffer) - 2;
+				readerSetMark(sourceBuffer, lexStart);
 
+				// Read until newline or EOF
+				while ((c = readerGetChar(sourceBuffer)) != NWL_CHR && c != EOF_CHR) {
+					// Just consume characters
+				}
+				if (c == NWL_CHR) {
+					line++;
+					readerRetract(sourceBuffer); // Don't include newline in comment
+				}
+
+				lexEnd = readerGetPosRead(sourceBuffer);
+				lexLength = lexEnd - lexStart;
+				lexemeBuffer = readerCreate(lexLength + 2);
+				if (!lexemeBuffer) {
+					fprintf(stderr, "Scanner error: Cannot create buffer\n");
+					exit(1);
+				}
+				readerRestore(sourceBuffer);
+				for (i = 0; i < lexLength; i++) {
+					readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
+				}
+				readerAddChar(lexemeBuffer, READER_TERMINATOR);
+				lexeme = readerGetContent(lexemeBuffer, 0);
+				currentToken = funcCMT(lexeme);
+				readerRestore(lexemeBuffer);
+				return currentToken;
+			}
+			else {
+				// Just a caret character (not a comment)
+				readerRetract(sourceBuffer); // Put the character back
+				currentToken.code = ERR_T; // Or define a token type for caret if needed
+				scData.scanHistogram[currentToken.code]++;
+				return currentToken;
+			}
+		}
+		break;
 		/* ------------------------------------------------------------------------
 			Part 2: Implementation of Finite State Machine (DFA) or Transition Table driven Scanner
 			Note: Part 2 must follow Part 1 to catch the illegal symbols
@@ -364,9 +407,23 @@ airlang_intg nextClass(airlang_char c) {
 	case SCL_CHR:        
 		val = 10;
 		break;
-	case '-' :
-		val = 11;
+	case '-':
+		val = 11; 
 		break; 
+	case '^':
+	{
+		// Check for comment start (^^)
+		airlang_char next_c = readerGetChar(sourceBuffer);
+		readerRetract(sourceBuffer); // Put it back immediately
+
+		if (next_c == '^') {
+			val = 12; // Special class for single-line comment
+		}
+		else {
+			val = 7; // Standalone caret (not a comment)
+		}
+		break;
+	}
 	case EOS_CHR:
 	case (airlang_char) EOF_CHR:
 		val = 5;

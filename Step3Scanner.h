@@ -169,6 +169,7 @@ typedef struct scannerData {
 #define COLON_CHR ':'     // CH 14
 #define DEC_CHR '.'
 #define COMMA_CHR ','
+#define SLCOM_CHR '^'
 
 
 /*  Special case tokens processed separately one by one in the token-driven part of the scanner:
@@ -181,27 +182,27 @@ typedef struct scannerData {
 #define FS		13		/* Illegal state */
 
  /* TO_DO: State transition table definition */
-#define NUM_STATES		14
-#define CHAR_CLASSES	12
+#define NUM_STATES		15
+#define CHAR_CLASSES	13
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
-/*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )     .          ;         -
-	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8)  DOT(9)  SEMI(10)    MINUS(11)*/
-	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR , ESNR , ESNR , 10},	// S0: NOAS
-	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR , 3  , ESNR},	// S1: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS},	// S2: ASNR (MVID)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS},	// S3: ASWR (KEY)
-	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4 , 4  , 4  , 4},	// S4: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS },	// S5: ASNR (SL)
-	{     6,    6,    6,    6,    6, ESWR,	  7,    6, 6, 6  , 6  , 6 },	// S6: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS },	// S7: ASNR (COM)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS },	// S8: ASNR (ES)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS ,  FS , FS }, // S9: ASWR (ER)
-	{    ESWR,  10 ,ESWR,   ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , 12 , ESWR  , ESWR}, // S10: ASWR (IL) - New state for integers
-	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 , FS , FS , FS } , // S11: NOAS - On ')' go to S2 (MVID)
-	{ ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR , ESNR  , ESNR}, // S12: NOAS - Decimal point state
-	{ ESWR,   13, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , ESWR }  // S13: FSNR (FL) - Float state
+/*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )     .          ;         -          --
+	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8)  DOT(9)  SEMI(10)    MINUS(11)  SLCOM(12)*/
+	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR , ESNR , ESNR , 10 , 7 },	// S0: NOAS
+	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR , 3  , ESNR , 3},	// S1: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS},	// S2: ASNR (MVID)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS },	// S3: ASWR (KEY)
+	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4 , 4  , 4  , 4 , 4},	// S4: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS},	// S5: ASNR (SL)
+	{     6,    6,    6,    6,    6, ESWR,	  7,    6, 6, 6  , 6  , 6  , 6},	// S6: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS  , FS},	// S7: ASNR (COM)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS},	// S8: ASNR (ES)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS ,  FS , FS , FS}, // S9: ASWR (ER)
+	{    ESWR,  10 ,ESWR,   ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , 12 , ESWR  , ESWR , ESWR}, // S10: ASWR (IL) - New state for integers
+	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 , FS , FS , FS  , FS} , // S11: NOAS - On ')' go to S2 (MVID)
+	{ ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR , ESNR  , ESNR, ESNR}, // S12: NOAS - Decimal point state
+	{ ESWR,   13, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , ESWR , ESWR }  // S13: FSNR (FL) - Float state
 };
 
 /* Define accepting states types */
@@ -293,7 +294,7 @@ Language keywords
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
 	"MAIN",		    /* KW00 */
-	"BRIEING",		/* KW01 */
+	"BRIEFING",		/* KW01 */
 	"AIRCRAFT",		/* KW02 */
 	"FLIGHT",		/* KW03 */
 	"ROUTE",		/* KW04 */

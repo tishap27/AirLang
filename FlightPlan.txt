@@ -1,0 +1,46 @@
+% Flight Plan Example multiline comment %
+^^ If weather is not clear, print a delay message single line comment
+
+MAIN {
+    BRIEFING {
+        AIRCRAFT {
+            AircraftID: "C-GHPQ";
+            Type: "B747";
+            FuelCapacity: 26000;
+            CruiseSpeed: 430;
+            FuelPerNM: 35;
+        }
+
+        FLIGHT {
+            FlightNumber: "AL123";
+            Date: '2025-05-15';
+            Status: "on time";
+            Weather: "rain";
+            ETA: 1.5;
+            EstimatedFuelRequired: 1575;
+        }
+
+        ROUTE {
+            DepartureAirport: "YOW";
+	    DepartureName: "Ottawa International Airport";
+            DepartureCoordinates: 45.3225, -75.6692;
+            ArrivalAirport: "YYZ";
+            ArrivalName: "Toronto Pearson International Airport" ;
+            ArrivalCoordinates: 43.6777, -79.6248;
+        }
+    } ENDBRIEFING;
+
+    DISPATCH {
+        IF Weather != "clear" THEN
+            PRINT "NOTAM: Flight delayed due to weather";
+        ELSE
+            PRINT "NOTAM: Flight is on time";
+        END
+
+        REPORT {
+            calculateDistance();
+            calculateETA();
+            printFlightSummary();
+        } ENDREPORT;
+    } ENDDISPATCH;
+} ENDMAIN;
