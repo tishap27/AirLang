@@ -592,28 +592,13 @@ Token funcIL(airlang_strg lexeme) {
 Token funcDATE(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_intg i = 0, len = (airlang_intg)strlen(lexeme);
+	airlang_intg dateIndex = 0;
 
-	/* Store the date content (without quotes) */
-	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
-
-	/* Copy the date content (without quotes) */
-	for (i = 1; i < len - 1; i++) {
-		if (!readerAddChar(stringLiteralTable, lexeme[i])) {
-			currentToken.code = RTE_T;
-			scData.scanHistogram[currentToken.code]++;
-			strcpy(currentToken.attribute.errLexeme, "Run Time Error:");
-			errorNumber = RTE_CODE;
-			return currentToken;
-		}
+	// Extract date content (without quotes)
+	for (i = 1; i < len - 1 && dateIndex < 10; i++) {
+		currentToken.attribute.dateValue[dateIndex++] = lexeme[i];
 	}
-
-	if (!readerAddChar(stringLiteralTable, EOS_CHR)) {
-		currentToken.code = RTE_T;
-		scData.scanHistogram[currentToken.code]++;
-		strcpy(currentToken.attribute.errLexeme, "Run Time Error:");
-		errorNumber = RTE_CODE;
-		return currentToken;
-	}
+	currentToken.attribute.dateValue[dateIndex] = '\0';
 
 	currentToken.code = DATE_T;
 	scData.scanHistogram[currentToken.code]++;
@@ -935,8 +920,7 @@ airlang_void printToken(Token t) {
 		printf("INT_T\t\t%d\n", t.attribute.intValue);
 		break;
 	case DATE_T:
-		printf("DATE_T\t\t%d\t", (airlang_intg)t.attribute.codeType);
-		printf("%s\n", readerGetContent(stringLiteralTable, (airlang_intg)t.attribute.codeType));
+		printf("DATE_T\t\t%s\n", t.attribute.dateValue);
 		break;
 	case FLOAT_T:
 	printf("FLOAT_T\t\t%g\n", t.attribute.floatValue);

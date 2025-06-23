@@ -126,6 +126,7 @@ typedef union TokenAttribute {
 	airlang_real floatValue;				/* floating-point literal attribute (value) */
 	airlang_char idLexeme[VID_LEN + 1];	/* variable identifier token attribute */
 	airlang_char errLexeme[ERR_LEN + 1];	/* error token attribite */
+	airlang_char dateValue[11];        /* YYYY-MM-DD + null terminator*/
 } TokenAttribute;
 
 /* TO_DO: Should be used if no symbol table is implemented */
@@ -267,7 +268,7 @@ Token funcID	(airlang_strg lexeme);
 Token funcCMT   (airlang_strg lexeme);
 Token funcKEY	(airlang_strg lexeme);
 Token funcErr	(airlang_strg lexeme);
-Token funcDATE(airlang_strg lexeme);
+Token funcDATE  (airlang_strg lexeme);
 
 /* 
  * Accepting function (action) callback table (array) definition 
