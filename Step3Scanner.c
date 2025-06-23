@@ -180,7 +180,14 @@ Token tokenizer(airlang_void) {
 			currentToken.code = COMMA_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-
+		case EQL_CHR:
+			currentToken.code = EQL_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case NOT_CHR:
+			currentToken.code = NOT_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 		case LPR_CHR:
 			currentToken.code = LPR_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -947,6 +954,12 @@ airlang_void printToken(Token t) {
 		break; 
 	case COMMA_T:
 		printf("COMMA_T\n");
+		break;
+	case EQL_T:
+		printf("EQL_T\n");
+		break;
+	case NOT_T:
+		printf("NOT_T\n");
 		break;
 	case KW_T:
 		printf("KW_T\t\t%s\n", keywordTable[t.attribute.codeType]);

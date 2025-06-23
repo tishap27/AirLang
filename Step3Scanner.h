@@ -59,7 +59,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 19
+#define NUM_TOKENS 21
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -81,7 +81,9 @@ enum TOKENS {
 	COLON_T,
 	DEC_T,		/*DECIMAL*/
 	COMMA_T ,
-	DATE_T
+	DATE_T ,
+	EQL_T,
+	NOT_T
 };
 
 /* TO_DO: Define the list of keywords */
@@ -104,7 +106,9 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"COLON_T", 
 	"DEC_T", 
 	"COMMA_T", 
-	"DATE_T"
+	"DATE_T",
+	"EQL_T",
+	"NOT_T"
 };
 
 /* TO_DO: Operators token attributes */
@@ -174,6 +178,8 @@ typedef struct scannerData {
 #define COMMA_CHR ','
 #define SLCOM_CHR '^'
 #define SLQUT_CHR '\''
+#define EQL_CHR '='
+#define NOT_CHR '!'
 
 
 /*  Special case tokens processed separately one by one in the token-driven part of the scanner:
@@ -312,17 +318,17 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"FLIGHT",		/* KW03 */
 	"ROUTE",		/* KW04 */
 	"DISPATCH",	    /* KW05 */
-	"if",		    /* KW06 */
-	"then",			/* KW07 */
-	"else",			/* KW08 */
-	"end",			/* KW09 */
-	"print",		/* KW010 */
+	"IF",		    /* KW06 */
+	"THEN",			/* KW07 */
+	"ELSE",			/* KW08 */
+	"END",			/* KW09 */
+	"PRINT",		/* KW010 */
 	"REPORT",		/* KW11 */
-	"calculate"	,	/* KW12 */
-	"endbriefing",	/* KW13 */
-	"endreport"	,	/* KW14 */
-	"enddispatch",	/* KW15 */
-	"endmain",		/* KW16 */
+	"CALCULATE"	,	/* KW12 */
+	"ENDBRIEFING",	/* KW13 */
+	"ENDREPORT"	,	/* KW14 */
+	"ENDDISPATCH",	/* KW15 */
+	"ENDMAIN",		/* KW16 */
 };
 
 /* NEW SECTION: About indentation */
