@@ -59,7 +59,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 18
+#define NUM_TOKENS 19
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -80,7 +80,8 @@ enum TOKENS {
 	CMT_T, 		/* 12: Comment token */
 	COLON_T,
 	DEC_T,		/*DECIMAL*/
-	COMMA_T   
+	COMMA_T ,
+	DATE_T
 };
 
 /* TO_DO: Define the list of keywords */
@@ -102,7 +103,8 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"CMT_T",
 	"COLON_T", 
 	"DEC_T", 
-	"COMMA_T"
+	"COMMA_T", 
+	"DATE_T"
 };
 
 /* TO_DO: Operators token attributes */
@@ -170,6 +172,7 @@ typedef struct scannerData {
 #define DEC_CHR '.'
 #define COMMA_CHR ','
 #define SLCOM_CHR '^'
+#define SLQUT_CHR '\''
 
 
 /*  Special case tokens processed separately one by one in the token-driven part of the scanner:
@@ -179,31 +182,35 @@ typedef struct scannerData {
 /* TO_DO: Error states and illegal state */
 #define ESNR	8		/* Error state with no retract */
 #define ESWR	9		/* Error state with retract */
-#define FS		13		/* Illegal state */
+#define FS		16		/* Illegal state */
 
  /* TO_DO: State transition table definition */
-#define NUM_STATES		15
-#define CHAR_CLASSES	13
+#define NUM_STATES		16
+#define CHAR_CLASSES	14
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 /*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )     .          ;         -          --
-	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8)  DOT(9)  SEMI(10)    MINUS(11)  SLCOM(12)*/
-	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR , ESNR , ESNR , 10 , 7 },	// S0: NOAS
-	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR , 3  , ESNR , 3},	// S1: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS},	// S2: ASNR (MVID)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS },	// S3: ASWR (KEY)
-	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4 , 4  , 4  , 4 , 4},	// S4: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS},	// S5: ASNR (SL)
-	{     6,    6,    6,    6,    6, ESWR,	  7,    6, 6, 6  , 6  , 6  , 6},	// S6: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS  , FS},	// S7: ASNR (COM)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS},	// S8: ASNR (ES)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS ,  FS , FS , FS}, // S9: ASWR (ER)
-	{    ESWR,  10 ,ESWR,   ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , 12 , ESWR  , ESWR , ESWR}, // S10: ASWR (IL) - New state for integers
-	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 , FS , FS , FS  , FS} , // S11: NOAS - On ')' go to S2 (MVID)
-	{ ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR , ESNR  , ESNR, ESNR}, // S12: NOAS - Decimal point state
-	{ ESWR,   13, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , ESWR , ESWR }  // S13: FSNR (FL) - Float state
+	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8)  DOT(9)  SEMI(10)    MINUS(11)  SLCOM(12)  sq(13)*/
+	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR , ESNR , ESNR , 10 , 7 , 14 },	// S0: NOAS
+	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR , 3  , ESNR , 3 , 3},	// S1: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS , FS},	// S2: ASNR (MVID)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS , FS },	// S3: ASWR (KEY)
+	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4 , 4  , 4  , 4 , 4 , 4 },	// S4: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS , FS},	// S5: ASNR (SL)
+	{     6,    6,    6,    6,    6, ESWR,	  7,    6, 6, 6  , 6  , 6  , 6 , 6},	// S6: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS  , FS , FS},	// S7: ASNR (COM)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS, FS },	// S8: ASNR (ES)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS ,  FS , FS , FS , FS}, // S9: ASWR (ER)
+	{    ESWR,  10 ,ESWR,   ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , 12 , ESWR  , ESWR , ESWR , ESWR}, // S10: ASWR (IL) - New state for integers
+	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 , FS , FS , FS  , FS , FS} , // S11: NOAS - On ')' go to S2 (MVID)
+	{ ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR , ESNR  , ESNR, ESNR , ESNR}, // S12: NOAS - Decimal point state
+	{ ESWR,   13, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , ESWR , ESWR , ESWR },  // S13: FSNR (FL) - Float state
+	{ 14,   14,   14,   14,   14, ESWR,   14,   14,   14,   14,   14,   14,   14,   15 },  // S14: Date literal state
+	{    FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS }   // S15: Date final state (no retract)
 };
+
+
 
 /* Define accepting states types */
 #define NOFS	0		/* not accepting state */
@@ -226,7 +233,9 @@ static airlang_intg stateType[NUM_STATES] = {
 	FSNR,  /* 10 (IL) - New state for integer literals */
 	NOFS,  /* 11 - Waiting for closing parenthesis */
 	NOFS, /* 12 - Decimal point (non-accepting) */
-	FSNR  /* 13 (FL) - Float literals */
+	FSNR,  /* 13 (FL) - Float literals */
+	NOFS, /* 14 (Date literal) */
+	FSNR  /* 15 (Date final) */
 };
 
 /*
@@ -258,6 +267,7 @@ Token funcID	(airlang_strg lexeme);
 Token funcCMT   (airlang_strg lexeme);
 Token funcKEY	(airlang_strg lexeme);
 Token funcErr	(airlang_strg lexeme);
+Token funcDATE(airlang_strg lexeme);
 
 /* 
  * Accepting function (action) callback table (array) definition 
@@ -279,7 +289,9 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	funcIL,		/* IL   [10] - New function for integer literals */
 	NULL ,		/* -    [11] - Non-final state */
 	NULL,		/* -    [12] - Decimal point (non-final) */
-	funcIL		/* FL   [13] - Float literals  */
+	funcIL,		/* FL   [13] - Float literals  */
+	NULL,       /* 14 */
+	funcDATE    /* 15 */
 };
 
 /*

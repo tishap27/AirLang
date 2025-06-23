@@ -257,6 +257,41 @@ Token tokenizer(airlang_void) {
 			}
 		}
 		break;
+		case '\'':  // Single quote for dates
+		{
+			lexStart = readerGetPosRead(sourceBuffer) - 1;
+			readerSetMark(sourceBuffer, lexStart);
+
+			// Read until closing single quote
+			while ((c = readerGetChar(sourceBuffer)) != '\'' && c != EOF_CHR) {
+				if (c == NWL_CHR) line++;
+			}
+
+			if (c == EOF_CHR) {
+				readerRetract(sourceBuffer);
+				currentToken = funcErr(lexeme);
+				return currentToken;
+			}
+
+			lexEnd = readerGetPosRead(sourceBuffer);
+			lexLength = lexEnd - lexStart;
+			lexemeBuffer = readerCreate(lexLength + 2);
+			if (!lexemeBuffer) {
+				fprintf(stderr, "Scanner error: Cannot create buffer\n");
+				exit(1);
+			}
+
+			readerRestore(sourceBuffer);
+			for (i = 0; i < lexLength; i++) {
+				readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
+			}
+			readerAddChar(lexemeBuffer, READER_TERMINATOR);
+			lexeme = readerGetContent(lexemeBuffer, 0);
+			currentToken = funcDATE(lexeme);
+			readerRestore(lexemeBuffer);
+			return currentToken;
+		}
+		break;
 		/* ------------------------------------------------------------------------
 			Part 2: Implementation of Finite State Machine (DFA) or Transition Table driven Scanner
 			Note: Part 2 must follow Part 1 to catch the illegal symbols
@@ -397,6 +432,9 @@ airlang_intg nextClass(airlang_char c) {
 		break;
 	case QUT_CHR:
 		val = 4;
+		break;
+	case '\'':  // Single quote for dates
+		val = 13;  // New class just for single quotes
 		break;
 	case HST_CHR:
 		val = 6;
@@ -543,8 +581,44 @@ Token funcIL(airlang_strg lexeme) {
 	return currentToken;
 }
 
+/*
+************************************************************
+ * Acceptance State Function DATE
+ *      Function responsible to identify DATE literals.
+ * - The lexeme must be stored in the String Literal Table
+ *   (stringLiteralTable).
+ ***********************************************************
+ */
+Token funcDATE(airlang_strg lexeme) {
+	Token currentToken = { 0 };
+	airlang_intg i = 0, len = (airlang_intg)strlen(lexeme);
 
+	/* Store the date content (without quotes) */
+	currentToken.attribute.contentString = readerGetPosWrte(stringLiteralTable);
 
+	/* Copy the date content (without quotes) */
+	for (i = 1; i < len - 1; i++) {
+		if (!readerAddChar(stringLiteralTable, lexeme[i])) {
+			currentToken.code = RTE_T;
+			scData.scanHistogram[currentToken.code]++;
+			strcpy(currentToken.attribute.errLexeme, "Run Time Error:");
+			errorNumber = RTE_CODE;
+			return currentToken;
+		}
+	}
+
+	if (!readerAddChar(stringLiteralTable, EOS_CHR)) {
+		currentToken.code = RTE_T;
+		scData.scanHistogram[currentToken.code]++;
+		strcpy(currentToken.attribute.errLexeme, "Run Time Error:");
+		errorNumber = RTE_CODE;
+		return currentToken;
+	}
+
+	currentToken.code = DATE_T;
+	scData.scanHistogram[currentToken.code]++;
+	return currentToken;
+}
 
 /*
 Token funcIL(airlang_strg lexeme) {
@@ -859,6 +933,10 @@ airlang_void printToken(Token t) {
 		break;
 	case INT_T:  // Added case for integer literals
 		printf("INT_T\t\t%d\n", t.attribute.intValue);
+		break;
+	case DATE_T:
+		printf("DATE_T\t\t%d\t", (airlang_intg)t.attribute.codeType);
+		printf("%s\n", readerGetContent(stringLiteralTable, (airlang_intg)t.attribute.codeType));
 		break;
 	case FLOAT_T:
 	printf("FLOAT_T\t\t%g\n", t.attribute.floatValue);
