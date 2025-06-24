@@ -569,21 +569,47 @@ Token funcIL(airlang_strg lexeme) {
 //just check if int or float forget everything else
 Token funcIL(airlang_strg lexeme) {
 	Token currentToken = { 0 };
+	char* dotPos = strchr(lexeme , '.');
+	int isValid = 1;  //assuming intially valid 
+	int decimalCount = 0;  // can only go to 1 
+
+
+	// Check for multiple decimal points or invalid characters
+	for (int i = 0; lexeme[i] != '\0'; i++) {
+		if (lexeme[i] == '.') {
+			decimalCount++;
+			// If more than one decimal point, invalid
+			if (decimalCount > 1) {
+				isValid = 0;
+				break;
+			}
+		}
+		else if (!isdigit(lexeme[i])) {
+			// If character is neither digit nor decimal point
+			isValid = 0;
+			break;
+		}
+	}
+
 
 	/* Check if lexeme contains a decimal point */
-	char* dotPos = strchr(lexeme, '.');
+	//char* dotPos = strchr(lexeme, '.');
 
-	if (dotPos != NULL) {
+	if (dotPos != NULL && isValid) {
 		/* It's a float */
 		currentToken.code = FLOAT_T;
 		currentToken.attribute.floatValue = strtof(lexeme , NULL);
 	}
-	else {
+	else if (dotPos == NULL && isValid){
 		/* It's an integer */
 		currentToken.code = INT_T;
 		currentToken.attribute.intValue = atoi(lexeme);
 	}
-
+	else {
+		//Invalid token format like 1.5.7 
+		currentToken = funcErr(lexeme);
+		return currentToken;
+	}
 	scData.scanHistogram[currentToken.code]++;
 	return currentToken;
 }
