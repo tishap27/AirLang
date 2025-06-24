@@ -189,10 +189,10 @@ typedef struct scannerData {
 /* TO_DO: Error states and illegal state */
 #define ESNR	8		/* Error state with no retract */
 #define ESWR	9		/* Error state with retract */
-#define FS		16		/* Illegal state */
+#define FS		18		/* Illegal state */
 
  /* TO_DO: State transition table definition */
-#define NUM_STATES		16
+#define NUM_STATES		18
 #define CHAR_CLASSES	14
 
 /* TO_DO: Transition table - type of states defined in separate table */
@@ -209,12 +209,14 @@ static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS  , FS , FS},	// S7: ASNR (COM)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS, FS },	// S8: ASNR (ES)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS ,  FS , FS , FS , FS}, // S9: ASWR (ER)
-	{    ESWR,  10 ,ESWR,   ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , 12 , ESWR  , ESWR , ESWR , ESWR}, // S10: ASWR (IL) - New state for integers
+	{    16,  10 ,ESWR,   ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , 12 , ESWR  , ESWR , ESWR , ESWR}, // S10: ASWR (IL) - New state for integers
 	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 , FS , FS , FS  , FS , FS} , // S11: NOAS - On ')' go to S2 (MVID)
 	{ ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR , ESNR  , ESNR, ESNR , ESNR}, // S12: NOAS - Decimal point state
-	{ ESWR,   13, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , ESWR , ESWR , ESWR },  // S13: FSNR (FL) - Float state
+	{ 17,   13, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , ESWR , ESWR , ESWR },  // S13: FSNR (FL) - Float state
 	{ 14,   14,   14,   14,   14, ESWR,   14,   14,   14,   14,   14,   14,   14,   15 },  // S14: Date literal state
-	{    FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS }   // S15: Date final state (no retract)
+	{    FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS },  // S15: Date final state (no retract)
+	{ 16,   16, 16, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR }, // S16: Error state for number+letter (like 123ABC)
+	{ 17,   17, 17, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR }  // S17: Error state for float+letter (like 12.5ABC)
 };
 
 
@@ -237,12 +239,14 @@ static airlang_intg stateType[NUM_STATES] = {
 	FSNR, /* 07 (COM) */
 	FSNR, /* 08 (Err1 - no retract) */
 	FSWR,  /* 09 (Err2 - retract) */
-	FSNR,  /* 10 (IL) - New state for integer literals */
+	FSWR,  /* 10 (IL) - New state for integer literals */
 	NOFS,  /* 11 - Waiting for closing parenthesis */
 	NOFS, /* 12 - Decimal point (non-accepting) */
-	FSNR,  /* 13 (FL) - Float literals */
+	FSWR,  /* 13 (FL) - Float literals */
 	NOFS, /* 14 (Date literal) */
-	FSNR  /* 15 (Date final) */
+	FSNR,  /* 15 (Date final) */
+	FSNR, /* 16 (Error for number+letter) */
+	FSNR  /* 17 (Error for float+letter) */
 };
 
 /*
@@ -298,7 +302,9 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	NULL,		/* -    [12] - Decimal point (non-final) */
 	funcIL,		/* FL   [13] - Float literals  */
 	NULL,       /* 14 */
-	funcDATE    /* 15 */
+	funcDATE,    /* 15 */
+	funcErr,    /* 16 - Error for number+letter */
+	funcErr     /* 17 - Error for float+letter */
 };
 
 /*

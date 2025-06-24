@@ -159,7 +159,7 @@ Token tokenizer(airlang_void) {
 		/* TO_DO: All patterns that do not require accepting functions */
 		switch (c) {
 
-		/* Cases for spaces */
+			/* Cases for spaces */
 		case SPC_CHR:
 		case TAB_CHR:
 			break;
@@ -167,7 +167,7 @@ Token tokenizer(airlang_void) {
 			line++;
 			break;
 
-		/* Cases for symbols */
+			/* Cases for symbols */
 		case SCL_CHR:
 			currentToken.code = EOS_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -204,13 +204,13 @@ Token tokenizer(airlang_void) {
 			currentToken.code = RBR_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-		/* Cases for END OF FILE */
+			/* Cases for END OF FILE */
 		case EOS_CHR:
 			currentToken.code = SEOF_T;
 			scData.scanHistogram[currentToken.code]++;
 			currentToken.attribute.seofType = SEOF_0;
 			return currentToken;
-		case (airlang_char) EOF_CHR:
+		case (airlang_char)EOF_CHR:
 			currentToken.code = SEOF_T;
 			scData.scanHistogram[currentToken.code]++;
 			currentToken.attribute.seofType = SEOF_255;
@@ -314,21 +314,88 @@ Token tokenizer(airlang_void) {
 
 			/* Special handling for numbers */
 			if (isdigit(c) || c == '.' || c == '-') {
+				int hasDigits = 0;
+				int hasDecimal = 0;
+				int isValidNumber = 1;
 				if (c == '-' && !isdigit(readerGetChar(sourceBuffer))) {
 					readerRetract(sourceBuffer);
 					break;  // Not a number, just a minus operator
 				}
+				readerRetract(sourceBuffer);       //back to start
 
 				while (1) {
+
 					c = readerGetChar(sourceBuffer);
-					if (isdigit(c) || c == '.') {
+
+					if (isdigit(c)) {
+						hasDigits = 1;
 						state = nextState(state, c);
 					}
+					//if (isdigit(c) || c == '.') {
+					//	state = nextState(state, c);
+					//}
+					else if (c == '.' && !hasDecimal) {
+						hasDecimal = 1;
+						state = nextState(state, c);
+					}
+
+					else if (isalpha(c)) {
+						//  Found alphabet after digits - this is invalid!
+						if (hasDigits) {
+							// Continue reading the invalid token to get full lexeme
+							while (isalnum(c) || c == '_') {
+								c = readerGetChar(sourceBuffer);
+							}
+							readerRetract(sourceBuffer); // Put back the non-alphanumeric char
+
+							// Create error token
+							lexEnd = readerGetPosRead(sourceBuffer);
+							lexLength = lexEnd - lexStart;
+							lexemeBuffer = readerCreate((airlang_intg)lexLength + 2);
+							if (!lexemeBuffer) {
+								fprintf(stderr, "Scanner error: Can not create buffer\n");
+								exit(1);
+							}
+							readerRestore(sourceBuffer);
+							for (i = 0; i < lexLength; i++)
+								readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
+							readerAddChar(lexemeBuffer, READER_TERMINATOR);
+							lexeme = readerGetContent(lexemeBuffer, 0);
+							currentToken = funcErr(lexeme);
+							readerRestore(lexemeBuffer);
+							return currentToken;
+						}
+						else {
+							// No digits seen yet, this is an identifier 
+							readerRetract(sourceBuffer);
+							break;
+						}
+					}
+
 					else {
 						readerRetract(sourceBuffer);
 						break;
 					}
 				}
+				// If we reach here, it's a valid number
+				if (hasDigits) {
+					lexEnd = readerGetPosRead(sourceBuffer);
+					lexLength = lexEnd - lexStart;
+					lexemeBuffer = readerCreate((airlang_intg)lexLength + 2);
+					if (!lexemeBuffer) {
+						fprintf(stderr, "Scanner error: Can not create buffer\n");
+						exit(1);
+					}
+					readerRestore(sourceBuffer);
+					for (i = 0; i < lexLength; i++)
+						readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
+					readerAddChar(lexemeBuffer, READER_TERMINATOR);
+					lexeme = readerGetContent(lexemeBuffer, 0);
+					currentToken = funcIL(lexeme);
+					readerRestore(lexemeBuffer);
+					return currentToken;
+				}
+			
 			}
 			else {
 				/* Normal token processing */
@@ -572,6 +639,8 @@ Token funcIL(airlang_strg lexeme) {
 	char* dotPos = strchr(lexeme , '.');
 	int isValid = 1;  //assuming intially valid 
 	int decimalCount = 0;  // can only go to 1 
+	int hasDigits = 0; 
+	int hasLetters = 0; 
 
 
 	// Check for multiple decimal points or invalid characters
@@ -584,14 +653,30 @@ Token funcIL(airlang_strg lexeme) {
 				break;
 			}
 		}
-		else if (!isdigit(lexeme[i])) {
+		else if (isdigit(lexeme[i])) {
+		hasDigits = 1 ; 
+		}
+		else if (isalpha(lexeme[i])) {
+			if (hasDigits) {
+				isValid = 0;
+				break;
+			}
+			hasLetters = 1;         //letters mixed with digits 
+		}
+		else {//if (!isdigit(lexeme[i])) {
 			// If character is neither digit nor decimal point
 			isValid = 0;
 			break;
 		}
 	}
 
-
+	// If letters appear after digits (e.g., 77ABC), it's invalid
+	if (hasLetters && hasDigits) {
+		isValid = 0;
+	}
+	if (!isValid) {
+		currentToken = funcErr(lexeme);
+	}
 	/* Check if lexeme contains a decimal point */
 	//char* dotPos = strchr(lexeme, '.');
 
