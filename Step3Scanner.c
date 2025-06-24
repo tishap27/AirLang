@@ -184,10 +184,7 @@ Token tokenizer(airlang_void) {
 			currentToken.code = EQL_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-		case NOT_CHR:
-			currentToken.code = NOT_T;
-			scData.scanHistogram[currentToken.code]++;
-			return currentToken;
+		
 		case LPR_CHR:
 			currentToken.code = LPR_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -219,7 +216,24 @@ Token tokenizer(airlang_void) {
 			currentToken.code = COLON_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-
+		case NOT_CHR:
+		{
+			// Peek at next character to check for '='
+			airlang_char next_c = readerGetChar(sourceBuffer);
+			if (next_c == '=') {
+				// It's a != operator
+				currentToken.code = NOT_EQ_T;
+				scData.scanHistogram[currentToken.code]++;
+				return currentToken;
+			}
+			else {
+				// It's just a ! operator
+				readerRetract(sourceBuffer); // Hence Put the character back
+				currentToken.code = NOT_T;
+				scData.scanHistogram[currentToken.code]++;
+				return currentToken;
+			}
+		}
 		case SLCOM_CHR:
 		{
 			// Check if it's a comment (^^)
@@ -264,7 +278,7 @@ Token tokenizer(airlang_void) {
 			}
 		}
 		break;
-		case '\'':  // Single quote for dates
+		case SLQUT_CHR:  // Single quote for dates
 		{
 			lexStart = readerGetPosRead(sourceBuffer) - 1;
 			readerSetMark(sourceBuffer, lexStart);
@@ -1069,8 +1083,8 @@ airlang_void printToken(Token t) {
 	case EQL_T:
 		printf("EQL_T\n");
 		break;
-	case NOT_T:
-		printf("NOT_T\n");
+	case NOT_EQ_T:
+		printf("NOT_EQ_T\n");
 		break;
 	case KW_T:
 		printf("KW_T\t\t%s\n", keywordTable[t.attribute.codeType]);

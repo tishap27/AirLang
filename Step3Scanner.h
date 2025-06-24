@@ -59,7 +59,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 21
+#define NUM_TOKENS 22
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -83,7 +83,8 @@ enum TOKENS {
 	COMMA_T ,
 	DATE_T ,
 	EQL_T,
-	NOT_T
+	NOT_T,
+	NOT_EQ_T
 };
 
 /* TO_DO: Define the list of keywords */
@@ -108,7 +109,8 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"COMMA_T", 
 	"DATE_T",
 	"EQL_T",
-	"NOT_T"
+	"NOT_T",
+	"NOT_EQ_T"
 };
 
 /* TO_DO: Operators token attributes */
@@ -180,6 +182,7 @@ typedef struct scannerData {
 #define SLQUT_CHR '\''
 #define EQL_CHR '='
 #define NOT_CHR '!'
+
 
 
 /*  Special case tokens processed separately one by one in the token-driven part of the scanner:
