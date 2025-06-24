@@ -200,7 +200,7 @@ typedef struct scannerData {
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
-/*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )     .          ;         -          --
+/*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )     .          ;         -          --			^^
 	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8)  DOT(9)  SEMI(10)    MINUS(11)  SLCOM(12)  sq(13)*/
 	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR , ESNR , ESNR , 10 , 7 , 14 },	// S0: NOAS
 	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR , 3  , ESNR , 3 , 3},	// S1: NOAS

@@ -168,6 +168,7 @@ Token tokenizer(airlang_void) {
 			break;
 
 			/* Cases for symbols */
+
 		case SCL_CHR:
 			currentToken.code = EOS_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -341,6 +342,9 @@ Token tokenizer(airlang_void) {
 
 					c = readerGetChar(sourceBuffer);
 
+					/*FOR INVALID MNID */
+
+					/*FOR INVALID NUMS*/
 					if (isdigit(c)) {
 						hasDigits = 1;
 						state = nextState(state, c);
@@ -670,6 +674,11 @@ Token funcIL(airlang_strg lexeme) {
 		else if (isdigit(lexeme[i])) {
 		hasDigits = 1 ; 
 		}
+
+		else if (lexeme[i] == '-' && i == 0) {
+			// Allow minus sign only at the beginning
+			continue;
+		}
 		else if (isalpha(lexeme[i])) {
 			if (hasDigits) {
 				isValid = 0;
@@ -870,23 +879,21 @@ Token funcID(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	size_t length = strlen(lexeme);
 
-	// Check for method identifier (ending with &)
-	/*if (lexeme[length - 1] == AMP_CHR) {
-		currentToken.code = MNID_T;
-		scData.scanHistogram[currentToken.code]++;
-		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
-		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
-		return currentToken;
-	}
-	*/
-
-	// Check for method identifier (ending with ())
-	if (length >= 2 && lexeme[length - 1] == RPR_CHR  && lexeme[length - 2] == LPR_CHR) {
-		currentToken.code = MNID_T;
-		scData.scanHistogram[currentToken.code]++;
-		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
-		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
-		return currentToken;
+	/*SHOULD HAVE BOTH PARANTHESES*/
+	if (strchr(lexeme, LPR_CHR) != NULL) { // CONTAINS (
+		// Check for method identifier ending with exactly ()
+		if (length >= 2 && lexeme[length - 1] == RPR_CHR && lexeme[length - 2] == LPR_CHR) {
+			currentToken.code = MNID_T;
+			scData.scanHistogram[currentToken.code]++;
+			strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
+			currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
+			return currentToken;
+		}
+		else {
+			/*Invalid MNID*/
+			currentToken = funcErr(lexeme);
+			return currentToken;
+		}
 	}
 
 
