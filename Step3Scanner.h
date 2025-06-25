@@ -52,7 +52,7 @@
 /*#pragma warning(error:4001)*/	/* to enforce C89 comments - to make // comments an error */
 
 /* Constants */
-#define VID_LEN 20  /* variable identifier length */
+#define VID_LEN 32  /* variable identifier length */
 #define ERR_LEN 40  /* error message length */
 #define NUM_LEN 5   /* maximum number of digits for IL */
 
