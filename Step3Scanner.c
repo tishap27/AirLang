@@ -1040,11 +1040,7 @@ Token funcID(airlang_strg lexeme) {
 			currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
 			return currentToken;
 		}
-		else {
-			/*Invalid MNID*/
-			currentToken = funcErr(lexeme);
-			return currentToken;
-		}
+		//invalid MNID treat as ID 
 	}
 
 
@@ -1137,9 +1133,6 @@ Token funcKEY(airlang_strg lexeme) {
 		scData.scanHistogram[currentToken.code]++;
 		currentToken.attribute.codeType = kwindex;
 	}
-	else {
-		currentToken = funcErr(lexeme);
-	}
 	return currentToken;
 }
 
@@ -1159,6 +1152,21 @@ Token funcKEY(airlang_strg lexeme) {
 Token funcErr(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_intg i = 0, len = (airlang_intg)strlen(lexeme);
+
+#ifdef DEBUG
+	static airlang_intg totalErrors = 0; 
+	printf("\nERROR #%d at line %d: Processing lexeme '", ++totalErrors, line);
+	for (i = 0; i < len && i < 50; i++) {
+		if (lexeme[i] == '\n') printf("\\n");
+		else if (lexeme[i] == '\t') printf("\\t");
+		else if (lexeme[i] == '\r') printf("\\r");
+		else printf("%c", lexeme[i]);
+	}
+	if (len > 50) printf("...");
+	printf("'\nGenerated from: %s\n", __FUNCTION__);
+#endif // !DEBUG
+
+
 	if (len > ERR_LEN) {
 		strncpy(currentToken.attribute.errLexeme, lexeme, ERR_LEN - 3);
 		currentToken.attribute.errLexeme[ERR_LEN - 3] = EOS_CHR;
@@ -1167,11 +1175,21 @@ Token funcErr(airlang_strg lexeme) {
 	else {
 		strcpy(currentToken.attribute.errLexeme, lexeme);
 	}
-	for (i = 0; i < len; i++)
-		if (lexeme[i] == NWL_CHR)
+	for (i = 0; i < len; i++) {
+		if (lexeme[i] == NWL_CHR) {
 			line++;
+			#ifdef DEBUG
+			printf("NewLine found at position %d\n", i);
+			#endif // DEBUG
+		}
+	}
 	currentToken.code = ERR_T;
 	scData.scanHistogram[currentToken.code]++;
+
+	#ifdef DEBUG
+	printf("Current error count: %d\n", scData.scanHistogram[ERR_T]);
+	printf("----------------------------\n");
+	#endif
 	return currentToken;
 }
 
