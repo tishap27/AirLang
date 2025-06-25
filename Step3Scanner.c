@@ -49,6 +49,7 @@
 #include <string.h>  /* string functions */
 #include <limits.h>  /* integer types constants */
 #include <float.h>   /* floating-point types constants */
+#include <string.h>
 
 /* #define NDEBUG to suppress assert() call */
 #include <assert.h>  /* assert() prototype */
@@ -327,6 +328,60 @@ Token tokenizer(airlang_void) {
 			lexStart = readerGetPosRead(sourceBuffer) - 1;
 			readerSetMark(sourceBuffer, lexStart);
 
+
+			 /* Special handling for aircraft IDs - ADD THIS SECTION */
+    if (isalpha(c)) {
+        // Check if this could be an aircraft ID (letter-hyphen-4letters)
+        airlang_char nextChar = readerGetChar(sourceBuffer);
+        if (nextChar == '-') {
+            // Potential aircraft ID, read exactly 4 more characters
+            airlang_char aircraft[7] = {0}; // C-GHPQ + null
+            int validAircraft = 1;
+            
+            aircraft[0] = c;        // First letter
+            aircraft[1] = '-';      // Hyphen
+            
+            // Read exactly 4 more characters
+            for (int j = 2; j < 6; j++) {
+                airlang_char ch = readerGetChar(sourceBuffer);
+                if (isalpha(ch)) {
+                    aircraft[j] = ch;
+                } else {
+                    validAircraft = 0;
+                    readerRetract(sourceBuffer); // Put back the non-letter
+                    break;
+                }
+            }
+            
+            // Check what comes after (should be delimiter)
+            if (validAircraft) {
+                airlang_char afterChar = readerGetChar(sourceBuffer);
+                if (isalnum(afterChar) || afterChar == '_') {
+                    // More characters follow, not a valid aircraft ID
+                    validAircraft = 0;
+                }
+                readerRetract(sourceBuffer); // Put back the delimiter
+            }
+            
+            if (validAircraft) {
+                // Create aircraft ID token
+                aircraft[6] = '\0';
+                currentToken.code = AIRCRAFT_ID_T;
+                strncpy(currentToken.attribute.aircraftId, aircraft, 6);
+                currentToken.attribute.aircraftId[6] = '\0';
+                scData.scanHistogram[currentToken.code]++;
+                return currentToken;
+            } else {
+                // Not valid aircraft ID, reset and process normally
+                readerRestore(sourceBuffer);
+                // Fall through to normal processing
+            }
+        } else {
+            readerRetract(sourceBuffer); // Put back the character after the letter
+            // Fall through to normal processing
+        }
+    }
+
 			/* Special handling for numbers */
 			if (isdigit(c) || c == '.' || c == '-') {
 				int hasDigits = 0;
@@ -352,9 +407,37 @@ Token tokenizer(airlang_void) {
 					//if (isdigit(c) || c == '.') {
 					//	state = nextState(state, c);
 					//}
-					else if (c == '.' && !hasDecimal) {
-						hasDecimal = 1;
-						state = nextState(state, c);
+					else if (c == '.') {
+						if (!hasDecimal) {
+							hasDecimal = 1;
+							state = nextState(state, c);
+						}
+						else {
+							// Second decimal point - this is an error!
+							isValidNumber = 0;
+							// Continue reading to capture the full invalid token
+							while (isalnum(c) || c == '.' || c == '_') {
+								c = readerGetChar(sourceBuffer);
+							}
+							readerRetract(sourceBuffer); // Put back the delimiter
+
+							// Create error token
+							lexEnd = readerGetPosRead(sourceBuffer);
+							lexLength = lexEnd - lexStart;
+							lexemeBuffer = readerCreate((airlang_intg)lexLength + 2);
+							if (!lexemeBuffer) {
+								fprintf(stderr, "Scanner error: Can not create buffer\n");
+								exit(1);
+							}
+							readerRestore(sourceBuffer);
+							for (i = 0; i < lexLength; i++)
+								readerAddChar(lexemeBuffer, readerGetChar(sourceBuffer));
+							readerAddChar(lexemeBuffer, READER_TERMINATOR);
+							lexeme = readerGetContent(lexemeBuffer, 0);
+							currentToken = funcErr(lexeme);
+							readerRestore(lexemeBuffer);
+							return currentToken;
+						}
 					}
 
 					else if (isalpha(c)) {
@@ -734,12 +817,22 @@ Token funcDATE(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_intg i = 0, len = (airlang_intg)strlen(lexeme);
 	airlang_intg dateIndex = 0;
+	int year, month, day;
 
 	// Extract date content (without quotes)
 	for (i = 1; i < len - 1 && dateIndex < 10; i++) {
 		currentToken.attribute.dateValue[dateIndex++] = lexeme[i];
 	}
 	currentToken.attribute.dateValue[dateIndex] = '\0';
+
+	// After extracting date components
+	if (sscanf(currentToken.attribute.dateValue, "%d-%d-%d", &year, &month, &day) != 3) {
+		currentToken = funcErr(lexeme);
+	}
+	// Validate ranges
+	else if (month < 1 || month > 12 || day < 1 || day > 31) {
+		currentToken = funcErr(lexeme);
+	}
 
 	currentToken.code = DATE_T;
 	scData.scanHistogram[currentToken.code]++;
@@ -1055,6 +1148,9 @@ airlang_void printToken(Token t) {
 	case ID_T:
 		printf("ID_T\t\t%s\n", t.attribute.idLexeme);
 		break;
+	case AIRCRAFT_ID_T:
+		printf("AIRCRAFT_ID_T\t%s\n", t.attribute.aircraftId);
+		break;
 	case INT_T:  // Added case for integer literals
 		printf("INT_T\t\t%d\n", t.attribute.intValue);
 		break;
@@ -1134,3 +1230,19 @@ airlang_void printScannerData(ScannerData scData) {
 /*
 TO_DO: (If necessary): HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS (IF ANY).
 */
+Token funcAIRCRAFT(airlang_strg lexeme) {
+	Token currentToken = { 0 };
+	// Check if it's a valid aircraft ID pattern (1 letter + hyphen + 4 letters)
+	if (strlen(lexeme) == 6 && lexeme[1] == '-') {
+		currentToken.code = AIRCRAFT_ID_T;
+		strncpy(currentToken.attribute.aircraftId, lexeme, 6);
+		currentToken.attribute.aircraftId[6] = '\0';  /* Null terminate */
+	}
+	else {
+		// Fallback to regular identifier
+		currentToken.code = ID_T;
+		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
+		currentToken.attribute.idLexeme[VID_LEN] = '\0';  /* Null terminate */
+	}
+	return currentToken;
+}

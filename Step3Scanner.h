@@ -56,10 +56,13 @@
 #define ERR_LEN 40  /* error message length */
 #define NUM_LEN 5   /* maximum number of digits for IL */
 
+/*AirLang Specific*/
+#define ICAO_LEN 4 
+
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 22
+#define NUM_TOKENS 23
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -84,7 +87,8 @@ enum TOKENS {
 	DATE_T ,
 	EQL_T,
 	NOT_T,
-	NOT_EQ_T
+	NOT_EQ_T, 
+	AIRCRAFT_ID_T
 };
 
 /* TO_DO: Define the list of keywords */
@@ -110,7 +114,8 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"DATE_T",
 	"EQL_T",
 	"NOT_T",
-	"NOT_EQ_T"
+	"NOT_EQ_T", 
+	"AIRCRAFT_ID_T"
 };
 
 /* TO_DO: Operators token attributes */
@@ -133,6 +138,8 @@ typedef union TokenAttribute {
 	airlang_char idLexeme[VID_LEN + 1];	/* variable identifier token attribute */
 	airlang_char errLexeme[ERR_LEN + 1];	/* error token attribite */
 	airlang_char dateValue[11];        /* YYYY-MM-DD + null terminator*/
+
+	airlang_char aircraftId[7];
 } TokenAttribute;
 
 /* TO_DO: Should be used if no symbol table is implemented */
@@ -192,10 +199,10 @@ typedef struct scannerData {
 /* TO_DO: Error states and illegal state */
 #define ESNR	8		/* Error state with no retract */
 #define ESWR	9		/* Error state with retract */
-#define FS		18		/* Illegal state */
+#define FS		20		/* Illegal state */
 
  /* TO_DO: State transition table definition */
-#define NUM_STATES		18
+#define NUM_STATES		20
 #define CHAR_CLASSES	14
 
 /* TO_DO: Transition table - type of states defined in separate table */
@@ -203,7 +210,7 @@ static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 /*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )     .          ;         -          --			^^
 	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8)  DOT(9)  SEMI(10)    MINUS(11)  SLCOM(12)  sq(13)*/
 	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR , ESNR , ESNR , 10 , 7 , 14 },	// S0: NOAS
-	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR , 3  , ESNR , 3 , 3},	// S1: NOAS
+	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR , 3  , 18 , 3 , 3},	// S1: NOAS
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS , FS},	// S2: ASNR (MVID)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS , FS },	// S3: ASWR (KEY)
 	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4 , 4  , 4  , 4 , 4 , 4 },	// S4: NOAS
@@ -219,7 +226,9 @@ static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	{ 14,   14,   14,   14,   14, ESWR,   14,   14,   14,   14,   14,   14,   14,   15 },  // S14: Date literal state
 	{    FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS },  // S15: Date final state (no retract)
 	{ 16,   16, 16, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR }, // S16: Error state for number+letter (like 123ABC)
-	{ 17,   17, 17, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR }  // S17: Error state for float+letter (like 12.5ABC)
+	{ 17,   17, 17, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR },  // S17: Error state for float+letter (like 12.5ABC)
+	{ ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR}, // S18: Single letter state
+	{ 19,   ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR}  // S19: After hyphen, collecting letters
 };
 
 
@@ -249,7 +258,9 @@ static airlang_intg stateType[NUM_STATES] = {
 	NOFS, /* 14 (Date literal) */
 	FSNR,  /* 15 (Date final) */
 	FSNR, /* 16 (Error for number+letter) */
-	FSNR  /* 17 (Error for float+letter) */
+	FSNR,  /* 17 (Error for float+letter) */
+	NOFS, /* 18 - Single letter + hyphen */
+	FSWR  /* 19 - Aircraft ID complete */
 };
 
 /*
@@ -283,6 +294,8 @@ Token funcKEY	(airlang_strg lexeme);
 Token funcErr	(airlang_strg lexeme);
 Token funcDATE  (airlang_strg lexeme);
 
+Token funcAIRCRAFT(airlang_strg lexeme);
+
 /* 
  * Accepting function (action) callback table (array) definition 
  * If you do not want to use the typedef, the equvalent declaration is:
@@ -307,7 +320,9 @@ static PTR_ACCFUN finalStateTable[NUM_STATES] = {
 	NULL,       /* 14 */
 	funcDATE,    /* 15 */
 	funcErr,    /* 16 - Error for number+letter */
-	funcErr     /* 17 - Error for float+letter */
+	funcErr,     /* 17 - Error for float+letter */
+	NULL,        /* 18 */
+	funcAIRCRAFT /* 19 */
 };
 
 /*
