@@ -62,7 +62,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 23
+#define NUM_TOKENS 24
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -88,7 +88,10 @@ enum TOKENS {
 	EQL_T,
 	NOT_T,
 	NOT_EQ_T, 
-	AIRCRAFT_ID_T
+
+	/*AirLang Specific*/
+	AIRCRAFT_ID_T,
+	FLIGHT_ID_T
 };
 
 /* TO_DO: Define the list of keywords */
@@ -115,7 +118,10 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"EQL_T",
 	"NOT_T",
 	"NOT_EQ_T", 
-	"AIRCRAFT_ID_T"
+
+	/*AirLang Specific*/
+	"AIRCRAFT_ID_T",
+	"FLIGHT_ID_T"
 };
 
 /* TO_DO: Operators token attributes */
@@ -139,7 +145,9 @@ typedef union TokenAttribute {
 	airlang_char errLexeme[ERR_LEN + 1];	/* error token attribite */
 	airlang_char dateValue[11];        /* YYYY-MM-DD + null terminator*/
 
-	airlang_char aircraftId[7];
+	/*AirLang Specific*/
+	airlang_char aircraftId[7];		/*ICAO REGISTRATION E.G C-GHPQ + null terminator*/
+	airlang_char flightId[6];		/*Domestic REGISTRATION E.G AL123 + null terminator*/
 } TokenAttribute;
 
 /* TO_DO: Should be used if no symbol table is implemented */
@@ -294,7 +302,10 @@ Token funcKEY	(airlang_strg lexeme);
 Token funcErr	(airlang_strg lexeme);
 Token funcDATE  (airlang_strg lexeme);
 
-Token funcAIRCRAFT(airlang_strg lexeme);
+/*AirLang Specific*/
+Token funcAIRCRAFT (airlang_strg lexeme);
+int isFlightId     (airlang_strg lexeme);
+Token funcFLIGHT   (airlang_strg lexeme);
 
 /* 
  * Accepting function (action) callback table (array) definition 

@@ -186,7 +186,7 @@ Token tokenizer(airlang_void) {
 			currentToken.code = EQL_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-		
+
 		case LPR_CHR:
 			currentToken.code = LPR_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -324,63 +324,120 @@ Token tokenizer(airlang_void) {
 		/* TO_DO: Adjust / check the logic for your language */
 
 		default: // general case
+
+			//if flight Id
+			if (isalpha(c)) {
+				airlang_char next_c = readerGetChar(sourceBuffer);
+				if (isalpha(next_c)) {
+					// Potential flight ID, read next 3 chars
+					airlang_char flightId[6] = { c, next_c };
+					flightId[2] = readerGetChar(sourceBuffer);
+					flightId[3] = readerGetChar(sourceBuffer);
+					flightId[4] = readerGetChar(sourceBuffer);
+					flightId[5] = '\0';
+
+					// Check if it's a valid flight ID (2 letters + 3 digits)
+					int is_flight = 1;
+					for (i = 0; i < 2; i++) {
+						if (!isalpha(flightId[i])) {
+							is_flight = 0;
+							break;
+						}
+					}
+					for (i = 2; i < 5; i++) {
+						if (!isdigit(flightId[i])) {
+							is_flight = 0;
+							break;
+						}
+					}
+
+					// Check what comes after (should be delimiter)
+					if (is_flight) {
+						airlang_char after_char = readerGetChar(sourceBuffer);
+						if (isalnum(after_char) || after_char == '_') {
+							// More characters follow, not a valid flight ID
+							is_flight = 0;
+						}
+						readerRetract(sourceBuffer); // Put back the delimiter
+					}
+
+					if (is_flight) {
+						currentToken.code = FLIGHT_ID_T;
+						strncpy(currentToken.attribute.flightId, flightId, 6);
+						scData.scanHistogram[currentToken.code]++;
+						return currentToken;
+					}
+					else {
+						// Not a flight ID, retract characters
+						for (i = 0; i < 4; i++) readerRetract(sourceBuffer);
+					}
+				}
+				else {
+					readerRetract(sourceBuffer); // Put back the character
+				}
+			}
+
+
+
+
+
 			state = nextState(state, c);
 			lexStart = readerGetPosRead(sourceBuffer) - 1;
 			readerSetMark(sourceBuffer, lexStart);
 
 
-			 /* Special handling for aircraft IDs - ADD THIS SECTION */
-    if (isalpha(c)) {
-        // Check if this could be an aircraft ID (letter-hyphen-4letters)
-        airlang_char nextChar = readerGetChar(sourceBuffer);
-        if (nextChar == '-') {
-            // Potential aircraft ID, read exactly 4 more characters
-            airlang_char aircraft[7] = {0}; // C-GHPQ + null
-            int validAircraft = 1;
-            
-            aircraft[0] = c;        // First letter
-            aircraft[1] = '-';      // Hyphen
-            
-            // Read exactly 4 more characters
-            for (int j = 2; j < 6; j++) {
-                airlang_char ch = readerGetChar(sourceBuffer);
-                if (isalpha(ch)) {
-                    aircraft[j] = ch;
-                } else {
-                    validAircraft = 0;
-                    readerRetract(sourceBuffer); // Put back the non-letter
-                    break;
-                }
-            }
-            
-            // Check what comes after (should be delimiter)
-            if (validAircraft) {
-                airlang_char afterChar = readerGetChar(sourceBuffer);
-                if (isalnum(afterChar) || afterChar == '_') {
-                    // More characters follow, not a valid aircraft ID
-                    validAircraft = 0;
-                }
-                readerRetract(sourceBuffer); // Put back the delimiter
-            }
-            
-            if (validAircraft) {
-                // Create aircraft ID token
-                aircraft[6] = '\0';
-                currentToken.code = AIRCRAFT_ID_T;
-                strncpy(currentToken.attribute.aircraftId, aircraft, 6);
-                currentToken.attribute.aircraftId[6] = '\0';
-                scData.scanHistogram[currentToken.code]++;
-                return currentToken;
-            } else {
-                // Not valid aircraft ID, reset and process normally
-                readerRestore(sourceBuffer);
-                // Fall through to normal processing
-            }
-        } else {
-            readerRetract(sourceBuffer); // Put back the character after the letter
-            // Fall through to normal processing
-        }
-    }
+			/* Special handling for aircraft IDs - ADD THIS SECTION */
+			if (isalpha(c)) {
+				// Check if this could be an aircraft ID (letter-hyphen-4letters)
+				airlang_char nextChar = readerGetChar(sourceBuffer);
+				if (nextChar == '-') {
+					// Potential aircraft ID, read exactly 4 more characters
+					airlang_char aircraft[7] = { 0 }; // C-GHPQ + null
+					int validAircraft = 1;
+
+					aircraft[0] = c;        // First letter
+					aircraft[1] = '-';      // Hyphen
+
+					// Read exactly 4 more characters
+					for (int j = 2; j < 6; j++) {
+						airlang_char ch = readerGetChar(sourceBuffer);
+						if (isalpha(ch)) {
+							aircraft[j] = ch;
+						}
+						else {
+							validAircraft = 0;
+							readerRetract(sourceBuffer); // Put back the non-letter
+							break;
+						}
+					}
+
+					// Check what comes after (should be delimiter)
+					if (validAircraft) {
+						airlang_char afterChar = readerGetChar(sourceBuffer);
+						if (isalnum(afterChar) || afterChar == '_') {
+							// More characters follow, not a valid aircraft ID
+							validAircraft = 0;
+						}
+						readerRetract(sourceBuffer); // Put back the delimiter
+					}
+
+					if (validAircraft) {
+						// Create aircraft ID token
+						aircraft[6] = '\0';
+						currentToken.code = AIRCRAFT_ID_T;
+						strncpy(currentToken.attribute.aircraftId, aircraft, 6);
+						currentToken.attribute.aircraftId[6] = '\0';
+						scData.scanHistogram[currentToken.code]++;
+						return currentToken;
+					}
+
+				}
+				else {
+					readerRetract(sourceBuffer); // Put back the character after the letter
+					// Fall through to normal processing
+				}
+
+			}
 
 			/* Special handling for numbers */
 			if (isdigit(c) || c == '.' || c == '-') {
@@ -496,7 +553,7 @@ Token tokenizer(airlang_void) {
 					readerRestore(lexemeBuffer);
 					return currentToken;
 				}
-			
+
 			}
 			else {
 				/* Normal token processing */
@@ -521,8 +578,9 @@ Token tokenizer(airlang_void) {
 			readerAddChar(lexemeBuffer, READER_TERMINATOR);
 			lexeme = readerGetContent(lexemeBuffer, 0);
 			// TO_DO: Defensive programming
-			if (!lexeme)
+			if (!lexeme){
 				return currentToken;
+		}
 			currentToken = (*finalStateTable[state])(lexeme);
 			readerRestore(lexemeBuffer);
 			return currentToken;
@@ -1149,7 +1207,10 @@ airlang_void printToken(Token t) {
 		printf("ID_T\t\t%s\n", t.attribute.idLexeme);
 		break;
 	case AIRCRAFT_ID_T:
-		printf("AIRCRAFT_ID_T\t%s\n", t.attribute.aircraftId);
+		printf("AIRCRAFT_ID_T\t\t%s\n", t.attribute.aircraftId);
+		break;
+	case FLIGHT_ID_T:
+		printf("FLIGHT_ID_T\t\t%s\n", t.attribute.flightId);
 		break;
 	case INT_T:  // Added case for integer literals
 		printf("INT_T\t\t%d\n", t.attribute.intValue);
@@ -1244,5 +1305,22 @@ Token funcAIRCRAFT(airlang_strg lexeme) {
 		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
 		currentToken.attribute.idLexeme[VID_LEN] = '\0';  /* Null terminate */
 	}
+	return currentToken;
+}
+
+/*
+ * Function to check if a string matches flight ID pattern (AL123)
+ */
+int isFlightId(airlang_strg lexeme) {
+	if (strlen(lexeme) != 5) return 0;
+	return isalpha(lexeme[0]) && isalpha(lexeme[1]) &&
+		isdigit(lexeme[2]) && isdigit(lexeme[3]) && isdigit(lexeme[4]);
+}
+Token funcFLIGHT(airlang_strg lexeme) {
+	Token currentToken = { 0 };
+	currentToken.code = FLIGHT_ID_T;
+	strncpy(currentToken.attribute.flightId, lexeme, 5);
+	currentToken.attribute.flightId[5] = '\0';
+	scData.scanHistogram[currentToken.code]++;
 	return currentToken;
 }
