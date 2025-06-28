@@ -18,7 +18,7 @@
 # ECHO "    @@                             @@    "
 # ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    "
 # ECHO "                                         "
-# ECHO "[CODER SCRIPT ..........................]"
+# ECHO "[SCANNER SCRIPT ........................]"
 # ECHO "                                         "
 */
 
@@ -376,9 +376,6 @@ Token tokenizer(airlang_void) {
 					readerRetract(sourceBuffer); // Put back the character
 				}
 			}
-
-
-
 
 
 			state = nextState(state, c);
@@ -743,54 +740,6 @@ Token funcCMT(airlang_strg lexeme) {
   ***********************************************************
   */
   /* TO_DO: Adjust the function for IL */
-/*
-Token funcIL(airlang_strg lexeme) {
-	Token currentToken = { 0 };
-	airlang_long tlong;
-	double tfloat;
-	char tempLexeme[NUM_LEN + 2]; // Enough space
-	size_t len = strlen(lexeme);
-
-	// If lexeme ends with a semicolon, strip it
-	if (len > 0 && lexeme[len - 1] == ';') {
-		strncpy(tempLexeme, lexeme, len - 1);
-		tempLexeme[len - 1] = '\0';
-		lexeme = tempLexeme;
-		len--;
-	}
-
-		// Check if lexeme is all digits
-		int isAllDigits = 1;
-		for (size_t i = 0; i < len; ++i) {
-			if (!isdigit(lexeme[i])) {
-				isAllDigits = 0;
-				break;
-			}
-		}
-
-		if (isAllDigits && len > 0) {
-			tlong = atol(lexeme);
-			if (tlong >= 0 && tlong <= SHRT_MAX) {
-				currentToken.code = INT_T;
-				scData.scanHistogram[currentToken.code]++;
-				currentToken.attribute.intValue = (airlang_intg)tlong;
-			}
-			else {
-				// Out of range, handle as error
-				currentToken = (*finalStateTable[ESNR])(lexeme);
-			}
-		}
-		else {
-			// Not all digits, treat as identifier or error
-			currentToken.code = ID_T;
-			strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN - 1);
-			currentToken.attribute.idLexeme[VID_LEN - 1] = '\0';
-		}
-	
-	return currentToken;
-}
-*/
-
 
 //just check if int or float forget everything else
 Token funcIL(airlang_strg lexeme) {
@@ -863,130 +812,6 @@ Token funcIL(airlang_strg lexeme) {
 	return currentToken;
 }
 
-/*
-************************************************************
- * Acceptance State Function DATE
- *      Function responsible to identify DATE literals.
- * - The lexeme must be stored in the String Literal Table
- *   (stringLiteralTable).
- ***********************************************************
- */
-Token funcDATE(airlang_strg lexeme) {
-	Token currentToken = { 0 };
-	airlang_intg i = 0, len = (airlang_intg)strlen(lexeme);
-	airlang_intg dateIndex = 0;
-	int year, month, day;
-
-	// Extract date content (without quotes)
-	for (i = 1; i < len - 1 && dateIndex < 10; i++) {
-		currentToken.attribute.dateValue[dateIndex++] = lexeme[i];
-	}
-	currentToken.attribute.dateValue[dateIndex] = '\0';
-
-	// After extracting date components
-	if (sscanf(currentToken.attribute.dateValue, "%d-%d-%d", &year, &month, &day) != 3) {
-		currentToken = funcErr(lexeme);
-	}
-	// Validate ranges
-	else if (month < 1 || month > 12 || day < 1 || day > 31) {
-		currentToken = funcErr(lexeme);
-	}
-
-	currentToken.code = DATE_T;
-	scData.scanHistogram[currentToken.code]++;
-	return currentToken;
-}
-
-/*
-Token funcIL(airlang_strg lexeme) {
-	Token currentToken = { 0 };
-	airlang_long tlong;
-	double tfloat;
-	char tempLexeme[NUM_LEN + 10]; // Increased buffer size
-	size_t len = strlen(lexeme);
-
-	// Copy lexeme to temp buffer for processing
-	strncpy(tempLexeme, lexeme, sizeof(tempLexeme) - 1);
-	tempLexeme[sizeof(tempLexeme) - 1] = '\0';
-
-	// If lexeme ends with a semicolon, strip it
-	if (len > 0 && tempLexeme[len - 1] == ';') {
-		tempLexeme[len - 1] = '\0';
-		len--;
-	}
-
-	// Check if lexeme contains a decimal point
-	char* decimalPos = strchr(tempLexeme, '.');
-
-	if (decimalPos != NULL) {
-		// Handle floating-point number
-		int isValidFloat = 1;
-
-		// Check if all characters except decimal point are digits
-		for (size_t i = 0; i < len; ++i) {
-			if (tempLexeme[i] != '.' && !isdigit(tempLexeme[i])) {
-				isValidFloat = 0;
-				break;
-			}
-		}
-
-		// Ensure there's at least one digit before and after decimal point
-		if (decimalPos == tempLexeme || decimalPos == tempLexeme + len - 1) {
-			isValidFloat = 0; // Decimal point at start or end
-		}
-
-		// Count decimal points (should be exactly one)
-		int decimalCount = 0;
-		for (size_t i = 0; i < len; ++i) {
-			if (tempLexeme[i] == '.') decimalCount++;
-		}
-		if (decimalCount != 1) isValidFloat = 0;
-
-		if (isValidFloat && len > 2) { // At least "x.y" format
-			tfloat = atof(tempLexeme);
-			currentToken.code = FLOAT_T;
-			scData.scanHistogram[currentToken.code]++;
-			currentToken.attribute.floatValue = (airlang_real)tfloat;
-		}
-		else {
-			// Invalid float format, handle as error
-			currentToken = (*finalStateTable[ESNR])(lexeme);
-		}
-	}
-	else {
-		// Handle integer
-		// Check if lexeme is all digits
-		int isAllDigits = 1;
-		for (size_t i = 0; i < len; ++i) {
-			if (!isdigit(tempLexeme[i])) {
-				isAllDigits = 0;
-				break;
-			}
-		}
-
-		if (isAllDigits && len > 0) {
-			tlong = atol(tempLexeme);
-			if (tlong >= 0 && tlong <= SHRT_MAX) {
-				currentToken.code = INT_T;
-				scData.scanHistogram[currentToken.code]++;
-				currentToken.attribute.intValue = (airlang_intg)tlong;
-			}
-			else {
-				// Out of range, handle as error
-				currentToken = (*finalStateTable[ESNR])(lexeme);
-			}
-		}
-		else {
-			// Not all digits, shouldn't reach here in IL function
-			currentToken = (*finalStateTable[ESNR])(lexeme);
-		}
-	}
-	return currentToken;
-}
-
-*/
-
-
 
 /*
  ************************************************************
@@ -1001,31 +826,6 @@ Token funcIL(airlang_strg lexeme) {
  ***********************************************************
  */
  /* TO_DO: Adjust the function for ID */
-/*Token funcID(airlang_strg lexeme) {
-	Token currentToken = { 0 };
-	size_t length = strlen(lexeme);
-	airlang_char lastch = lexeme[length - 1];
-	airlang_intg isID = AirLang_FALSE;
-	switch (lastch) {
-		case AMP_CHR:
-			currentToken.code = MNID_T;
-			scData.scanHistogram[currentToken.code]++;
-			isID = AirLang_TRUE;
-			break;
-		default:
-			// Test Keyword
-			///lexeme[length - 1] = EOS_CHR;
-			currentToken = funcKEY(lexeme);
-			break;
-	}
-	if (currentToken.code == ERR_T) {               //isID == AirLang_TRUE
-		currentToken.code = ID_T;
-		scData.scanHistogram[currentToken.code]++;
-		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
-		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
-	}
-	return currentToken;
-}*/
 Token funcID(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	size_t length = strlen(lexeme);
@@ -1043,7 +843,6 @@ Token funcID(airlang_strg lexeme) {
 		//invalid MNID treat as ID 
 	}
 
-
 	// Check if it is a keyword
 	currentToken = funcKEY(lexeme);
 
@@ -1057,9 +856,6 @@ Token funcID(airlang_strg lexeme) {
 
 	return currentToken;
 }
-
-
-
 
 
 
@@ -1309,6 +1105,53 @@ airlang_void printScannerData(ScannerData scData) {
 /*
 TO_DO: (If necessary): HERE YOU WRITE YOUR ADDITIONAL FUNCTIONS (IF ANY).
 */
+
+/*
+************************************************************
+ * Acceptance State Function DATE
+ *      Function responsible to identify DATE literals.
+ * - The lexeme must be stored in the String Literal Table
+ *   (stringLiteralTable).
+ * Function responsible to identify and validate 
+   DATE literals in 'YYYY-MM-DD' format
+ ***********************************************************
+ */
+Token funcDATE(airlang_strg lexeme) {
+	Token currentToken = { 0 };
+	airlang_intg i = 0, len = (airlang_intg)strlen(lexeme);
+	airlang_intg dateIndex = 0;
+	int year, month, day;
+
+	// Extract date content (without quotes)
+	for (i = 1; i < len - 1 && dateIndex < 10; i++) {
+		currentToken.attribute.dateValue[dateIndex++] = lexeme[i];
+	}
+	currentToken.attribute.dateValue[dateIndex] = '\0';
+
+	// After extracting date components
+	if (sscanf(currentToken.attribute.dateValue, "%d-%d-%d", &year, &month, &day) != 3) {
+		currentToken = funcErr(lexeme);
+	}
+	// Validate ranges
+	else if (month < 1 || month > 12 || day < 1 || day > 31) {
+		currentToken = funcErr(lexeme);
+	}
+
+	currentToken.code = DATE_T;
+	scData.scanHistogram[currentToken.code]++;
+	return currentToken;
+}
+
+/*
+************************************************************
+ * Acceptance State Function AIRCRAFT
+ *      Function responsible to identify aircraft registration IDs.
+ * - Validates pattern: [Letter]-[4 Letters] (e.g., C-GHPQ)
+ * - Falls back to regular ID if invalid format
+ * Function responsible to identify aircraft registration
+   IDs with pattern [Letter]-[4Letters]
+ ***********************************************************
+ */
 Token funcAIRCRAFT(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	// Check if it's a valid aircraft ID pattern (1 letter + hyphen + 4 letters)
@@ -1327,13 +1170,27 @@ Token funcAIRCRAFT(airlang_strg lexeme) {
 }
 
 /*
- * Function to check if a string matches flight ID pattern (AL123)
+************************************************************
+ * Flight ID Validator
+ *      Checks if string matches flight number format (2 letters + 3 digits)
+ * Returns: 1 if valid (e.g., AC123), 0 otherwise
+ ***********************************************************
  */
 int isFlightId(airlang_strg lexeme) {
 	if (strlen(lexeme) != 5) return 0;
 	return isalpha(lexeme[0]) && isalpha(lexeme[1]) &&
 		isdigit(lexeme[2]) && isdigit(lexeme[3]) && isdigit(lexeme[4]);
 }
+
+/*
+************************************************************
+ * Acceptance State Function FLIGHT
+ *      Processes valid flight numbers into FLIGHT_ID_T tokens
+ * - Assumes input was pre-validated by isFlightId()
+ * Function responsible to identify flight numbers
+   with pattern [2Letters][3Digits]
+ ***********************************************************
+ */
 Token funcFLIGHT(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	currentToken.code = FLIGHT_ID_T;

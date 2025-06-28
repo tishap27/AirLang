@@ -18,7 +18,7 @@
 # ECHO "    @@                             @@    "
 # ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    "
 # ECHO "                                         "
-# ECHO "[CODER SCRIPT ..........................]"
+# ECHO "[SCANNER SCRIPT ........................]"
 # ECHO "                                         "
 */
 /*
@@ -179,7 +179,7 @@ typedef struct scannerData {
 #define EOS_CHR '\0'	// CH00
 #define EOF_CHR 0xFF	// CH01
 #define UND_CHR '_'		// CH02
-//#define AMP_CHR '&'		// CH03
+//#define AMP_CHR '&'	// CH03
 #define QUT_CHR '"'		// CH04
 #define HST_CHR '%'		// CH05
 #define TAB_CHR '\t'	// CH06
@@ -190,13 +190,13 @@ typedef struct scannerData {
 #define RPR_CHR ')'		// CH11
 #define LBR_CHR '{'		// CH12
 #define RBR_CHR '}'		// CH13
-#define COLON_CHR ':'     // CH 14
-#define DEC_CHR '.'
-#define COMMA_CHR ','
-#define SLCOM_CHR '^'
-#define SLQUT_CHR '\''
-#define EQL_CHR '='
-#define NOT_CHR '!'
+#define COLON_CHR ':'   // CH14
+#define DEC_CHR '.'		// CH15
+#define COMMA_CHR ','	// CH16
+#define SLCOM_CHR '^'	// CH17
+#define SLQUT_CHR '\''	// CH18
+#define EQL_CHR '='		// CH19
+#define NOT_CHR '!'		// CH20
 
 
 
@@ -215,29 +215,29 @@ typedef struct scannerData {
 
 /* TO_DO: Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
-/*    [A-z],[0-9],    _,    (,   \', SEOF,    %, other    )     .          ;         -          --			^^
-	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7) RP(8)  DOT(9)  SEMI(10)    MINUS(11)  SLCOM(12)  sq(13)*/
-	{     1,   10, ESNR, ESNR,    4, ESWR,	  6, ESNR , ESNR , ESNR , ESNR , 10 , 7 , 14 },	// S0: NOAS
-	{     1,    1,    1,    11,	  3,    3,   3,    3 , 3 , ESNR , 3  , 18 , 3 , 3},	// S1: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS , FS},	// S2: ASNR (MVID)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS , FS , FS },	// S3: ASWR (KEY)
-	{     4,    4,    4,    4,    5, ESWR,	  4,    4 , 4 , 4  , 4  , 4 , 4 , 4 },	// S4: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS , FS},	// S5: ASNR (SL)
-	{     6,    6,    6,    6,    6, ESWR,	  7,    6, 6, 6  , 6  , 6  , 6 , 6},	// S6: NOAS
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS  , FS  , FS , FS},	// S7: ASNR (COM)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS , FS , FS  , FS, FS },	// S8: ASNR (ES)
-	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,   FS , FS , FS ,  FS , FS , FS , FS}, // S9: ASWR (ER)
-	{    16,  10 ,ESWR,   ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , 12 , ESWR  , ESWR , ESWR , ESWR}, // S10: ASWR (IL) - New state for integers
-	{ FS,   FS,   FS,   FS,   3,   FS,   FS,   FS,    2 , FS , FS , FS  , FS , FS} , // S11: NOAS - On ')' go to S2 (MVID)
-	{ ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR , ESNR  , ESNR, ESNR , ESNR}, // S12: NOAS - Decimal point state
-	{ 17,   13, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR, ESWR , ESWR , ESWR , ESWR , ESWR },  // S13: FSNR (FL) - Float state
-	{ 14,   14,   14,   14,   14, ESWR,   14,   14,   14,   14,   14,   14,   14,   15 },  // S14: Date literal state
-	{    FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS,   FS },  // S15: Date final state (no retract)
-	{ 16,   16, 16, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR }, // S16: Error state for number+letter (like 123ABC)
-	{ 17,   17, 17, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR },  // S17: Error state for float+letter (like 12.5ABC)
-	{ ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR}, // S18: Single letter state
-	{ 19,   ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR}  // S19: After hyphen, collecting letters
-};
+/*    [A-z],[0-9],    _,    (,   \", SEOF,    %,  other,    ) ,    .  ,      ;  ,      -   ,     ^^	  ,	  \'
+	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7), RP(8), DOT(9), SEMI(10), MINUS(11), SLCOM(12), SQ(13)*/
+	{     1,   10, ESNR, ESNR,    4, ESWR,	  6,   ESNR,  ESNR,   ESNR,    ESNR ,       10 ,        7 ,  14 },	// S0: NOAS
+	{     1,    1,    1,    11,	  3,    3,    3,     3 ,    3 ,   ESNR,      3  ,       18 ,        3 ,    3},	// S1: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,     FS  ,       FS ,       FS ,   FS},	// S2: ASNR (MVID)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,     FS  ,       FS ,       FS ,   FS},	// S3: ASWR (KEY)
+	{     4,    4,    4,    4,    5, ESWR,	  4,    4  ,    4 ,    4  ,      4  ,        4 ,        4 ,    4},	// S4: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},	// S5: ASNR (SL)
+	{     6,    6,    6,    6,    6, ESWR,	  7,      6,    6 ,     6 ,       6 ,        6 ,        6 ,    6},	// S6: NOAS
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},	// S7: ASNR (COM)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},	// S8: ASNR (ES)
+	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},  // S9: ASWR (ER)
+	{    16,   10, ESWR, ESWR, ESWR, ESWR, ESWR,  ESWR , ESWR ,    12 ,    ESWR ,     ESWR ,     ESWR , ESWR},  // S10: ASWR (IL) - New state for integers
+	{    FS,   FS,   FS,   FS,   3,    FS,   FS,     FS,    2 ,    FS ,      FS ,       FS ,       FS ,   FS},  // S11: NOAS - On ')' go to S2 (MVID)
+	{  ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR,   ESNR,  ESNR,   ESNR,    ESNR ,      ESNR,     ESNR , ESNR},  // S12: NOAS - Decimal point state
+	{    17,   13, ESWR, ESWR, ESWR, ESWR, ESWR,   ESWR,  ESWR,   ESWR,    ESWR ,     ESWR ,     ESWR , ESWR},  // S13: FSNR (FL) - Float state
+	{    14,   14,   14,   14,   14, ESWR,   14,     14,    14,     14,       14,        14,       14 ,   15},  // S14: Date literal state
+	{    FS,   FS,   FS,   FS,   FS,   FS,   FS,     FS,    FS,     FS,       FS,        FS,       FS ,   FS},  // S15: Date final state (no retract)
+	{    16,   16,   16, ESNR, ESNR, ESNR, ESNR,   ESNR,  ESNR,   ESNR,     ESNR,      ESNR,     ESNR , ESNR},  // S16: Error state for number+letter (like 123ABC)
+	{    17,   17,   17, ESNR, ESNR, ESNR, ESNR,   ESNR,  ESNR,   ESNR,     ESNR,      ESNR,     ESNR , ESNR},  // S17: Error state for float+letter (like 12.5ABC)
+	{  ESNR, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR,   ESNR,  ESNR,   ESNR,     ESNR,      ESNR,     ESNR , ESNR},  // S18: Single letter state
+	{    19, ESNR, ESNR, ESNR, ESNR, ESNR, ESNR,   ESNR,  ESNR,   ESNR,     ESNR,      ESNR,     ESNR , ESNR}   // S19: After hyphen, collecting letters
+};																		   
 
 
 
@@ -314,26 +314,26 @@ Token funcFLIGHT   (airlang_strg lexeme);
 
 /* TO_DO: Define final state table */
 static PTR_ACCFUN finalStateTable[NUM_STATES] = {
-	NULL,		/* -    [00] */
-	NULL,		/* -    [01] */
-	funcID,		/* MNID	[02] */
-	funcID,	    /* KEY  [03] */
-	NULL,		/* -    [04] */
-	funcSL,		/* SL   [05] */
-	NULL,		/* -    [06] */
-	funcCMT,	/* COM  [07] */
-	funcErr,	/* ERR1 [06] */
-	funcErr,		/* ERR2 [07] */
-	funcIL,		/* IL   [10] - New function for integer literals */
-	NULL ,		/* -    [11] - Non-final state */
-	NULL,		/* -    [12] - Decimal point (non-final) */
-	funcIL,		/* FL   [13] - Float literals  */
-	NULL,       /* 14 */
-	funcDATE,    /* 15 */
-	funcErr,    /* 16 - Error for number+letter */
-	funcErr,     /* 17 - Error for float+letter */
-	NULL,        /* 18 */
-	funcAIRCRAFT /* 19 */
+	NULL,		 /* -    [00] */
+	NULL,		 /* -    [01] */
+	funcID,		 /* MNID [02] */
+	funcID,	     /* KEY  [03] */
+	NULL,		 /* -    [04] */
+	funcSL,		 /* SL   [05] */
+	NULL,		 /* -    [06] */
+	funcCMT,	 /* COM  [07] */
+	funcErr,	 /* ERR1 [06] */
+	funcErr,	 /* ERR2 [07] */
+	funcIL,		 /* IL   [10] - New function for integer literals */
+	NULL ,		 /* -    [11] - Non-final state */
+	NULL,		 /* -    [12] - Decimal point (non-final) */
+	funcIL,		 /* FL   [13] - Float literals complete ,contains decimal */
+	NULL,        /* -    [14] - Processing date literal - not complete */
+	funcDATE,    /* Date [15] - Date literal complete (pattern: 'YYYY-MM-DD')  */
+	funcErr,     /* ERR  [16] - Error for number+letter */
+	funcErr,     /* ERR  [17] - Error for float+letter */
+	NULL,        /* -    [18] - Processing aircraft ID - not complete */
+	funcAIRCRAFT /* planeee[19] - Aircraft ID complete (pattern: C-ABCD)*/
 };
 
 /*
