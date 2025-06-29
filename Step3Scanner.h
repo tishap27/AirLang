@@ -356,7 +356,7 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"IF",		    /* KW06 */
 	"THEN",			/* KW07 */
 	"ELSE",			/* KW08 */
-	"END",			/* KW09 */
+	"ENDIF",		/* KW09 */
 	"PRINT",		/* KW010 */
 	"REPORT",		/* KW11 */
 	"CALCULATE"	,	/* KW12 */
