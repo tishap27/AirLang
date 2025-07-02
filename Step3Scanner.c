@@ -848,10 +848,16 @@ Token funcID(airlang_strg lexeme) {
 
 	// If not a keyword, treat as regular identifier (ID_T)
 	if (currentToken.code == ERR_T) {
-		currentToken.code = ID_T;
-		scData.scanHistogram[currentToken.code]++;
-		strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
-		currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
+		if (isupper(lexeme[0])) {
+			currentToken.code = ID_T;
+			scData.scanHistogram[currentToken.code]++;
+			strncpy(currentToken.attribute.idLexeme, lexeme, VID_LEN);
+			currentToken.attribute.idLexeme[VID_LEN] = EOS_CHR;
+		}
+		else {
+			// Doesn't start with capital letter - treat as error
+			currentToken = funcErr(lexeme);
+		}
 	}
 
 	return currentToken;
@@ -949,7 +955,7 @@ Token funcErr(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_intg i = 0, len = (airlang_intg)strlen(lexeme);
 
-#ifdef DEBUG
+/*#ifdef DEBUG
 	static airlang_intg totalErrors = 0; 
 	printf("\nERROR #%d at line %d: Processing lexeme '", ++totalErrors, line);
 	for (i = 0; i < len && i < 50; i++) {
@@ -961,6 +967,7 @@ Token funcErr(airlang_strg lexeme) {
 	if (len > 50) printf("...");
 	printf("'\nGenerated from: %s\n", __FUNCTION__);
 #endif // !DEBUG
+*/
 
 
 	if (len > ERR_LEN) {
@@ -975,17 +982,17 @@ Token funcErr(airlang_strg lexeme) {
 		if (lexeme[i] == NWL_CHR) {
 			line++;
 			#ifdef DEBUG
-			printf("NewLine found at position %d\n", i);
+			//printf("NewLine found at position %d\n", i);
 			#endif // DEBUG
 		}
 	}
 	currentToken.code = ERR_T;
 	scData.scanHistogram[currentToken.code]++;
 
-	#ifdef DEBUG
+	/*#ifdef DEBUG
 	printf("Current error count: %d\n", scData.scanHistogram[ERR_T]);
 	printf("----------------------------\n");
-	#endif
+	#endif*/
 	return currentToken;
 }
 
