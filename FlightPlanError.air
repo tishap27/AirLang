@@ -1,0 +1,39 @@
+% Flight Plan example with errors; Common mistakes and plenty of comments
+  Great for learning what *NOT* to do in AirLang! %
+
+
+ 7aircraft   	  ^^ Nothing can start with num, not id not variable nothing. 
+
+ -77               ^^Valid int (-ve)
+ ETA: 1.5.7;       ^^ Invalid float
+
+Weather clear        ^^ERROR: clear is not within quotes so not a string. doesn't start with UpperCase so not ID, hence Nothing. 
+	Clear        ^^correct id starting Caps 
+       "rain"        ^^correct string, both double qoutes
+	Rain()       ^^correct MNID , both parantheses
+
+
+MAIN {               ^^correct keyword all caps predefined in kwd table
+    
+
+	    AircraftId C-ZEGL     ^^ absolutely correct for aircraftId 
+	    	       ZS-EGL;     ^^ eehhh... Zulu Sierra Echo Golf Limaaa!!!  
+	               ZSEGL      ^^ hehe had to keep this atleast a valid ID 	
+            Type "B747"           ^^ nothing should be wrong with aircraft type 
+            FuelCapacity 77abc    ^^ Invalid number
+	    Date  '2025-06-24'    ^^ correct date within single qoutes
+ 	          '24-06-2025'    ^^ same correct     
+	          2025/06/24      ^^ERROR: not in single quotes [Don't have token for /]
+
+        }
+        
+        FLIGHT {  
+	    FlightNumber AL777   ^^ correct flight ID 2 letters + 3 digits
+	     		 ABC77   ^^ NOPE will go to normal ID not FlightID specifically
+                         AL7774  ^^ Noo same as above
+                        
+        }
+            PRINT "Flight delayed; ^^ missing quote
+	    Done finally!
+             
+

@@ -1,10 +1,11 @@
-% Flight Plan Example multiline comment %
-^^ If weather is not clear, print a delay message single line comment
+% AirLang Flight Plan  
+  Includes sample aircraft, flight, and route, data-ready for takeoff! %
+^^ The only bug in FlightPlan is STALL
 
 MAIN {
     BRIEFING {
         AIRCRAFT {
-            AircraftID: "C-GHPQ";
+            AircraftID: C-GHPQ;
             Type: "B747";
             FuelCapacity: 26000;
             CruiseSpeed: 430;
@@ -12,10 +13,10 @@ MAIN {
         }
 
         FLIGHT {
-            FlightNumber: "AL123";
+            FlightNumber: AL123;
             Date: '2025-05-15';
             Status: "on time";
-            Weather: "rain";
+            Weather: "clear";
             ETA: 1.5;
             EstimatedFuelRequired: 1575;
         }
@@ -46,4 +47,4 @@ MAIN {
 } ENDMAIN;
 
 
-FlightTip: "StallException — sky’s not the limit , STALL is! Debug Altitude Now"
+FlightTip: "StallException- sky's not the limit , STALL is! Debug Altitude Now"
