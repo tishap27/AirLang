@@ -64,13 +64,16 @@ static airlang_intg		syntaxErrorNumber = 0;
 
 #define LANG_WRTE		"print&"
 #define LANG_READ		"input&"
-#define LANG_MAIN		"main&"
+#define LANG_MAIN		"MAIN"
+#define LANG_ENDMAIN    "ENDMAIN"
 
 /* TO_DO: Create ALL constants for keywords (sequence given in table.h) */
 
 /* Constants */
 enum KEYWORDS {
 	NO_ATTR = -1,
+	KW_MAIN,
+	KW_ENDMAIN,
 	KW_data,
 	KW_code,
 	KW_int,
@@ -85,7 +88,7 @@ enum KEYWORDS {
 };
 
 /* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 14
+#define NUM_BNF_RULES 15
 
 /* Parser */
 typedef struct parserData {
@@ -120,7 +123,8 @@ enum BNF_RULES {
 	BNF_statements,									/* 10 */
 	BNF_statementsPrime,							/* 11 */
 	BNF_optParams,									/* 12 */
-	BNF_returnStatement								/* 13 */	
+	BNF_returnStatement,							/* 13 */
+	BNF_mainBlock
 };
 
 
@@ -139,7 +143,8 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_statements",
 	"BNF_statementsPrime",
 	"BNF_optParams",
-	"BNF_returnStatement"
+	"BNF_returnStatement",
+	"BNF_mainBlock"
 };
 
 /* TO_DO: Place ALL non-terminal function declarations */
@@ -156,5 +161,8 @@ airlang_void statements();
 airlang_void statementsPrime();
 airlang_void optParams();
 airlang_void paramList();
+
+/*Airlang specific*/
+airlang_void mainBlock();
 
 #endif

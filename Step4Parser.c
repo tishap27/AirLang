@@ -185,6 +185,10 @@ airlang_void program() {
 		comment();
 	case KW_T:
 		matchToken(KW_T, KW_int);
+		if (lookahead.attribute.codeType == KW_MAIN) {   // if kwd is aircraft than aircraft block, if flight that block xyz
+			mainBlock(); 
+			break;
+		}
 	case MNID_T:
 		if (strncmp(lookahead.attribute.idLexeme, LANG_MAIN, 5) == 0) {
 			matchToken(MNID_T, NO_ATTR);
@@ -468,4 +472,38 @@ airlang_void printBNFData(ParserData psData) {
 			printf("%s%s%s%d%s", "Token[", BNFStrTable[cont], "]=", psData.parsHistogram[cont], "\n");
 	}
 	printf("----------------------------------\n");
+}
+/*
+************************************************************
+* AIRLANG mainBlock() Function
+* Purpose: Parse MAIN { ... } ENDMAIN; structure
+* Grammar: <main_block> ::= "MAIN" "{" <content> "}" "ENDMAIN" ";"
+************************************************************
+*/
+
+airlang_void mainBlock() {
+	/* Update parser statistics */
+	psData.parsHistogram[BNF_mainBlock]++;
+
+	/* Match "MAIN" keyword */
+	matchToken(KW_T, KW_MAIN);
+
+	/* Match opening brace "{" */
+	matchToken(LBR_T, NO_ATTR);
+
+	/* YET TO Parse content inside MAIN block */
+	/*rigth now ONLY find closing brace */
+	/* Later  briefingBlock() and dispatchBlock() xyz  */
+
+	/* Match closing brace "}" */
+	matchToken(RBR_T, NO_ATTR);
+
+	/* Match "ENDMAIN" keyword */
+	matchToken(KW_T, KW_ENDMAIN);
+
+	/* Match semicolon ";" */
+	matchToken(EOS_T, NO_ATTR);
+
+	/* Print successful parsing message */
+	printf("%s%s\n", STR_LANGNAME, ": MAIN block parsed successfully");
 }
