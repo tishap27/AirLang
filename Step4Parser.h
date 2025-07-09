@@ -201,5 +201,8 @@ airlang_void reportBlock();
 airlang_void aircraftRecord();
 airlang_void flightRecord();
 airlang_void routeRecord();
+airlang_void aircraftData();
+airlang_void aircraftStructure();
+airlang_void aircraftValue();
 
 #endif

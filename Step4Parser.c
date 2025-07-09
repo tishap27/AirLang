@@ -217,10 +217,8 @@ airlang_void program() {
 	case MNID_T:
 		if (strncmp(lookahead.attribute.idLexeme, LANG_MAIN, 5) == 0) {
 			matchToken(MNID_T, NO_ATTR);
-			matchToken(LPR_T, NO_ATTR);
-			optParams();
-			matchToken(RPR_T, NO_ATTR);
 			matchToken(LBR_T, NO_ATTR);
+			//optParams();
 			dataSession();
 			codeSession();
 			matchToken(RBR_T, NO_ATTR);
@@ -538,7 +536,7 @@ airlang_void mainBlock() {
 
 
 // <briefing_block> ::= "BRIEFING" "{" <aircraft_block> <flight_block> <route_block> "}" "ENDBRIEFING" ";"
-void briefingBlock() {
+airlang_void briefingBlock() {
 	psData.parsHistogram[BNF_briefingBlock]++;
 	matchToken(KW_T, KW_BRIEFING);
 	matchToken(LBR_T, NO_ATTR);
@@ -554,7 +552,7 @@ void briefingBlock() {
 }
 
 // <dispatch_block> ::= "DISPATCH" "{" <dispatch_block> <report block> //later "}" "ENDDISPATCH" ";"
-void dispatchBlock() {
+airlang_void dispatchBlock() {
 	psData.parsHistogram[BNF_dispatchBlock]++;
 	matchToken(KW_T, KW_DISPATCH);
 	matchToken(LBR_T, NO_ATTR);
@@ -567,7 +565,7 @@ void dispatchBlock() {
 	printf("%s: Dispatch block parsed\n", STR_LANGNAME);
 }
 // <report_block> ::= "REPORT" "{"  "}" "ENDREPORT" ";"
-void reportBlock() {
+airlang_void reportBlock() {
 	psData.parsHistogram[BNF_reportBlock]++;
 	matchToken(KW_T, KW_REPORT);
 	matchToken(LBR_T, NO_ATTR);
@@ -578,18 +576,61 @@ void reportBlock() {
 	printf("%s: Report block parsed\n", STR_LANGNAME);
 }
 
-void aircraftRecord() {
+airlang_void aircraftRecord() {
 	psData.parsHistogram[BNF_aircraftRecord]++;
 	matchToken(KW_T, KW_AIRCRAFT);
 	matchToken(LBR_T, NO_ATTR);
 
+	aircraftData();
+
 	matchToken(RBR_T, NO_ATTR);
 	printf("%s: AIRCRAFT RECORD parsed\n", STR_LANGNAME);
+}
+airlang_void aircraftData() {
+	/* Parse multiple assignment statements */
+	while (lookahead.code == ID_T) {
+		aircraftStructure();
+	}
+}
+airlang_void aircraftStructure() {
+	// Match identifier like AircraftID, Type so on... 
+	matchToken(ID_T, NO_ATTR);
 
+	// Match colon 
+	matchToken(COLON_T, NO_ATTR);
+
+	// Match value (could be identifier, string, or number) 
+	aircraftValue();
+
+	// Match semicolon
+	matchToken(EOS_T, NO_ATTR);
+}
+airlang_void aircraftValue() {
+	switch (lookahead.code) {
+	case AIRCRAFT_ID_T:     // Aircraft ID values like C-GHPQ 
+		matchToken(AIRCRAFT_ID_T, NO_ATTR);
+		break;
+	case ID_T:     // Identifier values if for eg any id is typed Clear that will also work 
+		matchToken(ID_T, NO_ATTR);
+		break;
+	case STR_T:     // String values like "B747" 
+		matchToken(STR_T, NO_ATTR);
+		break;
+	case INT_T:     // Integer values like 26000 
+		matchToken(INT_T, NO_ATTR);
+		break;
+	case FLOAT_T:     // Float values like 1.5 
+		matchToken(FLOAT_T, NO_ATTR);
+		break;
+	default:
+		printError();
+		break;
+	}
 }
 
 
-void flightRecord() {
+
+airlang_void flightRecord() {
 	psData.parsHistogram[BNF_flightRecord]++;
 	matchToken(KW_T, KW_FLIGHT);
 	matchToken(LBR_T, NO_ATTR);
@@ -599,7 +640,7 @@ void flightRecord() {
 }
 
 
-void routeRecord() {
+airlang_void routeRecord() {
 	psData.parsHistogram[BNF_routeRecord]++;
 	matchToken(KW_T, KW_ROUTE);
 	matchToken(LBR_T, NO_ATTR);
