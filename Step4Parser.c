@@ -187,8 +187,22 @@ airlang_void program() {
 		matchToken(KW_T, KW_int);
 		if (lookahead.attribute.codeType == KW_MAIN) {   // if kwd is aircraft than aircraft block, if flight that block xyz
 			mainBlock(); 
-			break;
+
 		}
+		if (lookahead.attribute.codeType == KW_BRIEFING) {   // if kwd is aircraft than aircraft block, if flight that block xyz
+			briefingBlock();
+			
+		}
+		if (lookahead.attribute.codeType == KW_DISPATCH) {   // if kwd is aircraft than aircraft block, if flight that block xyz
+			dispatchBlock();
+			
+		}
+		if (lookahead.attribute.codeType == KW_REPORT) {   // if kwd is aircraft than aircraft block, if flight that block xyz
+			reportBlock();
+			
+		}
+
+
 	case MNID_T:
 		if (strncmp(lookahead.attribute.idLexeme, LANG_MAIN, 5) == 0) {
 			matchToken(MNID_T, NO_ATTR);
@@ -476,8 +490,8 @@ airlang_void printBNFData(ParserData psData) {
 /*
 ************************************************************
 * AIRLANG mainBlock() Function
-* Purpose: Parse MAIN { ... } ENDMAIN; structure
-* Grammar: <main_block> ::= "MAIN" "{" <content> "}" "ENDMAIN" ";"
+* Purpose: Parse the MAINBLOCK 
+* Grammar: <main_block> -> "MAIN"   "{" <content> "}"   "ENDMAIN" ";"
 ************************************************************
 */
 
@@ -491,6 +505,9 @@ airlang_void mainBlock() {
 	/* Match opening brace "{" */
 	matchToken(LBR_T, NO_ATTR);
 
+
+	briefingBlock();                // <briefing_block>
+	dispatchBlock();
 	/* YET TO Parse content inside MAIN block */
 	/*rigth now ONLY find closing brace */
 	/* Later  briefingBlock() and dispatchBlock() xyz  */
@@ -506,4 +523,41 @@ airlang_void mainBlock() {
 
 	/* Print successful parsing message */
 	printf("%s%s\n", STR_LANGNAME, ": MAIN block parsed successfully");
+}
+
+
+// <briefing_block> ::= "BRIEFING" "{" <aircraft_block> <flight_block> <route_block> "}" "ENDBRIEFING" ";"
+void briefingBlock() {
+	psData.parsHistogram[BNF_briefingBlock]++;
+	matchToken(KW_T, KW_BRIEFING);
+	matchToken(LBR_T, NO_ATTR);
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDBRIEFING);
+	matchToken(EOS_T, NO_ATTR);
+	printf("%s: Briefing block parsed\n", STR_LANGNAME);
+}
+
+// <dispatch_block> ::= "DISPATCH" "{" <dispatch_block> <report block> //later "}" "ENDDISPATCH" ";"
+void dispatchBlock() {
+	psData.parsHistogram[BNF_dispatchBlock]++;
+	matchToken(KW_T, KW_DISPATCH);
+	matchToken(LBR_T, NO_ATTR);
+
+	reportBlock();
+
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDDISPATCH);
+	matchToken(EOS_T, NO_ATTR);
+	printf("%s: Dispatch block parsed\n", STR_LANGNAME);
+}
+// <report_block> ::= "REPORT" "{"  "}" "ENDREPORT" ";"
+void reportBlock() {
+	psData.parsHistogram[BNF_reportBlock]++;
+	matchToken(KW_T, KW_REPORT);
+	matchToken(LBR_T, NO_ATTR);
+	//will have to lookahead later 
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDREPORT);
+	matchToken(EOS_T, NO_ATTR);
+	printf("%s: Report block parsed\n", STR_LANGNAME);
 }

@@ -66,6 +66,12 @@ static airlang_intg		syntaxErrorNumber = 0;
 #define LANG_READ		"input&"
 #define LANG_MAIN		"MAIN"
 #define LANG_ENDMAIN    "ENDMAIN"
+#define LANG_BRIEFING   "BRIEFING"
+#define LANG_ENDBRIEFING "ENDBRIEFING"
+#define LANG_DISPATCH	 "DISPATCH"
+#define LANG_ENDDISPATCH "ENDDISPATCH"
+#define LANG_REPORT		 "REPORT"
+#define LANG_ENDREPORT   "ENDREPORT"
 
 /* TO_DO: Create ALL constants for keywords (sequence given in table.h) */
 
@@ -84,11 +90,18 @@ enum KEYWORDS {
 	KW_else,
 	KW_while,
 	KW_do,
-	KW_return
+	KW_return, 
+	KW_BRIEFING,
+	KW_ENDBRIEFING,
+	KW_DISPATCH,
+	KW_ENDDISPATCH, 
+	KW_REPORT,
+	KW_ENDREPORT
+
 };
 
 /* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 15
+#define NUM_BNF_RULES 18
 
 /* Parser */
 typedef struct parserData {
@@ -124,7 +137,10 @@ enum BNF_RULES {
 	BNF_statementsPrime,							/* 11 */
 	BNF_optParams,									/* 12 */
 	BNF_returnStatement,							/* 13 */
-	BNF_mainBlock
+	BNF_mainBlock,
+	BNF_briefingBlock,
+	BNF_dispatchBlock,
+	BNF_reportBlock
 };
 
 
@@ -144,7 +160,10 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_statementsPrime",
 	"BNF_optParams",
 	"BNF_returnStatement",
-	"BNF_mainBlock"
+	"BNF_mainBlock",
+	"BNF_briefingBlock",
+	"BNF_dispatchBlock", 
+	"BNF_reportBlock"
 };
 
 /* TO_DO: Place ALL non-terminal function declarations */
@@ -164,5 +183,8 @@ airlang_void paramList();
 
 /*Airlang specific*/
 airlang_void mainBlock();
+airlang_void briefingBlock();
+airlang_void dispatchBlock();
+airlang_void reportBlock();
 
 #endif
