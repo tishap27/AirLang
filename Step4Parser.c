@@ -87,6 +87,7 @@ airlang_void matchToken(airlang_intg tokenCode, airlang_intg tokenAttribute) {
 	case KW_T:
 		if (lookahead.attribute.codeType != tokenAttribute)
 			matchFlag = 0;
+
 	default:
 		if (lookahead.code != tokenCode)
 			matchFlag = 0;
@@ -184,33 +185,33 @@ airlang_void program() {
 	case CMT_T:
 		comment();
 	case KW_T:
-		matchToken(KW_T, KW_int);
-		if (lookahead.attribute.codeType == KW_MAIN) {   // if kwd is aircraft than aircraft block, if flight that block xyz
-			mainBlock(); 
-
-		}
-		if (lookahead.attribute.codeType == KW_BRIEFING) {   // if kwd is aircraft than aircraft block, if flight that block xyz
+		switch (lookahead.attribute.codeType) {
+		case KW_MAIN:
+			mainBlock();
+			break;
+		case KW_BRIEFING:
 			briefingBlock();
-			
-		}
-		if (lookahead.attribute.codeType == KW_AIRCRAFT){
+			break;
+		case KW_AIRCRAFT:
 			aircraftRecord();
-		}
-		if (lookahead.attribute.codeType == KW_FLIGHT) {
+			break;
+		case KW_FLIGHT:
 			flightRecord();
-		}
-		//if (lookahead.attribute.codeType == KW_ROUTE) {
-		//	routeRecord();
-		//}
-
-		if (lookahead.attribute.codeType == KW_DISPATCH) {   // if kwd is aircraft than aircraft block, if flight that block xyz
+			break;
+		case KW_ROUTE:
+			routeRecord();
+			break;
+		case KW_DISPATCH:
 			dispatchBlock();
-			
-		}
-		if (lookahead.attribute.codeType == KW_REPORT) {   // if kwd is aircraft than aircraft block, if flight that block xyz
+			break;
+		case KW_REPORT:
 			reportBlock();
-			
+			break;
+		default:
+			printError();
+			break;
 		}
+		break;
 
 
 	case MNID_T:
@@ -544,7 +545,7 @@ void briefingBlock() {
 
 	aircraftRecord();
 	flightRecord();
-	//routeRecord();
+	routeRecord();
 
 	matchToken(RBR_T, NO_ATTR);
 	matchToken(KW_T, KW_ENDBRIEFING);
