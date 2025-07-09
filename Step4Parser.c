@@ -133,8 +133,8 @@ airlang_void syncErrorHandler(airlang_intg syncTokenCode) {
 airlang_void printError() {
 	extern numParserErrors;			/* link to number of errors (defined in Parser.h) */
 	Token t = lookahead;
-	printf("%s%s%3d\n", STR_LANGNAME, ": Syntax error:  Line:", line);
-	printf("*****  Token code:%3d Attribute: ", t.code);
+	//printf("%s%s%3d\n", STR_LANGNAME, ": Syntax error:  Line:", line);
+	//printf("*****  Token code:%3d Attribute: ", t.code);
 	switch (t.code) {
 	case ERR_T:
 		printf("*ERROR*: %s\n", t.attribute.errLexeme);
