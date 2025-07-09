@@ -193,6 +193,16 @@ airlang_void program() {
 			briefingBlock();
 			
 		}
+		if (lookahead.attribute.codeType == KW_AIRCRAFT){
+			aircraftRecord();
+		}
+		if (lookahead.attribute.codeType == KW_FLIGHT) {
+			flightRecord();
+		}
+		//if (lookahead.attribute.codeType == KW_ROUTE) {
+		//	routeRecord();
+		//}
+
 		if (lookahead.attribute.codeType == KW_DISPATCH) {   // if kwd is aircraft than aircraft block, if flight that block xyz
 			dispatchBlock();
 			
@@ -531,6 +541,11 @@ void briefingBlock() {
 	psData.parsHistogram[BNF_briefingBlock]++;
 	matchToken(KW_T, KW_BRIEFING);
 	matchToken(LBR_T, NO_ATTR);
+
+	aircraftRecord();
+	flightRecord();
+	//routeRecord();
+
 	matchToken(RBR_T, NO_ATTR);
 	matchToken(KW_T, KW_ENDBRIEFING);
 	matchToken(EOS_T, NO_ATTR);
@@ -560,4 +575,35 @@ void reportBlock() {
 	matchToken(KW_T, KW_ENDREPORT);
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s: Report block parsed\n", STR_LANGNAME);
+}
+
+void aircraftRecord() {
+	psData.parsHistogram[BNF_aircraftRecord]++;
+	matchToken(KW_T, KW_AIRCRAFT);
+	matchToken(LBR_T, NO_ATTR);
+
+	matchToken(RBR_T, NO_ATTR);
+	printf("%s: AIRCRAFT RECORD parsed\n", STR_LANGNAME);
+
+}
+
+
+void flightRecord() {
+	psData.parsHistogram[BNF_flightRecord]++;
+	matchToken(KW_T, KW_FLIGHT);
+	matchToken(LBR_T, NO_ATTR);
+
+	matchToken(RBR_T, NO_ATTR);
+	printf("%s: FLIGHT RECORD parsed\n", STR_LANGNAME);
+}
+
+
+void routeRecord() {
+	psData.parsHistogram[BNF_routeRecord]++;
+	matchToken(KW_T, KW_ROUTE);
+	matchToken(LBR_T, NO_ATTR);
+
+	matchToken(RBR_T, NO_ATTR);
+
+	printf("%s: ROUTE RECORD parsed\n", STR_LANGNAME);
 }

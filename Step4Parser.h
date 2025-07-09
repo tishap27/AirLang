@@ -72,6 +72,9 @@ static airlang_intg		syntaxErrorNumber = 0;
 #define LANG_ENDDISPATCH "ENDDISPATCH"
 #define LANG_REPORT		 "REPORT"
 #define LANG_ENDREPORT   "ENDREPORT"
+#define LANG_AIRCRAFT    "AIRCRAFT"
+#define LANG_FLIGHT		 "FLIGHT"
+#define LANG_ROUTE		 "ROUTE"
 
 /* TO_DO: Create ALL constants for keywords (sequence given in table.h) */
 
@@ -96,12 +99,15 @@ enum KEYWORDS {
 	KW_DISPATCH,
 	KW_ENDDISPATCH, 
 	KW_REPORT,
-	KW_ENDREPORT
+	KW_ENDREPORT,
+	KW_AIRCRAFT,
+	KW_FLIGHT, 
+	KW_ROUTE
 
 };
 
 /* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 18
+#define NUM_BNF_RULES 21
 
 /* Parser */
 typedef struct parserData {
@@ -140,7 +146,10 @@ enum BNF_RULES {
 	BNF_mainBlock,
 	BNF_briefingBlock,
 	BNF_dispatchBlock,
-	BNF_reportBlock
+	BNF_reportBlock,
+	BNF_aircraftRecord, 
+	BNF_flightRecord, 
+	BNF_routeRecord
 };
 
 
@@ -163,7 +172,10 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_mainBlock",
 	"BNF_briefingBlock",
 	"BNF_dispatchBlock", 
-	"BNF_reportBlock"
+	"BNF_reportBlock",
+	"BNF_aircraftRecord",
+	"BNF_flightRecord",
+	"BNF_routeRecord"
 };
 
 /* TO_DO: Place ALL non-terminal function declarations */
@@ -186,5 +198,8 @@ airlang_void mainBlock();
 airlang_void briefingBlock();
 airlang_void dispatchBlock();
 airlang_void reportBlock();
+airlang_void aircraftRecord();
+airlang_void flightRecord();
+airlang_void routeRecord();
 
 #endif
