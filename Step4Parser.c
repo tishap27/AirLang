@@ -635,8 +635,47 @@ airlang_void flightRecord() {
 	matchToken(KW_T, KW_FLIGHT);
 	matchToken(LBR_T, NO_ATTR);
 
+	flightData();
+
 	matchToken(RBR_T, NO_ATTR);
 	printf("%s: FLIGHT RECORD parsed\n", STR_LANGNAME);
+}
+airlang_void flightData() {
+	while (lookahead.code == ID_T) {
+		flightStructure(); 
+	}
+}
+airlang_void flightStructure() {
+	matchToken(ID_T, NO_ATTR); 
+	matchToken(COLON_T, NO_ATTR); 
+
+	flightValue(); 
+
+	matchToken(EOS_T , NO_ATTR);
+
+}
+airlang_void flightValue() {
+	switch (lookahead.code) {
+	case FLIGHT_ID_T:     // FLIGHT ID values like C-GHPQ 
+		matchToken(FLIGHT_ID_T, NO_ATTR);
+		break;
+	case DATE_T:     // DATE values 
+		matchToken(DATE_T, NO_ATTR);
+		break;
+	case STR_T:     // String values like "CLEAR" 
+		matchToken(STR_T, NO_ATTR);
+		break;
+	case INT_T:     // Integer values like 26000 
+		matchToken(INT_T, NO_ATTR);
+		break;
+	case FLOAT_T:     // Float values like 1.5 
+		matchToken(FLOAT_T, NO_ATTR);
+		break;
+	default:
+		printError();
+		break;
+	}
+
 }
 
 
@@ -645,7 +684,62 @@ airlang_void routeRecord() {
 	matchToken(KW_T, KW_ROUTE);
 	matchToken(LBR_T, NO_ATTR);
 
+	routeData();
+
 	matchToken(RBR_T, NO_ATTR);
 
 	printf("%s: ROUTE RECORD parsed\n", STR_LANGNAME);
+}
+airlang_void routeData() {
+	while (lookahead.code == ID_T) {
+		routeStructure(); 
+	}
+}
+airlang_void routeStructure() {
+
+	matchToken(ID_T, NO_ATTR); 
+	matchToken(COLON_T, NO_ATTR);
+
+	routeValue(); 
+
+	matchToken(EOS_T, NO_ATTR); 
+}
+airlang_void routeValue() {
+	
+	switch (lookahead.code) {
+	case STR_T:     // String values like "YOW" and  "Ottawa International Airport"
+		matchToken(STR_T, NO_ATTR);
+		break;
+	case INT_T:     // Integer values even if i say 77 or 77.77 both should work .will try later with error file , but doesnt matter with my correct input file 
+		matchToken(INT_T, NO_ATTR);
+		// Check if this is part of a coordinate pair
+		if (lookahead.code == COMMA_T) {
+			matchToken(COMMA_T, NO_ATTR);
+			// Expect another number after comma
+			if (lookahead.code == INT_T) {
+				matchToken(INT_T, NO_ATTR);
+			}
+			else if (lookahead.code == FLOAT_T) {
+				matchToken(FLOAT_T, NO_ATTR);
+			}
+		}
+		break;
+	case FLOAT_T:   // Float values like 45.3225, -75.6692
+		matchToken(FLOAT_T, NO_ATTR);
+		// Check if this is part of a coordinate pair
+		if (lookahead.code == COMMA_T) {
+			matchToken(COMMA_T, NO_ATTR);
+			// Expect another FLOAT_T after comma (your scanner handles negative as part of float)
+			if (lookahead.code == FLOAT_T) {
+				matchToken(FLOAT_T, NO_ATTR);
+			}
+			else if (lookahead.code == INT_T) {
+				matchToken(INT_T, NO_ATTR);
+			}
+		}
+		break;
+	default:
+		printError();
+		break;
+	}
 }

@@ -204,5 +204,11 @@ airlang_void routeRecord();
 airlang_void aircraftData();
 airlang_void aircraftStructure();
 airlang_void aircraftValue();
+airlang_void flightData();
+airlang_void flightStructure();
+airlang_void flightValue();
+airlang_void routeData(); 
+airlang_void routeStructure(); 
+airlang_void routeValue();
 
 #endif
