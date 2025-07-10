@@ -88,9 +88,11 @@ enum KEYWORDS {
 	KW_int,
 	KW_real,
 	KW_string,
-	KW_if,
-	KW_then,
-	KW_else,
+	KW_IF,
+	KW_THEN,
+	KW_ELSE,
+	KW_ENDIF,
+	KW_PRINT,
 	KW_while,
 	KW_do,
 	KW_return, 
@@ -210,5 +212,6 @@ airlang_void flightValue();
 airlang_void routeData(); 
 airlang_void routeStructure(); 
 airlang_void routeValue();
+airlang_void ifStatement();
 
 #endif
