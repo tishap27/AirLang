@@ -109,7 +109,7 @@ enum KEYWORDS {
 };
 
 /* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 21
+#define NUM_BNF_RULES 23
 
 /* Parser */
 typedef struct parserData {
@@ -151,7 +151,9 @@ enum BNF_RULES {
 	BNF_reportBlock,
 	BNF_aircraftRecord, 
 	BNF_flightRecord, 
-	BNF_routeRecord
+	BNF_routeRecord,
+	BNF_ifStatementRecord,
+	BNF_reportRecord
 };
 
 
@@ -177,7 +179,9 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_reportBlock",
 	"BNF_aircraftRecord",
 	"BNF_flightRecord",
-	"BNF_routeRecord"
+	"BNF_routeRecord",
+	"BNF_ifStatementRecord",
+	"BNF_reportRecord"
 };
 
 /* TO_DO: Place ALL non-terminal function declarations */
@@ -199,7 +203,7 @@ airlang_void paramList();
 airlang_void mainBlock();
 airlang_void briefingBlock();
 airlang_void dispatchBlock();
-airlang_void reportBlock();
+
 airlang_void aircraftRecord();
 airlang_void flightRecord();
 airlang_void routeRecord();
@@ -212,6 +216,13 @@ airlang_void flightValue();
 airlang_void routeData(); 
 airlang_void routeStructure(); 
 airlang_void routeValue();
+
 airlang_void ifStatement();
+airlang_void reportStatement();
+airlang_void reportCall();
+
+
+
+
 
 #endif

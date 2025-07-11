@@ -204,9 +204,9 @@ airlang_void program() {
 		case KW_DISPATCH:
 			dispatchBlock();
 			break;
-		case KW_REPORT:
-			reportBlock();
-			break;
+		//case KW_REPORT:
+			//reportBlock();
+			//break;
 		default:
 			printError();
 			break;
@@ -551,93 +551,6 @@ airlang_void briefingBlock() {
 	printf("%s: Briefing block parsed\n", STR_LANGNAME);
 }
 
-// <dispatch_block> ::= "DISPATCH" "{" <dispatch_block> <report block> //later "}" "ENDDISPATCH" ";"
-airlang_void dispatchBlock() {
-	psData.parsHistogram[BNF_dispatchBlock]++;
-	matchToken(KW_T, KW_DISPATCH);
-	matchToken(LBR_T, NO_ATTR);
-
-	/*if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_IF) {
-		ifStatement();
-	}*/
-
-
-	// Using switch for optional IF statement
-	/*switch (lookahead.code) {
-	case KW_T:
-		switch (lookahead.attribute.codeType) {
-		case KW_IF:
-			printf("DEBUG: Found IF statement\n");
-			ifStatement();
-			// No break here - want to fall through to REPORT
-		default:
-			printError();
-			// return so if is optional
-			//return;
-		}
-		break;
-	default:
-		// Any other token falls through to REPORT
-		break;
-	}*/
-
-	//reportBlock();
-	if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_IF) {
-		// PATH 1: IF statement is present
-		ifStatement();
-		reportBlock();
-	}
-	else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_REPORT) {
-		// PATH 2: No IF statement, go directly to REPORT
-		reportBlock();
-	}
-	else {
-		// Handle unexpected tokens
-		printError();
-	}
-
-	matchToken(RBR_T, NO_ATTR);
-	matchToken(KW_T, KW_ENDDISPATCH);
-	matchToken(EOS_T, NO_ATTR);
-	printf("%s: Dispatch block parsed\n", STR_LANGNAME);
-}
-airlang_void ifStatement() {
-
-	matchToken(KW_T, KW_IF);
-
-	// Parse condition: identifier != string
-	matchToken(ID_T, NO_ATTR);
-	matchToken(NOT_EQ_T, NO_ATTR);
-	matchToken(STR_T, NO_ATTR);
-
-	matchToken(KW_T, KW_THEN);
-
-	// Parse THEN part - just PRINT statement
-	matchToken(KW_T, KW_PRINT);
-	matchToken(STR_T, NO_ATTR);
-	matchToken(EOS_T, NO_ATTR);
-
-	// Parse ELSE part
-	matchToken(KW_T, KW_ELSE);
-	matchToken(KW_T, KW_PRINT);
-	matchToken(STR_T, NO_ATTR);
-	matchToken(EOS_T, NO_ATTR);
-
-	matchToken(KW_T, KW_ENDIF);
-	matchToken(EOS_T, NO_ATTR);
-}
-// <report_block> ::= "REPORT" "{"  "}" "ENDREPORT" ";"
-airlang_void reportBlock() {
-	psData.parsHistogram[BNF_reportBlock]++;
-	matchToken(KW_T, KW_REPORT);
-	matchToken(LBR_T, NO_ATTR);
-	//will have to lookahead later 
-	matchToken(RBR_T, NO_ATTR);
-	matchToken(KW_T, KW_ENDREPORT);
-	matchToken(EOS_T, NO_ATTR);
-	printf("%s: Report block parsed\n", STR_LANGNAME);
-}
-
 airlang_void aircraftRecord() {
 	psData.parsHistogram[BNF_aircraftRecord]++;
 	matchToken(KW_T, KW_AIRCRAFT);
@@ -805,3 +718,68 @@ airlang_void routeValue() {
 		break;
 	}
 }
+
+airlang_void dispatchBlock() {
+	psData.parsHistogram[BNF_dispatchBlock]++;
+	matchToken(KW_T, KW_DISPATCH);
+	matchToken(LBR_T, NO_ATTR);
+
+	ifStatement();
+	reportStatement();
+	
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDDISPATCH);
+	matchToken(EOS_T, NO_ATTR);
+	printf("%s: Dispatch block parsed\n", STR_LANGNAME);
+}
+
+airlang_void ifStatement() {
+	psData.parsHistogram[BNF_ifStatementRecord]++;
+	matchToken(KW_T, KW_IF);
+
+	matchToken(ID_T, NO_ATTR);
+
+	matchToken(NOT_EQ_T, NO_ATTR);
+
+	matchToken(STR_T, NO_ATTR);
+
+	matchToken(KW_T, KW_THEN);
+
+	matchToken(KW_T, KW_PRINT);
+
+	matchToken(STR_T, NO_ATTR);
+	matchToken(EOS_T, NO_ATTR);
+
+	matchToken(KW_T, KW_ELSE);
+	matchToken(KW_T, KW_PRINT);
+
+	matchToken(STR_T, NO_ATTR);
+	matchToken(EOS_T, NO_ATTR);
+
+	matchToken(KW_T, KW_ENDIF);
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: IF block parsed\n", STR_LANGNAME);
+
+}
+
+airlang_void reportStatement() {
+	psData.parsHistogram[BNF_reportRecord]++;
+	
+	matchToken(KW_T, KW_REPORT);
+	matchToken(LBR_T, NO_ATTR);
+
+	reportCall();
+
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDREPORT);
+	matchToken(EOS_T, NO_ATTR);
+	printf("%s: REPORT block parsed\n", STR_LANGNAME);
+}
+airlang_void reportCall() {
+
+	while (lookahead.code == MNID_T) {
+		matchToken(MNID_T, NO_ATTR);
+		matchToken(EOS_T, NO_ATTR);
+	}
+	}
