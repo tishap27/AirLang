@@ -166,6 +166,13 @@ airlang_void printError() {
 	case EOS_T:
 		printf("NA\n");
 		break;
+		case CMT_T:
+        printf("CMT_T:\n");
+        break;
+		case ID_T:
+			printf("ID_T:\n");
+			break;
+
 	default:
 		printf("%s%s%d\n", STR_LANGNAME, ": Scanner error: invalid token code: ", t.code);
 		numParserErrors++; // Updated parser error
@@ -184,6 +191,8 @@ airlang_void program() {
 	switch (lookahead.code) {
 	case CMT_T:
 		comment();
+		//program();
+		
 	case KW_T:
 		switch (lookahead.attribute.codeType) {
 		case KW_MAIN:
