@@ -191,10 +191,10 @@ Token tokenizer(airlang_void) {
 			currentToken.code = PLUS_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
-		case MINUS_CHR:
+		/*case MINUS_CHR:
 			currentToken.code =MINUS_T;
 			scData.scanHistogram[currentToken.code]++;
-			return currentToken;
+			return currentToken;*/
 		case MULT_CHR:
 			currentToken.code = MULTI_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -1089,9 +1089,9 @@ airlang_void printToken(Token t) {
 	case PLUS_T:
 		printf("PLUS_T\n");
 		break;
-	case MINUS_T:
+	/*case MINUS_T:
 		printf("MINUS_T\n");
-		break;
+		break;*/
 	case MULTI_T:
 		printf("MULTI_T\n");
 		break;
