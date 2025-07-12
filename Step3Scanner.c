@@ -186,6 +186,23 @@ Token tokenizer(airlang_void) {
 			currentToken.code = EQL_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
+			//Arithmetic Op
+		case PLUS_CHR:
+			currentToken.code = PLUS_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case MINUS_CHR:
+			currentToken.code =MINUS_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case MULT_CHR:
+			currentToken.code = MULTI_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
+		case DIV_CHR:
+			currentToken.code = DIV_T;
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		case LPR_CHR:
 			currentToken.code = LPR_T;
@@ -1068,6 +1085,20 @@ airlang_void printToken(Token t) {
 	case EQL_T:
 		printf("EQL_T\n");
 		break;
+		//Arithmetic Op
+	case PLUS_T:
+		printf("PLUS_T\n");
+		break;
+	case MINUS_T:
+		printf("MINUS_T\n");
+		break;
+	case MULTI_T:
+		printf("MULTI_T\n");
+		break;
+	case DIV_T:
+		printf("DIV_T\n");
+		break;
+
 	case NOT_EQ_T:
 		printf("NOT_EQ_T\n");
 		break;
