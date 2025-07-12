@@ -176,6 +176,10 @@ airlang_void printError() {
 		case ID_T:
 			printf("ID_T:\n");
 			break;
+		case MINUS_T:
+			printf("MINUS_T:\n");
+			break;
+
 
 	default:
 		printf("%s%s%d\n", STR_LANGNAME, ": Scanner error: invalid token code: ", t.code);
@@ -537,9 +541,17 @@ airlang_void mainBlock() {
 			if (lookahead.code == CMT_T) {
 				comment();  // Handles comment
 				continue;
+
 			}
-			briefingBlock();                // <briefing_block>
+			briefingBlock();  // <briefing_block>
+			
+			if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PERFCALC) {
+				performanceBlock();
+			}
+			
 			dispatchBlock();
+			
+			
 		}
 		/* YET TO Parse content inside MAIN block */
 		/*rigth now ONLY find closing brace */
@@ -573,7 +585,7 @@ airlang_void briefingBlock() {
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s: Briefing block parsed\n", STR_LANGNAME);
 }
-/*airlang_void printCurrentToken() {
+airlang_void printCurrentToken() {
 	printf("DEBUG: Current token - Code: %d, ", lookahead.code);
 	if (lookahead.code == ID_T || lookahead.code == MNID_T || lookahead.code == AIRCRAFT_ID_T) {
 		printf("Lexeme: %s\n", lookahead.attribute.idLexeme);
@@ -584,7 +596,7 @@ airlang_void briefingBlock() {
 	else {
 		printf("Simple token\n");
 	}
-}*/
+}
 airlang_void briefingContent() {
 	//printf("DEBUG: Entering briefingContent\n");
 	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
@@ -908,4 +920,84 @@ airlang_void reportCall() {
 		matchToken(MNID_T, NO_ATTR);
 		matchToken(EOS_T, NO_ATTR);
 	}
+}
+
+airlang_void performanceBlock() {
+	psData.parsHistogram[BNF_perfomanceBlock]++;
+	//printf("DEBUG: Entering performanceBlock\n");
+	matchToken(KW_T, KW_PERFCALC);
+	matchToken(LBR_T, NO_ATTR);
+
+	while (lookahead.code != RBR_T) {
+		if (lookahead.code == ID_T) {
+			performanceContent();
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();
+		}
+		else {
+			lookahead = tokenizer(); // skip unexpected tokens
+		}
 	}
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDPERFCALC);
+	matchToken(EOS_T, NO_ATTR);
+	printf("%s: PERFORMANCE CALCULATION block parsed\n", STR_LANGNAME);
+}
+airlang_void performanceContent() {
+	//printf("DEBUG: Entering performanceContent\n");
+	matchToken(ID_T, NO_ATTR);
+
+	// Equals sign
+	matchToken(EQL_T, NO_ATTR);
+
+	// Parse right-hand expression
+	expression();
+
+	// Semicolon
+	matchToken(EOS_T, NO_ATTR);
+	printf("%s: ASSIGNMENT STATEMENT parsed\n", STR_LANGNAME);
+
+}
+
+airlang_void expression() {
+	//printf("DEBUG: Parsing expression\n");
+	psData.parsHistogram[BNF_expression]++;
+	term();
+	while (lookahead.code == PLUS_T || lookahead.code == MINUS_T ) {
+		printf("Operator: %c\n", lookahead.code == PLUS_T ? '+' : '-');
+		matchToken(lookahead.code, NO_ATTR);
+		term();
+	}
+}
+airlang_void term() {
+	//printf("DEBUG: Parsing term\n");
+	psData.parsHistogram[BNF_term]++;
+	factor();
+	while (lookahead.code == MULTI_T || lookahead.code == DIV_T) {
+		printf("Operator: %c\n", lookahead.code == MULTI_T ? '*' : '/');
+		matchToken(lookahead.code, NO_ATTR);
+		factor();
+	}
+}
+
+airlang_void factor() {
+	//printf("DEBUG: Parsing factor\n");
+	psData.parsHistogram[BNF_factor]++;
+	switch (lookahead.code) {
+	case ID_T:
+		printf("Variable: %s\n", lookahead.attribute.idLexeme);
+		matchToken(ID_T, NO_ATTR);
+		break;
+	case INT_T:
+		matchToken(INT_T, NO_ATTR);
+		break;
+	case FLOAT_T:
+		matchToken(FLOAT_T, NO_ATTR);
+		break;
+	default:
+		printf("Error: Unexpected factor\n");
+		printError();
+		break;
+	}
+}

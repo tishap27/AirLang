@@ -98,11 +98,13 @@ enum KEYWORDS {
 	KW_ENDREPORT,	/* KW14 */
 	KW_ENDDISPATCH,	/* KW15 */
 	KW_ENDMAIN,		/* KW16 */
+	KW_PERFCALC,	/* KW17*/
+	KW_ENDPERFCALC  /* KW18*/
 
 };
 
 /* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 23
+#define NUM_BNF_RULES 28
 
 /* Parser */
 typedef struct parserData {
@@ -146,7 +148,12 @@ enum BNF_RULES {
 	BNF_flightRecord, 
 	BNF_routeRecord,
 	BNF_ifStatementRecord,
-	BNF_reportRecord
+	BNF_reportRecord,
+	BNF_perfomanceBlock,
+	BNF_assignmentStatement,
+	BNF_expression,
+	BNF_term,
+	BNF_factor
 };
 
 
@@ -174,7 +181,12 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_flightRecord",
 	"BNF_routeRecord",
 	"BNF_ifStatementRecord",
-	"BNF_reportRecord"
+	"BNF_reportRecord",
+	"BNF_perfomanceBlock",
+	"BNF_assignmentStatement",
+	"BNF_expression",
+	"BNF_term",
+	"BNF_factor"
 };
 
 /* TO_DO: Place ALL non-terminal function declarations */
@@ -215,7 +227,12 @@ airlang_void reportStatement();
 airlang_void reportCall();
 airlang_void briefingContent();
 //airlang_void printCurrentToken();
-
+airlang_void performanceBlock();
+airlang_void performanceContent();
+airlang_void assignmentStatement();
+airlang_void expression();
+airlang_void term();
+airlang_void factor();
 
 
 
