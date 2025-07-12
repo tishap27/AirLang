@@ -192,6 +192,10 @@ airlang_void printError() {
  */
 airlang_void program() {
 	psData.parsHistogram[BNF_program]++;
+
+	while (lookahead.code == CMT_T) {
+		comment();  // Consume all leading comments
+	}
 	switch (lookahead.code) {
 	case CMT_T:
 		comment();
@@ -523,30 +527,36 @@ airlang_void mainBlock() {
 	/* Update parser statistics */
 	psData.parsHistogram[BNF_mainBlock]++;
 
-	/* Match "MAIN" keyword */
-	matchToken(KW_T, KW_MAIN);
+		/* Match "MAIN" keyword */
+		matchToken(KW_T, KW_MAIN);
 
-	/* Match opening brace "{" */
-	matchToken(LBR_T, NO_ATTR);
+		/* Match opening brace "{" */
+		matchToken(LBR_T, NO_ATTR);
 
+		while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+			if (lookahead.code == CMT_T) {
+				comment();  // Handles comment
+				continue;
+			}
+			briefingBlock();                // <briefing_block>
+			dispatchBlock();
+		}
+		/* YET TO Parse content inside MAIN block */
+		/*rigth now ONLY find closing brace */
+		/* Later  briefingBlock() and dispatchBlock() xyz  */
 
-	briefingBlock();                // <briefing_block>
-	dispatchBlock();
-	/* YET TO Parse content inside MAIN block */
-	/*rigth now ONLY find closing brace */
-	/* Later  briefingBlock() and dispatchBlock() xyz  */
+		/* Match closing brace "}" */
+		matchToken(RBR_T, NO_ATTR);
 
-	/* Match closing brace "}" */
-	matchToken(RBR_T, NO_ATTR);
+		/* Match "ENDMAIN" keyword */
+		matchToken(KW_T, KW_ENDMAIN);
 
-	/* Match "ENDMAIN" keyword */
-	matchToken(KW_T, KW_ENDMAIN);
+		/* Match semicolon ";" */
+		matchToken(EOS_T, NO_ATTR);
 
-	/* Match semicolon ";" */
-	matchToken(EOS_T, NO_ATTR);
-
-	/* Print successful parsing message */
-	printf("%s%s\n", STR_LANGNAME, ": MAIN block parsed successfully");
+		/* Print successful parsing message */
+		printf("%s%s\n", STR_LANGNAME, ": MAIN block parsed successfully");
+	
 }
 
 
