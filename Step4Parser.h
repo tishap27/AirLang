@@ -214,7 +214,7 @@ airlang_void ifStatement();
 airlang_void reportStatement();
 airlang_void reportCall();
 airlang_void briefingContent();
-void printCurrentToken();
+//airlang_void printCurrentToken();
 
 
 

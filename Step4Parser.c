@@ -563,7 +563,7 @@ airlang_void briefingBlock() {
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s: Briefing block parsed\n", STR_LANGNAME);
 }
-void printCurrentToken() {
+/*airlang_void printCurrentToken() {
 	printf("DEBUG: Current token - Code: %d, ", lookahead.code);
 	if (lookahead.code == ID_T || lookahead.code == MNID_T || lookahead.code == AIRCRAFT_ID_T) {
 		printf("Lexeme: %s\n", lookahead.attribute.idLexeme);
@@ -574,22 +574,19 @@ void printCurrentToken() {
 	else {
 		printf("Simple token\n");
 	}
-}
+}*/
 airlang_void briefingContent() {
-	printf("DEBUG: Entering briefingContent\n");
+	//printf("DEBUG: Entering briefingContent\n");
 	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
 		if (lookahead.code == KW_T) {
 			switch (lookahead.attribute.codeType) {
 			case KW_AIRCRAFT:
-				printf("DEBUG: Found AIRCRAFT block\n");
 				aircraftRecord();
 				break;
 			case KW_FLIGHT:
-				printf("DEBUG: Found FLIGHT block\n");
 				flightRecord();
 				break;
 			case KW_ROUTE:
-				printf("DEBUG: Found ROUTE block\n");
 				routeRecord();
 				break;
 			default:
@@ -599,41 +596,34 @@ airlang_void briefingContent() {
 			}
 		}
 		else if (lookahead.code == CMT_T) {
-			
-			printf("DEBUG: Found comment\n");
 			comment();  // Handle comments
 		}
 		else {
 			// Skip unexpected tokens but continue parsing
-			printf("DEBUG: Unexpected token, skipping\n");
+			//printf("DEBUG: Unexpected token, skipping\n");
 			lookahead = tokenizer();
 		}
 	}
-	printf("DEBUG: Exiting briefingContent\n");
 
 }
 airlang_void aircraftRecord() {
 	psData.parsHistogram[BNF_aircraftRecord]++;
-	printf("DEBUG: Starting AIRCRAFT record\n");
+	//printf("DEBUG: Starting AIRCRAFT record\n");
 
 	// Match AIRCRAFT keyword
 	matchToken(KW_T, KW_AIRCRAFT);
-	printf("DEBUG: Matched AIRCRAFT keyword\n");
 
 	// Match opening brace
 	matchToken(LBR_T, NO_ATTR);
-	printf("DEBUG: Matched {\n");
 
 	// Parse all aircraft fields
 	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
-		printCurrentToken();
+		//printCurrentToken();
 
 		if (lookahead.code == ID_T || lookahead.code == AIRCRAFT_ID_T) {
-			printf("DEBUG: Found aircraft field\n");
 			aircraftStructure();
 		}
 		else if (lookahead.code == CMT_T) {
-			printf("DEBUG: Found comment in aircraft block\n");
 			comment();
 		}
 		else {
@@ -645,18 +635,14 @@ airlang_void aircraftRecord() {
 	// Match closing brace
 	matchToken(RBR_T, NO_ATTR);
 	printf("%s: AIRCRAFT RECORD parsed\n", STR_LANGNAME);
-	printf("DEBUG: Finished AIRCRAFT record\n");
 }
 airlang_void aircraftStructure() {
-	printf("DEBUG: Parsing aircraft structure\n");
 
 	// Match field name
 	if (lookahead.code == ID_T) {
-		printf("DEBUG: Found ID field: %s\n", lookahead.attribute.idLexeme);
 		matchToken(ID_T, NO_ATTR);
 	}
 	else if (lookahead.code == AIRCRAFT_ID_T) {
-		printf("DEBUG: Found AIRCRAFT_ID field: %s\n", lookahead.attribute.idLexeme);
 		matchToken(AIRCRAFT_ID_T, NO_ATTR);
 	}
 	else {
@@ -667,38 +653,29 @@ airlang_void aircraftStructure() {
 
 	// Match colon
 	matchToken(COLON_T, NO_ATTR);
-	printf("DEBUG: Matched :\n");
 
 	// Match value
 	aircraftValue();
-	printf("DEBUG: Matched value\n");
 
 	// Match semicolon
 	matchToken(EOS_T, NO_ATTR);
-	printf("DEBUG: Matched ;\n");
 }
 airlang_void aircraftValue() {
-	printf("DEBUG: Parsing aircraft value - token code: %d\n", lookahead.code);
 
 	switch (lookahead.code) {
 	case AIRCRAFT_ID_T:
-		printf("DEBUG: Matching AIRCRAFT_ID value\n");
 		matchToken(AIRCRAFT_ID_T, NO_ATTR);
 		break;
 	case ID_T:
-		printf("DEBUG: Matching ID value\n");
 		matchToken(ID_T, NO_ATTR);
 		break;
 	case STR_T:
-		printf("DEBUG: Matching STR value\n");
 		matchToken(STR_T, NO_ATTR);
 		break;
 	case INT_T:
-		printf("DEBUG: Matching INT value\n");
 		matchToken(INT_T, NO_ATTR);
 		break;
 	case FLOAT_T:
-		printf("DEBUG: Matching FLOAT value\n");
 		matchToken(FLOAT_T, NO_ATTR);
 		break;
 	default:
