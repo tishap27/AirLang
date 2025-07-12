@@ -362,7 +362,7 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 17
+#define KWT_SIZE 19
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
@@ -383,6 +383,8 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"ENDREPORT"	,	/* KW14 */
 	"ENDDISPATCH",	/* KW15 */
 	"ENDMAIN",		/* KW16 */
+	"PERFCALC",		/* KW17 */
+	"ENDPERFCALC"	/* KW18 */
 };
 
 /* NEW SECTION: About indentation */
