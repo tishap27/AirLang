@@ -841,8 +841,30 @@ airlang_void dispatchBlock() {
 	matchToken(KW_T, KW_DISPATCH);
 	matchToken(LBR_T, NO_ATTR);
 
-	//ifStatement();
-	reportStatement();
+	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+		if (lookahead.code == KW_T) {
+			switch (lookahead.attribute.codeType) {
+			case KW_IF:
+				ifStatement();
+				break;
+			case KW_REPORT:
+				reportStatement();
+				break;
+			default:
+				// Skip unknown keywords but continue parsing
+				lookahead = tokenizer();
+				break;
+			}
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();  // Handle comments
+		}
+		else {
+			// Skip unexpected tokens but continue parsing
+			lookahead = tokenizer();
+		}
+	}
+
 	
 	matchToken(RBR_T, NO_ATTR);
 	matchToken(KW_T, KW_ENDDISPATCH);
