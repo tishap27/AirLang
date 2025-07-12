@@ -81,30 +81,23 @@ static airlang_intg		syntaxErrorNumber = 0;
 /* Constants */
 enum KEYWORDS {
 	NO_ATTR = -1,
-	KW_MAIN,
-	KW_ENDMAIN,
-	KW_data,
-	KW_code,
-	KW_int,
-	KW_real,
-	KW_string,
-	KW_IF,
-	KW_THEN,
-	KW_ELSE,
-	KW_ENDIF,
-	KW_PRINT,
-	KW_while,
-	KW_do,
-	KW_return, 
-	KW_BRIEFING,
-	KW_ENDBRIEFING,
-	KW_DISPATCH,
-	KW_ENDDISPATCH, 
-	KW_REPORT,
-	KW_ENDREPORT,
-	KW_AIRCRAFT,
-	KW_FLIGHT, 
-	KW_ROUTE
+	KW_MAIN,		    /* KW00 */
+	KW_BRIEFING,		/* KW01 */
+	KW_AIRCRAFT,		/* KW02 */
+	KW_FLIGHT,		/* KW03 */
+	KW_ROUTE,		/* KW04 */
+	KW_DISPATCH,	    /* KW05 */
+	KW_IF,		    /* KW06 */
+	KW_THEN,			/* KW07 */
+	KW_ELSE,			/* KW08 */
+	KW_ENDIF,		/* KW09 */
+	KW_PRINT,		/* KW010 */
+	KW_REPORT,		/* KW11 */
+	KW_CALCULATE,	/* KW12 */
+	KW_ENDBRIEFING,	/* KW13 */
+	KW_ENDREPORT,	/* KW14 */
+	KW_ENDDISPATCH,	/* KW15 */
+	KW_ENDMAIN,		/* KW16 */
 
 };
 
@@ -185,9 +178,9 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 };
 
 /* TO_DO: Place ALL non-terminal function declarations */
-airlang_void codeSession();
+//airlang_void codeSession();
 airlang_void comment();
-airlang_void dataSession();
+//airlang_void dataSession();
 airlang_void optVarListDeclarations();
 airlang_void optionalStatements();
 airlang_void outputStatement();
@@ -207,7 +200,7 @@ airlang_void dispatchBlock();
 airlang_void aircraftRecord();
 airlang_void flightRecord();
 airlang_void routeRecord();
-airlang_void aircraftData();
+//airlang_void aircraftData();
 airlang_void aircraftStructure();
 airlang_void aircraftValue();
 airlang_void flightData();
@@ -220,6 +213,8 @@ airlang_void routeValue();
 airlang_void ifStatement();
 airlang_void reportStatement();
 airlang_void reportCall();
+airlang_void briefingContent();
+void printCurrentToken();
 
 
 
