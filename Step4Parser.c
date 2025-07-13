@@ -585,7 +585,7 @@ airlang_void briefingBlock() {
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s: Briefing block parsed\n", STR_LANGNAME);
 }
-airlang_void printCurrentToken() {
+/*airlang_void printCurrentToken() {
 	printf("DEBUG: Current token - Code: %d, ", lookahead.code);
 	if (lookahead.code == ID_T || lookahead.code == MNID_T || lookahead.code == AIRCRAFT_ID_T) {
 		printf("Lexeme: %s\n", lookahead.attribute.idLexeme);
@@ -596,7 +596,7 @@ airlang_void printCurrentToken() {
 	else {
 		printf("Simple token\n");
 	}
-}
+}*/
 airlang_void briefingContent() {
 	//printf("DEBUG: Entering briefingContent\n");
 	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
