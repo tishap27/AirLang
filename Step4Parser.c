@@ -52,6 +52,8 @@
 /* Parser data */
 extern ParserData psData; /* BNF statistics */
 
+ airlang_char currentFieldName[256];
+
 /*
 ************************************************************
  * Process Parser
@@ -714,6 +716,7 @@ airlang_void aircraftStructure() {
 
 	// Match field name
 	if (lookahead.code == ID_T) {
+		strcpy_s(currentFieldName, 256, lookahead.attribute.idLexeme);
 		matchToken(ID_T, NO_ATTR);
 	}
 	else if (lookahead.code == AIRCRAFT_ID_T) {
@@ -747,6 +750,10 @@ airlang_void aircraftValue() {
 		matchToken(STR_T, NO_ATTR);
 		break;
 	case INT_T:
+		if (lookahead.attribute.intValue <= MIN_AIRCRAFT_REQ) {   // defined in parser.h 
+			printf("SAFETY WARNING: The registered %s value is set to %d --Please confirm value within certified limits\n",
+				 currentFieldName, lookahead.attribute.intValue);
+		}
 		matchToken(INT_T, NO_ATTR);
 		break;
 	case FLOAT_T:

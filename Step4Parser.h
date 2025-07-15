@@ -62,6 +62,8 @@ extern Token			tokenizer(airlang_void);
 extern airlang_strg		keywordTable[KWT_SIZE];
 static airlang_intg		syntaxErrorNumber = 0;
 
+#define MIN_AIRCRAFT_REQ  200      // IN THE AIRCRAFT BLOCK FOR CRUISESPEED/FUEL ROUGH MINIMUM REQUIREMENT IF ITS BELOW THIS THROWS SAFETY WARNING. 
+
 #define LANG_WRTE		"print&"
 #define LANG_READ		"input&"
 #define LANG_MAIN		"MAIN"
