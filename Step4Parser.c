@@ -83,7 +83,32 @@ airlang_void startParser() {
 /* TO_DO: This is the main code for match - check your definition */
 airlang_void matchToken(airlang_intg tokenCode, airlang_intg tokenAttribute) {
 	airlang_intg matchFlag = 1;
-	switch (lookahead.code) {
+
+	if (tokenCode == KW_T) {
+		if (lookahead.code != KW_T || lookahead.attribute.codeType != tokenAttribute) {
+			matchFlag = 0;
+			printf("%s%s\n", STR_LANGNAME, ": ERROR - Incorrect keyword used");
+		}
+	}
+	else {
+		if (lookahead.code != tokenCode)
+			matchFlag = 0;
+	}
+	if (matchFlag && lookahead.code == SEOF_T)
+		return;
+	if (matchFlag) {
+		lookahead = tokenizer();
+		if (lookahead.code == ERR_T) {
+			printError();
+			lookahead = tokenizer();
+			syntaxErrorNumber++;
+		}
+	}
+	else {
+		syncErrorHandler(tokenCode);
+	}
+}
+	/*switch (lookahead.code) {
 	case KW_T:
 		if (lookahead.attribute.codeType != tokenAttribute)
 			matchFlag = 0;
@@ -104,7 +129,7 @@ airlang_void matchToken(airlang_intg tokenCode, airlang_intg tokenAttribute) {
 	}
 	else
 		syncErrorHandler(tokenCode);
-}
+}*/
 
 /*
  ************************************************************
@@ -115,9 +140,13 @@ airlang_void matchToken(airlang_intg tokenCode, airlang_intg tokenAttribute) {
 airlang_void syncErrorHandler(airlang_intg syncTokenCode) {
 	printError();
 	syntaxErrorNumber++;
-	while (lookahead.code != syncTokenCode) {
-		if (lookahead.code == SEOF_T)
-			exit(syntaxErrorNumber);
+	numParserErrors++;
+	while (1) {
+		if (lookahead.code != syncTokenCode || lookahead.code == SEOF_T || lookahead.code == RBR_T) {
+			//exit(syntaxErrorNumber);
+		lookahead = tokenizer();
+			break;
+		}
 		lookahead = tokenizer();
 	}
 	if (lookahead.code != SEOF_T)
@@ -581,8 +610,31 @@ airlang_void briefingBlock() {
 	briefingContent();
 
 	matchToken(RBR_T, NO_ATTR);
-	matchToken(KW_T, KW_ENDBRIEFING);
-	matchToken(EOS_T, NO_ATTR);
+	//matchToken(KW_T, KW_ENDBRIEFING);
+	//matchToken(EOS_T, NO_ATTR);
+
+
+	if (lookahead.code == KW_T ) {
+		if (lookahead.attribute.codeType != KW_ENDBRIEFING) {
+			printf("%s: ERROR - Expected ENDBRIEFING but found %s\n",
+				STR_LANGNAME,
+				lookahead.attribute.errLexeme);
+			syntaxErrorNumber++;
+			// Don't consume the token - let syncErrorHandler recover
+			syncErrorHandler(KW_ENDBRIEFING);
+			return;
+		}
+		matchToken(KW_T, KW_ENDBRIEFING);
+		matchToken(EOS_T, NO_ATTR);
+	}
+	else {
+		printf("%s: ERROR - Missing ENDBRIEFING\n", STR_LANGNAME);
+		syntaxErrorNumber++;
+		syncErrorHandler(KW_ENDBRIEFING);
+		return;
+	}
+
+
 	printf("%s: Briefing block parsed\n", STR_LANGNAME);
 }
 /*airlang_void printCurrentToken() {
