@@ -386,8 +386,8 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"ENDREPORT"	,	/* KW14 */
 	"ENDDISPATCH",	/* KW15 */
 	"ENDMAIN",		/* KW16 */
-	"PERFCALC",		/* KW17 */
-	"ENDPERFCALC"	/* KW18 */
+	"LOADSHEET",	/* KW17 */
+	"ENDLOADSHEET"	/* KW18 */
 };
 
 /* NEW SECTION: About indentation */

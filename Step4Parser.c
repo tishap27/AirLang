@@ -576,7 +576,7 @@ airlang_void mainBlock() {
 			}
 			briefingBlock();  // <briefing_block>
 			
-			if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PERFCALC) {
+			if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_LOADSHEET) {
 				performanceBlock();
 			}
 			
@@ -1017,7 +1017,7 @@ airlang_void reportCall() {
 airlang_void performanceBlock() {
 	psData.parsHistogram[BNF_perfomanceBlock]++;
 	//printf("DEBUG: Entering performanceBlock\n");
-	matchToken(KW_T, KW_PERFCALC);
+	matchToken(KW_T, KW_LOADSHEET);
 	matchToken(LBR_T, NO_ATTR);
 
 	while (lookahead.code != RBR_T) {
@@ -1043,7 +1043,7 @@ airlang_void performanceBlock() {
 		}
 	}
 	matchToken(RBR_T, NO_ATTR);
-	matchToken(KW_T, KW_ENDPERFCALC);
+	matchToken(KW_T, KW_ENDLOADSHEET);
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s: PERFORMANCE CALCULATION block parsed\n", STR_LANGNAME);
 }
