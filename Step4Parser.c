@@ -936,9 +936,34 @@ airlang_void ifStatement() {
 
 	matchToken(ID_T, NO_ATTR);
 
-	matchToken(NOT_EQ_T, NO_ATTR);
 
-	matchToken(STR_T, NO_ATTR);
+	//Currently only using != and > but if needed more symbol will just add in this block ad update scanner if not a token yet
+	if (lookahead.code == NOT_EQ_T) {
+		matchToken(NOT_EQ_T, NO_ATTR);
+	}
+	else if (lookahead.code == GT_T) {
+		matchToken(GT_T, NO_ATTR);
+	}
+	else {
+		// Error handling - unexpected token
+		printf("Expected comparison operator");
+	}
+
+	//matchToken(NOT_EQ_T, NO_ATTR);
+
+	//after operator can compare with string or ID can also add number but eh not required in my AirLang right now 
+	if (lookahead.code == ID_T) {
+		matchToken(ID_T, NO_ATTR);
+	}
+	else if (lookahead.code == STR_T) {
+		matchToken(STR_T, NO_ATTR);
+	}
+	else {
+		// Error handling - unexpected token
+		printf("Expected identifier or string literal");
+	}
+
+	//matchToken(STR_T, NO_ATTR);
 
 	matchToken(KW_T, KW_THEN);
 
@@ -947,11 +972,19 @@ airlang_void ifStatement() {
 	matchToken(STR_T, NO_ATTR);
 	matchToken(EOS_T, NO_ATTR);
 
-	matchToken(KW_T, KW_ELSE);
-	matchToken(KW_T, KW_PRINT);
 
-	matchToken(STR_T, NO_ATTR);
-	matchToken(EOS_T, NO_ATTR);
+	if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_ELSE) {
+		matchToken(KW_T, KW_ELSE);
+		matchToken(KW_T, KW_PRINT);
+		matchToken(STR_T, NO_ATTR);
+		matchToken(EOS_T, NO_ATTR);
+	}
+
+	//matchToken(KW_T, KW_ELSE);
+	//matchToken(KW_T, KW_PRINT);
+
+	//matchToken(STR_T, NO_ATTR);
+	//matchToken(EOS_T, NO_ATTR);
 
 	matchToken(KW_T, KW_ENDIF);
 	matchToken(EOS_T, NO_ATTR);
