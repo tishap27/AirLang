@@ -203,6 +203,10 @@ Token tokenizer(airlang_void) {
 			currentToken.code = DIV_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;
+		case GT_CHAR: 
+			currentToken.code = GT_T; 
+			scData.scanHistogram[currentToken.code]++;
+			return currentToken;
 
 		case LPR_CHR:
 			currentToken.code = LPR_T;
@@ -1097,6 +1101,10 @@ airlang_void printToken(Token t) {
 		break;
 	case DIV_T:
 		printf("DIV_T\n");
+		break;
+
+	case GT_T:
+		printf("GT_T\n");
 		break;
 
 	case NOT_EQ_T:

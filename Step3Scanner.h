@@ -62,7 +62,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 28
+#define NUM_TOKENS 29
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -94,6 +94,7 @@ enum TOKENS {
 	MINUS_T,
 	MULTI_T,
 	DIV_T,
+	GT_T,
 
 	/*AirLang Specific*/
 	AIRCRAFT_ID_T,
@@ -130,6 +131,7 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"MINUS_T",
 	"MULTI_T",
 	"DIV_T",
+	"GT_T",
 
 	/*AirLang Specific*/
 	"AIRCRAFT_ID_T",
@@ -216,6 +218,7 @@ typedef struct scannerData {
 #define MINUS_CHR '-'
 #define MULT_CHR '*'
 #define DIV_CHR '/'
+#define GT_CHAR '>'
 
 
 
