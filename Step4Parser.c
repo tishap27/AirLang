@@ -1067,9 +1067,11 @@ airlang_void expression() {
 	//printf("DEBUG: Parsing expression\n");
 	psData.parsHistogram[BNF_expression]++;
 	term();
-	while (lookahead.code == PLUS_T || lookahead.code == MINUS_T ) {
-		printf("Operator: %c\n", lookahead.code == PLUS_T ? '+' : '-');
-		matchToken(lookahead.code, NO_ATTR);
+	while (lookahead.code == PLUS_T ) {
+		printf("Operator: +\n");
+		//printf("Operator: %c\n", lookahead.code == PLUS_T ? '+' : '-');
+		matchToken(PLUS_T, NO_ATTR);
+		// matchToken(lookahead.code, NO_ATTR);
 		term();
 	}
 }
@@ -1097,6 +1099,19 @@ airlang_void factor() {
 		break;
 	case FLOAT_T:
 		matchToken(FLOAT_T, NO_ATTR);
+		break;
+	case LPR_T:  // Handling (-70.07) expressions
+		matchToken(LPR_T, NO_ATTR);
+		//matchToken(INT_T, NO_ATTR);
+		if (lookahead.code == INT_T || lookahead.code == FLOAT_T) {
+			//printf("%d\n",lookahead.code == INT_T ? INT_T : FLOAT_T);
+			matchToken(lookahead.code, NO_ATTR);
+		}
+		else {
+			printf("Error: Expected number inside parentheses\n");
+			printError();
+		}
+		matchToken(RPR_T, NO_ATTR);  //  closing
 		break;
 	default:
 		printf("Error: Unexpected factor\n");
