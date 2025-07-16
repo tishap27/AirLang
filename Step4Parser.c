@@ -1027,6 +1027,17 @@ airlang_void performanceBlock() {
 		else if (lookahead.code == CMT_T) {
 			comment();
 		}
+		else if (lookahead.code == KW_T) {
+			switch (lookahead.attribute.codeType) {
+			case KW_IF:
+				ifStatement();
+				break;
+			default:
+				// Skip unknown keywords but continue parsing
+				lookahead = tokenizer();
+				break;
+			}
+		}
 		else {
 			lookahead = tokenizer(); // skip unexpected tokens
 		}
