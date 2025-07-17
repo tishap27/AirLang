@@ -1,50 +1,73 @@
 % AirLang Flight Plan  
-  Includes sample aircraft, flight, and route, data-ready for takeoff! %
+  Includes sample aircraft, flight, route data and loadsheet calculations, ready for takeoff! %
 ^^ The only bug in FlightPlan is STALL
-
 MAIN {
     BRIEFING {
         AIRCRAFT {
-            AircraftID: C-GHPQ;
-            Type: "B747";
-            FuelCapacity: 26000;
-            CruiseSpeed: 430;
-            FuelPerNM: 35;
+            AircraftID: C-GNBL;		^^without quotes Aircraft_Id
+            Type: "B747-400";
+            MaxTakeoffWeight: 410000;        
+            EmptyWeight: 180000;             
+            FuelCapacity: 57285;            
+            CruiseSpeed: 493;                
+            FuelBurnRate: 2400;              
         }
-
         FLIGHT {
-            FlightNumber: AL123;
+            FlightNumber: AL123;              
             Date: '2025-05-15';
-            Status: "on time";
-            Weather: "clear";
-            ETA: 1.5;
-            EstimatedFuelRequired: 1575;
+            STD: "14:30Z";                  
+            STA: "16:00Z";                                 
+            Weather: "RAIN";                
+            FlightLevel: "FL350";                      
+            EstimatedFlightTime: 90;         
+            EstimatedFuelRequired: 3600;                
+            ReserveFuel: 1200;               
         }
-
         ROUTE {
-            DepartureAirport: "YOW";
-	    DepartureName: "Ottawa International Airport";
+            DepartureAirport: "CYOW";       
+            DepartureName: "Ottawa Macdonald-Cartier International Airport";
             DepartureCoordinates: 45.3225, -75.6692;
-            ArrivalAirport: "YYZ";
-            ArrivalName: "Toronto Pearson International Airport" ;
+            ArrivalAirport: "CYYZ";         
+            ArrivalName: "Toronto Pearson International Airport";
             ArrivalCoordinates: 43.6777, -79.6248;
+            AlternateAirport: "CYTZ";       
         }
     } ENDBRIEFING;
 
-    DISPATCH {
-        IF Weather != "clear" THEN
-            PRINT "NOTAM: Flight delayed due to weather";
-        ELSE
-            PRINT "NOTAM: Flight is on time";
+LOADSHEET {
+        PassengerCount = 350;              
+        CargoWeight = 15000;      
+	          
+	^^Weight and Balance check
+        PayloadWeight = PassengerCount * 200 + CargoWeight;   ^^ 200 lbs avg per pax+baggage
+	
+	^^ Basic Time Calculations just checking minus
+        GroundSpeed = CruiseSpeed + (-30);      ^^ Account for headwind 
+        FlightTimeHours = Distance / GroundSpeed; 
+	
+	IF TotalWeight > MaxTakeoffWeight THEN
+            PRINT "WARNING: Exceeds MTOW - Reduce payload or fuel";
         ENDIF;
-
+           
+    } ENDLOADSHEET;
+    
+    DISPATCH {
+        IF Weather != "CLEAR" THEN
+            PRINT "NOTAM: Flight may be delayed due to weather conditions";
+        ELSE
+            PRINT "NOTAM: Flight is ON TIME";
+        ENDIF;
+        
+        
+        IF TotalFuel > FuelCapacity THEN
+            PRINT "WARNING: Insufficient fuel capacity for flight plan";
+        ENDIF;
+        
         REPORT {
             calculateDistance();
-            calculateETA();
-            printFlightSummary();
+            calculateFuelBurn();
+            validateFlightPlan();
+            printDispatchRelease();
         } ENDREPORT;
     } ENDDISPATCH;
 } ENDMAIN;
-
-
-FlightTip: "StallException- sky's not the limit , STALL is! Debug Altitude Now"

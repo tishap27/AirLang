@@ -197,19 +197,21 @@ airlang_void printError() {
 	case EOS_T:
 		printf("NA\n");
 		break;
-		case CMT_T:
+	case CMT_T:
         printf("CMT_T:\n");
         break;
-		case DATE_T:
-			printf("DATE_T:\n");
-			break;
-
-		case ID_T:
-			printf("ID_T:\n");
-			break;
-		case MINUS_T:
-			printf("MINUS_T:\n");
-			break;
+	case DATE_T:
+		printf("DATE_T:\n");
+		break;
+	case ID_T:
+	    printf("ID_T:\n");
+		break;
+	case MINUS_T:
+		printf("MINUS_T:\n");
+		break;
+	case FLOAT_T:
+		printf("FLOAT_T:\n");
+		break;
 
 
 	default:
@@ -598,7 +600,7 @@ airlang_void mainBlock() {
 		matchToken(EOS_T, NO_ATTR);
 
 		/* Print successful parsing message */
-		printf("%s%s\n", STR_LANGNAME, ": MAIN block parsed successfully");
+		printf("%s%s\n", STR_LANGNAME, ": MAIN block parsed ");
 	
 }
 
@@ -618,9 +620,8 @@ airlang_void briefingBlock() {
 
 	if (lookahead.code == KW_T ) {
 		if (lookahead.attribute.codeType != KW_ENDBRIEFING) {
-			printf("%s: ERROR - Expected ENDBRIEFING but found %s\n",
-				STR_LANGNAME,
-				lookahead.attribute.errLexeme);
+			printf("%s: ERROR - Expected ENDBRIEFING but not found \n",
+				STR_LANGNAME);//lookahead.attribute.errLexeme)
 			syntaxErrorNumber++;
 			// Don't consume the token - let syncErrorHandler recover
 			syncErrorHandler(KW_ENDBRIEFING);
@@ -1015,7 +1016,7 @@ airlang_void reportCall() {
 }
 
 airlang_void performanceBlock() {
-	psData.parsHistogram[BNF_perfomanceBlock]++;
+	psData.parsHistogram[BNF_loadsheetBlock]++;
 	//printf("DEBUG: Entering performanceBlock\n");
 	matchToken(KW_T, KW_LOADSHEET);
 	matchToken(LBR_T, NO_ATTR);
@@ -1045,7 +1046,7 @@ airlang_void performanceBlock() {
 	matchToken(RBR_T, NO_ATTR);
 	matchToken(KW_T, KW_ENDLOADSHEET);
 	matchToken(EOS_T, NO_ATTR);
-	printf("%s: PERFORMANCE CALCULATION block parsed\n", STR_LANGNAME);
+	printf("%s: Loadsheet block parsed\n", STR_LANGNAME);
 }
 airlang_void performanceContent() {
 	//printf("DEBUG: Entering performanceContent\n");
@@ -1059,7 +1060,7 @@ airlang_void performanceContent() {
 
 	// Semicolon
 	matchToken(EOS_T, NO_ATTR);
-	printf("%s: ASSIGNMENT STATEMENT parsed\n", STR_LANGNAME);
+	printf("%s: Assignment statement parsed\n", STR_LANGNAME);
 
 }
 
@@ -1068,7 +1069,7 @@ airlang_void expression() {
 	psData.parsHistogram[BNF_expression]++;
 	term();
 	while (lookahead.code == PLUS_T ) {
-		printf("Operator: +\n");
+		printf("AirLang: Operator + parsed\n");
 		//printf("Operator: %c\n", lookahead.code == PLUS_T ? '+' : '-');
 		matchToken(PLUS_T, NO_ATTR);
 		// matchToken(lookahead.code, NO_ATTR);
@@ -1080,7 +1081,7 @@ airlang_void term() {
 	psData.parsHistogram[BNF_term]++;
 	factor();
 	while (lookahead.code == MULTI_T || lookahead.code == DIV_T) {
-		printf("Operator: %c\n", lookahead.code == MULTI_T ? '*' : '/');
+		printf("AirLang: Operator %c parsed\n", lookahead.code == MULTI_T ? '*' : '/');
 		matchToken(lookahead.code, NO_ATTR);
 		factor();
 	}
@@ -1091,7 +1092,7 @@ airlang_void factor() {
 	psData.parsHistogram[BNF_factor]++;
 	switch (lookahead.code) {
 	case ID_T:
-		printf("Variable: %s\n", lookahead.attribute.idLexeme);
+		//printf("Variable: %s\n", lookahead.attribute.idLexeme);
 		matchToken(ID_T, NO_ATTR);
 		break;
 	case INT_T:
