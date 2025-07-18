@@ -248,7 +248,7 @@ airlang_void program() {
 			break;
 		case KW_AIRCRAFT:
 			aircraftRecord();
-			briefingContent();
+			//briefingContent();
 			break;
 		case KW_FLIGHT:
 			flightRecord();
