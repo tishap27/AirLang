@@ -1133,13 +1133,24 @@ airlang_void requestStatement() {
 	psData.parsHistogram[BNF_importStatement]++;
 	
 	matchToken(KW_T, KW_REQUEST);
-	matchToken(KW_T, KW_METAR);
+
+	requestList();
+	//matchToken(KW_T, KW_METAR);
 	matchToken(KW_T, KW_FROM);
-	
-	matchToken(STR_T, NO_ATTR);
+	matchToken(STR_T, NO_ATTR);  // URL
 	matchToken(EOS_T, NO_ATTR);
 
 	printf("%s: REQUEST statement parsed\n", STR_LANGNAME);
 
 
+}
+airlang_void requestList() {
+	// will include more options that time switch case 
+	if (lookahead.code == KW_T && (lookahead.attribute.codeType == KW_METAR || lookahead.attribute.codeType == KW_NOTAM)) {  
+		matchToken(KW_T, lookahead.attribute.codeType);
+	}
+	else {
+		printf("%s: Wrong keyword used\n", STR_LANGNAME);
+		printError();
+	}
 }
