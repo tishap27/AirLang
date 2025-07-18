@@ -233,6 +233,12 @@ airlang_void program() {
 	while (lookahead.code == CMT_T) {
 		comment();  // Consume all leading comments
 	}
+	while (lookahead.code == KW_T && lookahead.attribute.codeType == KW_REQUEST) {
+		requestStatement();
+	}
+	while (lookahead.code == CMT_T) {
+		comment();  // Consume all leading comments
+	}
 	switch (lookahead.code) {
 	case CMT_T:
 		comment();
@@ -1119,4 +1125,21 @@ airlang_void factor() {
 		printError();
 		break;
 	}
+}
+
+//REQUEST METAR FROM "STRING"  
+//Basically Import of Airlang 
+airlang_void requestStatement() {
+	psData.parsHistogram[BNF_importStatement]++;
+	
+	matchToken(KW_T, KW_REQUEST);
+	matchToken(KW_T, KW_METAR);
+	matchToken(KW_T, KW_FROM);
+	
+	matchToken(STR_T, NO_ATTR);
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: REQUEST statement parsed\n", STR_LANGNAME);
+
+
 }

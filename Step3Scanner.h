@@ -365,7 +365,7 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 19
+#define KWT_SIZE 23
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
@@ -379,7 +379,7 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"THEN",			/* KW07 */
 	"ELSE",			/* KW08 */
 	"ENDIF",		/* KW09 */
-	"PRINT",		/* KW010 */
+	"PRINT",		/* KW10 */
 	"REPORT",		/* KW11 */
 	"CALCULATE"	,	/* KW12 */
 	"ENDBRIEFING",	/* KW13 */
@@ -387,7 +387,11 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"ENDDISPATCH",	/* KW15 */
 	"ENDMAIN",		/* KW16 */
 	"LOADSHEET",	/* KW17 */
-	"ENDLOADSHEET"	/* KW18 */
+	"ENDLOADSHEET",	/* KW18 */
+	"REQUEST",      /* KW19 */
+	"METAR",		/* KW20 */  //Also wanna include TAF, SIGMET, ATIS....
+	"NOTAM",	    /* KW21 */
+	"FROM"			/* KW22 */
 };
 
 /* NEW SECTION: About indentation */
