@@ -160,7 +160,7 @@ enum BNF_RULES {
 	BNF_expression,
 	BNF_term,
 	BNF_factor,
-	BNF_importStatement
+	BNF_requestStatement
 };
 
 
@@ -194,7 +194,7 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_expression",
 	"BNF_term",
 	"BNF_factor",
-	"BNF_importStatement"
+	"BNF_requestStatement"
 };
 
 /* TO_DO: Place ALL non-terminal function declarations */

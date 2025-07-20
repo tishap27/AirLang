@@ -1,6 +1,10 @@
 % AirLang Flight Plan  
   Includes sample aircraft, flight, route data and loadsheet calculations, ready for takeoff! %
 ^^ The only bug in FlightPlan is STALL
+
+REQUEST METAR FROM "https://airlangMetar.fly" ;
+REQUEST NOTAM FROM "https://airlangNotam.fly" ;
+
 MAIN {
     BRIEFING {
         AIRCRAFT {

@@ -1130,7 +1130,7 @@ airlang_void factor() {
 //REQUEST METAR FROM "STRING"  
 //Basically Import of Airlang 
 airlang_void requestStatement() {
-	psData.parsHistogram[BNF_importStatement]++;
+	psData.parsHistogram[BNF_requestStatement]++;
 	
 	matchToken(KW_T, KW_REQUEST);
 
