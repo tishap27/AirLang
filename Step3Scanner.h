@@ -250,7 +250,7 @@ static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},	// S8: ASNR (ES)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},  // S9: ASWR (ER)
 	{    16,   10, ESWR, ESWR, ESWR, ESWR, ESWR,  ESWR , ESWR ,    12 ,    ESWR ,     ESWR ,     ESWR , ESWR},  // S10: ASWR (IL) - New state for integers
-	{    FS,   FS,   FS,   FS,   3,    FS,   FS,     FS,    2 ,    FS ,      FS ,       FS ,       FS ,   FS},  // S11: NOAS - On ')' go to S2 (MVID)
+	{    ESWR,   ESWR,   ESWR,   ESWR,   3,    ESWR,   ESWR,     ESWR,    2 ,    ESWR ,      ESWR ,       ESWR ,       ESWR ,   ESWR},  // S11: NOAS - On ')' go to S2 (MVID)
 	{  ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR,   ESNR,  ESNR,   ESNR,    ESNR ,      ESNR,     ESNR , ESNR},  // S12: NOAS - Decimal point state
 	{    17,   13, ESWR, ESWR, ESWR, ESWR, ESWR,   ESWR,  ESWR,   ESWR,    ESWR ,     ESWR ,     ESWR , ESWR},  // S13: FSNR (FL) - Float state
 	{    14,   14,   14,   14,   14, ESWR,   14,     14,    14,     14,       14,        14,       14 ,   15},  // S14: Date literal state
