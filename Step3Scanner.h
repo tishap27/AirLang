@@ -62,7 +62,7 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 29
+#define NUM_TOKENS 30
 
 /* TO_DO: Define Token codes - Create your token classes */
 enum TOKENS {
@@ -98,7 +98,9 @@ enum TOKENS {
 
 	/*AirLang Specific*/
 	AIRCRAFT_ID_T,
-	FLIGHT_ID_T
+	FLIGHT_ID_T,
+
+	BOOL_T
 };
 
 /* TO_DO: Define the list of keywords */
@@ -135,7 +137,9 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 
 	/*AirLang Specific*/
 	"AIRCRAFT_ID_T",
-	"FLIGHT_ID_T"
+	"FLIGHT_ID_T",
+
+	"BOOL_T"
 };
 
 /* TO_DO: Operators token attributes */
@@ -162,6 +166,10 @@ typedef union TokenAttribute {
 	/*AirLang Specific*/
 	airlang_char aircraftId[7];		/*ICAO REGISTRATION E.G C-GHPQ + null terminator*/
 	airlang_char flightId[6];		/*Domestic REGISTRATION E.G AL123 + null terminator*/
+
+	airlang_intg booleanValue;
+
+	//airlang_intg binaryValue; 
 } TokenAttribute;
 
 /* TO_DO: Should be used if no symbol table is implemented */
@@ -219,6 +227,8 @@ typedef struct scannerData {
 #define MULT_CHR '*'
 #define DIV_CHR '/'
 #define GT_CHAR '>'
+
+//#define BINARY_START '0'
 
 
 
@@ -329,6 +339,7 @@ Token funcAIRCRAFT (airlang_strg lexeme);
 int isFlightId     (airlang_strg lexeme);
 Token funcFLIGHT   (airlang_strg lexeme);
 
+
 /* 
  * Accepting function (action) callback table (array) definition 
  * If you do not want to use the typedef, the equvalent declaration is:
@@ -365,7 +376,7 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 24
+#define KWT_SIZE 26
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
@@ -392,7 +403,9 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"METAR",		/* KW20 */  //Also wanna include TAF, SIGMET, ATIS....
 	"NOTAM",	    /* KW21 */
 	"FROM",			/* KW22 */
-	"WITHCONFIG"	/* KW23 */
+	"WITHCONFIG",	/* KW23 */
+	"true",   
+	"false"
 };
 
 /* NEW SECTION: About indentation */

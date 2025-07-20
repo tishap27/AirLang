@@ -947,6 +947,25 @@ Token funcKEY(airlang_strg lexeme) {
 	Token currentToken = { 0 };
 	airlang_intg kwindex = -1, j = 0;
 	airlang_intg len = (airlang_intg)strlen(lexeme);
+
+
+	//checking boolean if seen true or false that is boolean
+	if (strcmp(lexeme, "true") == 0) {
+		currentToken.code = BOOL_T;
+		currentToken.attribute.booleanValue = 1; //true
+		scData.scanHistogram[currentToken.code]++; 
+		return currentToken;
+	}
+
+	if (strcmp(lexeme, "false") == 0) {
+		currentToken.code = BOOL_T;
+		currentToken.attribute.booleanValue = 0; //false
+		scData.scanHistogram[currentToken.code]++;
+		return currentToken;
+
+	}
+
+
 	///lexeme[len - 1] = EOS_CHR;
 	for (j = 0; j < KWT_SIZE; j++)
 		if (!strcmp(lexeme, &keywordTable[j][0]))
@@ -1121,6 +1140,9 @@ airlang_void printToken(Token t) {
 		break;
 	case COLON_T:
 		printf("COLON_T\n");
+		break;
+	case BOOL_T:
+		printf("BOOL_T\t\t%s\n" , t.attribute.booleanValue ? "true" : "false");
 		break;
 	default:
 		printf("Scanner error: invalid token code: %d\n", t.code);
