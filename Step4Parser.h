@@ -105,12 +105,13 @@ enum KEYWORDS {
 	KW_REQUEST,		/* KW19 */
 	KW_METAR,		/* KW20 */
 	KW_NOTAM,		/* KW21 */
-	KW_FROM			/* KW22 */
+	KW_FROM,		/* KW22 */
+	KW_WITHCONFIG   /* KW23 */
 
 };
 
 /* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 29
+#define NUM_BNF_RULES 32
 
 /* Parser */
 typedef struct parserData {
@@ -160,7 +161,10 @@ enum BNF_RULES {
 	BNF_expression,
 	BNF_term,
 	BNF_factor,
-	BNF_requestStatement
+	BNF_requestStatement,
+	BNF_methodCall, 
+	BNF_withConfigBlock, 
+	BNF_optConfigList
 };
 
 
@@ -194,7 +198,11 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_expression",
 	"BNF_term",
 	"BNF_factor",
-	"BNF_requestStatement"
+	"BNF_requestStatement",
+	"BNF_methodCall",
+	"BNF_withConfigBlock",
+	"BNF_optConfigList"
+
 };
 
 /* TO_DO: Place ALL non-terminal function declarations */
@@ -244,6 +252,12 @@ airlang_void performanceContent();
 airlang_void expression();
 airlang_void term();
 airlang_void factor();
+
+airlang_void methodCall();
+airlang_void optwithConfigBlock();
+airlang_void optionalConfigList();
+airlang_void configAssignment();
+airlang_void optConfigStatement();
 
 
 

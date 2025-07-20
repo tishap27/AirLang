@@ -240,7 +240,7 @@ static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 /*    [A-z],[0-9],    _,    (,   \", SEOF,    %,  other,    ) ,    .  ,      ;  ,      -   ,     ^^	  ,	  \'
 	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7), RP(8), DOT(9), SEMI(10), MINUS(11), SLCOM(12), SQ(13)*/
 	{     1,   10, ESNR, ESNR,    4, ESWR,	  6,   ESNR,  ESNR,   ESNR,    ESNR ,       10 ,        7 ,  14 },	// S0: NOAS
-	{     1,    1,    1,    11,	  3,    3,    3,     3 ,    3 ,   ESNR,      3  ,       18 ,        3 ,    3},	// S1: NOAS
+	{     1,    1,    1,    11,	  3,    3,    3,     3 ,    3 ,      3,      3  ,       18 ,        3 ,    3},	// S1: NOAS
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,     FS  ,       FS ,       FS ,   FS},	// S2: ASNR (MVID)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,     FS  ,       FS ,       FS ,   FS},	// S3: ASWR (KEY)
 	{     4,    4,    4,    4,    5, ESWR,	  4,    4  ,    4 ,    4  ,      4  ,        4 ,        4 ,    4},	// S4: NOAS
@@ -365,7 +365,7 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 23
+#define KWT_SIZE 24
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
@@ -391,7 +391,8 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"REQUEST",      /* KW19 */
 	"METAR",		/* KW20 */  //Also wanna include TAF, SIGMET, ATIS....
 	"NOTAM",	    /* KW21 */
-	"FROM"			/* KW22 */
+	"FROM",			/* KW22 */
+	"WITHCONFIG"	/* KW23 */
 };
 
 /* NEW SECTION: About indentation */

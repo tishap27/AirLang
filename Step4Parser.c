@@ -212,6 +212,9 @@ airlang_void printError() {
 	case FLOAT_T:
 		printf("FLOAT_T:\n");
 		break;
+	case DEC_T:
+		printf("DEC_T:\n");
+		break;
 
 
 	default:
@@ -1016,10 +1019,120 @@ airlang_void reportStatement() {
 airlang_void reportCall() {
 
 	while (lookahead.code == MNID_T) {
-		matchToken(MNID_T, NO_ATTR);
-		matchToken(EOS_T, NO_ATTR);
+		methodCall();
+		//matchToken(MNID_T, NO_ATTR);
+		//matchToken(EOS_T, NO_ATTR);
 	}
 }
+
+//DISTANCE() WITHCONFIG { BLA BLA };
+airlang_void methodCall() {
+	psData.parsHistogram[BNF_methodCall]++;
+
+	matchToken(MNID_T, NO_ATTR);
+
+	if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_WITHCONFIG) {
+		optwithConfigBlock();
+	}
+
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: Method Call parsed\n", STR_LANGNAME);
+}
+
+airlang_void optwithConfigBlock() {
+	psData.parsHistogram[BNF_withConfigBlock]++;
+
+	matchToken(KW_T, KW_WITHCONFIG);
+
+	matchToken(LBR_T, NO_ATTR);
+
+	optionalConfigList();
+
+	matchToken(RBR_T, NO_ATTR);
+
+	printf("%s: Optional ConfigBlock parsed\n", STR_LANGNAME);
+}
+
+airlang_void optionalConfigList() {
+	psData.parsHistogram[BNF_optConfigList]++;
+
+	if (lookahead.code == ID_T) {
+		configAssignment();
+
+		while (lookahead.code == ID_T) {
+			configAssignment();
+		}
+	}
+}
+airlang_void configAssignment() {
+
+	if (lookahead.code == ID_T) {
+		//printf("ID_T: %s\n", lookahead.attribute.idLexeme);
+		matchToken(ID_T, NO_ATTR);
+	}
+	else {
+		printError();
+		return;
+	}
+
+
+	printf("EQL_T: =\n");
+	matchToken(EQL_T, NO_ATTR);
+
+	//optConfigStatement();
+	if (lookahead.code == ID_T) {
+		matchToken(ID_T, NO_ATTR);
+
+		if (lookahead.code == DEC_T) {
+			matchToken(DEC_T, NO_ATTR);
+
+			if (lookahead.code == ID_T) {
+				//printf("ID_T: %s\n", lookahead.attribute.idLexeme);
+				matchToken(ID_T, NO_ATTR);
+			}
+			else {
+				printError();
+			}
+		}
+	}
+
+
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: optional Config assignment parsed\n", STR_LANGNAME);
+}
+
+airlang_void optConfigStatement() {
+	if (lookahead.code == ID_T) {
+		//printf("ID_T: %s\n", lookahead.attribute.idLexeme);
+		matchToken(ID_T, NO_ATTR);
+
+		
+		if (lookahead.code == DEC_T) {  
+			matchToken(DEC_T, NO_ATTR);
+			printf("ID_T: %s\n", lookahead.attribute.idLexeme);
+			matchToken(ID_T, NO_ATTR); 
+		}
+	}
+	else {
+		switch (lookahead.code) {
+		case INT_T:
+			matchToken(INT_T, NO_ATTR);
+			break;
+		case FLOAT_T:
+			matchToken(FLOAT_T, NO_ATTR);
+			break;
+		case STR_T:
+			matchToken(STR_T, NO_ATTR);
+			break;
+		default:
+			printError();
+			break;
+		}
+	}
+}
+
 
 airlang_void performanceBlock() {
 	psData.parsHistogram[BNF_loadsheetBlock]++;
