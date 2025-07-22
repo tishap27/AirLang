@@ -769,6 +769,9 @@ airlang_void aircraftValue() {
 	case FLOAT_T:
 		matchToken(FLOAT_T, NO_ATTR);
 		break;
+	case BOOL_T:
+		matchToken(BOOL_T, NO_ATTR);
+		break;
 	default:
 		printf("DEBUG: Invalid value token: %d\n", lookahead.code);
 		printError();
@@ -824,6 +827,9 @@ airlang_void flightValue() {
 		break;
 	case FLOAT_T:     // Float values like 1.5 
 		matchToken(FLOAT_T, NO_ATTR);
+		break;
+	case BOOL_T:
+		matchToken(BOOL_T, NO_ATTR);
 		break;
 	default:
 		printError();
@@ -898,6 +904,9 @@ airlang_void routeValue() {
 			}
 		}
 		break;
+	case BOOL_T:
+		matchToken(BOOL_T, NO_ATTR);
+		break;
 	default:
 		printError();
 		break;
@@ -951,6 +960,9 @@ airlang_void ifStatement() {
 	if (lookahead.code == NOT_EQ_T) {
 		matchToken(NOT_EQ_T, NO_ATTR);
 	}
+	else if (lookahead.code == EQL_T) {
+		matchToken(EQL_T, NO_ATTR);
+	}
 	else if (lookahead.code == GT_T) {
 		matchToken(GT_T, NO_ATTR);
 	}
@@ -967,6 +979,9 @@ airlang_void ifStatement() {
 	}
 	else if (lookahead.code == STR_T) {
 		matchToken(STR_T, NO_ATTR);
+	}
+	else if (lookahead.code == BOOL_T) {
+		matchToken(BOOL_T, NO_ATTR);
 	}
 	else {
 		// Error handling - unexpected token
@@ -1077,7 +1092,7 @@ airlang_void configAssignment() {
 	}
 
 
-	printf("EQL_T: =\n");
+	//printf("EQL_T: =\n");
 	matchToken(EQL_T, NO_ATTR);
 
 	//optConfigStatement();
