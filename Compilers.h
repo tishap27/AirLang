@@ -178,6 +178,7 @@ airlang_intg main1Coder	(airlang_intg argc, airlang_strg* argv);
 airlang_intg main2Reader(airlang_intg argc, airlang_strg* argv);
 airlang_intg main3Scanner(airlang_intg argc, airlang_strg* argv);
 airlang_intg main4Parser(airlang_intg argc, airlang_strg* argv);
+airlang_intg main5Writer(airlang_intg argc, airlang_strg* argv);
 
 airlang_void printLogo();
 airlang_void errorPrint(airlang_strg fmt, ...);

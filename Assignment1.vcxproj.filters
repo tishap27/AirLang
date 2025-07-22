@@ -45,6 +45,12 @@
     <ClCompile Include="Step4Parser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Step5Writer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main5Writer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compilers.h">
@@ -60,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Step4Parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Step5Writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
