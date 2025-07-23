@@ -39,8 +39,8 @@ MAIN {
     } ENDBRIEFING;
 
 LOADSHEET {
-        PassengerCount = 350;              
-        CargoWeight = 15000;      
+        PassengerCount: 350;              
+        CargoWeight: 15000;      
 	          
 	^^Weight and Balance check
         PayloadWeight = PassengerCount * 200 + CargoWeight;   ^^ 200 lbs avg per pax+baggage
@@ -68,7 +68,13 @@ LOADSHEET {
         ENDIF;
         
         REPORT {
-            calculateDistance();
+            calculateDistance() WITHCONFIG {
+        Latitude1  = DepartureCoordinates.Latitude;
+        Longitude1 = DepartureCoordinates.Longitude;
+        Latitude2  = ArrivalCoordinates.Latitude;
+        Longitude2 = ArrivalCoordinates.Longitude;
+	    };
+
             calculateFuelBurn();
             validateFlightPlan();
             printDispatchRelease();

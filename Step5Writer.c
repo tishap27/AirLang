@@ -147,8 +147,61 @@ airlang_void handle_write(airlang_strg expression) {
 
 /* Calculate expression */
 airlang_void calculate(airlang_strg expression) {
+    
+    if (!expression || strlen(expression) == 0 || expression[0] == '%') {
+        return;
+    }
+
     airlang_char var_name[32] = { 0 };
-    if (strchr(expression, EQUALS)) {
+
+    // Handle PRINT statements
+    if (strstr(expression, "PRINT")) {
+        handle_write(expression);
+        return;
+    }
+
+    // Handle colon syntax: VariableName: value;
+    if (strchr(expression, ':')) {
+        // Find the colon
+        airlang_char* colon_pos = strchr(expression, ':');
+
+        // Get variable name (everything before colon)
+        airlang_intg name_len = colon_pos - expression;
+        strncpy_s(var_name, sizeof(var_name), expression, name_len);
+        var_name[name_len] = EOS;
+
+        // Remove spaces from variable name
+        airlang_char clean_name[32] = { 0 };
+        airlang_intg i = 0, j = 0;
+        while (var_name[i]) {
+            if (!isspace(var_name[i])) {
+                clean_name[j++] = var_name[i];
+            }
+            i++;
+        }
+        clean_name[j] = EOS;
+
+        // Get value (everything after colon)
+        airlang_strg value_str = colon_pos + 1;
+
+        // Remove spaces and semicolon
+        while (isspace(*value_str)) value_str++;
+
+        // Remove semicolon if present
+        airlang_char value_clean[64] = { 0 };
+        i = 0;
+        while (value_str[i] && value_str[i] != ';') {
+            if (!isspace(value_str[i])) {
+                value_clean[strlen(value_clean)] = value_str[i];
+            }
+            i++;
+        }
+
+        // Convert to number and assign
+        airlang_doub num_value = atof(value_clean);
+        assign_numeric_variable(clean_name, num_value);
+    }
+      else if (strchr(expression, EQUALS)) {
         sscanf_s(expression, "%31s =", var_name, (unsigned)_countof(var_name));
         airlang_strg expr = strchr(expression, EQUALS) + 1;
         while (isspace(*expr)) expr++;
@@ -298,4 +351,15 @@ airlang_void process_content(airlang_strg fileContent) {
             printf("%s = '%c'\n", variables[i].name, variables[i].value.char_value);
         }
     }
+}
+
+
+airlang_void assign_numeric_variable(const airlang_strg name, airlang_doub value) {
+    airlang_intg idx = find_variable(name);
+    if (idx == -1) {
+        idx = var_count++;
+        strcpy_s(variables[idx].name, sizeof(variables[idx].name), name);
+    }
+    variables[idx].type = NUMERIC;
+    variables[idx].value.num_value = value;
 }

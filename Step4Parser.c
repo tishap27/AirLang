@@ -1187,7 +1187,15 @@ airlang_void performanceContent() {
 	matchToken(ID_T, NO_ATTR);
 
 	// Equals sign
-	matchToken(EQL_T, NO_ATTR);
+	if (lookahead.code == EQL_T) {
+		matchToken(EQL_T, NO_ATTR);
+	}
+	else if (lookahead.code == COLON_T) {
+		matchToken(COLON_T, NO_ATTR);
+	}
+	else {
+		printError();
+	}
 
 	// Parse right-hand expression
 	expression();

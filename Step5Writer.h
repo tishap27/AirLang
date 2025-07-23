@@ -61,7 +61,7 @@
 #define MAX_EXPR_LEN 256
 #define MAX_LINES 100
 
-#define WRITE "print&"
+#define WRITE "PRINT"
 
 #define EOS '\0'
 #define ZERO 0.0
@@ -106,5 +106,9 @@ const airlang_strg get_string_value(const airlang_strg name);
 airlang_void handle_write(airlang_strg expression);
 airlang_void process_file(const airlang_strg filename);
 airlang_void process_content(airlang_strg content);
+
+airlang_void assign_numeric_variable(const airlang_strg name, airlang_doub value);
+//airlang_doub get_numeric_value(const airlang_strg name);
+//airlang_void assign_boolean_variable(const airlang_strg name, airlang_intg value);
 
 #endif
