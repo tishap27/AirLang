@@ -2,30 +2,21 @@
 ************************************************************
 * COMPILERS COURSE - Algonquin College
 * Code version: Summer, 2025
-* Author: TO_DO
+* Author: Tisha Patel
 * Professors: Paulo Sousa
 ************************************************************
 #
 # ECHO "=---------------------------------------="
 # ECHO "|  COMPILERS - ALGONQUIN COLLEGE (S25)  |"
 # ECHO "=---------------------------------------="
-# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@           %&@@@@@@@@@@@     @@    ”
-# ECHO "    @@       @%% (@@@@@@@@@  @     @@    ”
-# ECHO "    @@      @& @   @ @       @     @@    ”
-# ECHO "    @@     @ @ %  / /   @@@@@@     @@    ”
-# ECHO "    @@      & @ @  @@              @@    ”
-# ECHO "    @@       @/ @*@ @ @   @        @@    ”
-# ECHO "    @@           @@@@  @@ @ @      @@    ”
-# ECHO "    @@            /@@    @@@ @     @@    ”
-# ECHO "    @@     @      / /     @@ @     @@    ”
-# ECHO "    @@     @ @@   /@/   @@@ @      @@    ”
-# ECHO "    @@     @@@@@@@@@@@@@@@         @@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@         S O F I A           @@    ”
-# ECHO "    @@                             @@    ”
-# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    ”
+# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@            __|__            @@    "
+# ECHO "    @@-------@--o--(_)--o--@-------@@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@        A I R L A N G        @@    "
+# ECHO "    @@                             @@    "
+# ECHO "    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    "
 # ECHO "                                         "
 # ECHO "[WRITER SCRIPT .........................]"
 # ECHO "                                         "
@@ -187,19 +178,37 @@ airlang_void calculate(airlang_strg expression) {
         // Remove spaces and semicolon
         while (isspace(*value_str)) value_str++;
 
-        // Remove semicolon if present
-        airlang_char value_clean[64] = { 0 };
-        i = 0;
-        while (value_str[i] && value_str[i] != ';') {
-            if (!isspace(value_str[i])) {
-                value_clean[strlen(value_clean)] = value_str[i];
-            }
-            i++;
-        }
 
-        // Convert to number and assign
-        airlang_doub num_value = atof(value_clean);
-        assign_numeric_variable(clean_name, num_value);
+        if (strchr(value_str, ',')) {
+            // Remove semicolon if present
+            airlang_char coord_value[64] = { 0 };
+            i = 0;
+            while (value_str[i] && value_str[i] != ';') {
+                if (!isspace(value_str[i])) {
+                    coord_value[strlen(coord_value)] = value_str[i];
+                }
+                i++;
+            }
+            // Remove trailing spaces
+            while (strlen(coord_value) > 0 && isspace(coord_value[strlen(coord_value) - 1])) {
+                coord_value[strlen(coord_value) - 1] = '\0';
+            }
+            assign_string_variable(clean_name, coord_value);
+        }
+        else {
+            // Handle single numeric values
+            airlang_char value_clean[64] = { 0 };
+            i = 0;
+            while (value_str[i] && value_str[i] != ';') {
+                if (!isspace(value_str[i])) {
+                    value_clean[strlen(value_clean)] = value_str[i];
+                }
+                i++;
+            }
+            // Convert to number and assign
+            airlang_doub num_value = atof(value_clean);
+            assign_numeric_variable(clean_name, num_value);
+        }
     }
       else if (strchr(expression, EQUALS)) {
         sscanf_s(expression, "%31s =", var_name, (unsigned)_countof(var_name));
