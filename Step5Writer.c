@@ -178,8 +178,19 @@ airlang_void calculate(airlang_strg expression) {
         // Remove spaces and semicolon
         while (isspace(*value_str)) value_str++;
 
-
-        if (strchr(value_str, ',')) {
+        // Check if this is a quoted string
+        if (*value_str == QUOTES) {
+            // Handle quoted strings
+            value_str++; // Skip opening quote
+            airlang_char string_value[256] = { 0 };
+            airlang_intg i = 0;
+            while (*value_str != QUOTES && *value_str != EOS && *value_str != ';') {
+                string_value[i++] = *value_str++;
+            }
+            string_value[i] = EOS;
+            assign_string_variable(clean_name, string_value);
+        }
+        else if (strchr(value_str, ',')) {
             // Remove semicolon if present
             airlang_char coord_value[64] = { 0 };
             i = 0;
@@ -257,7 +268,13 @@ airlang_void process_file(const airlang_strg filename) {
             printf("%s = \"%s\"\n", variables[i].name, variables[i].value.str_value);
         }
         else if (variables[i].type == NUMERIC) {
-            printf("%s = %.2lf\n", variables[i].name, variables[i].value.num_value);
+            //printf("%s = %.2lf\n", variables[i].name, variables[i].value.num_value);
+            if (variables[i].value.num_value == (airlang_intg)variables[i].value.num_value) {
+                printf("%s = %.0lf\n", variables[i].name, variables[i].value.num_value);
+            }
+            else {
+                printf("%s = %.2lf\n", variables[i].name, variables[i].value.num_value);
+            }
         }
         else if (variables[i].type == BOOLEAN) {
             printf("%s = %s\n", variables[i].name, variables[i].value.bool_value ? "true" : "false");
@@ -351,7 +368,13 @@ airlang_void process_content(airlang_strg fileContent) {
             printf("%s = \"%s\"\n", variables[i].name, variables[i].value.str_value);
         }
         else if (variables[i].type == NUMERIC) {
-            printf("%s = %.2lf\n", variables[i].name, variables[i].value.num_value);
+            //printf("%s = %.2lf\n", variables[i].name, variables[i].value.num_value);
+            if (variables[i].value.num_value == (airlang_intg)variables[i].value.num_value) {
+                printf("%s = %.0lf\n", variables[i].name, variables[i].value.num_value);
+            }
+            else {
+                printf("%s = %.2lf\n", variables[i].name, variables[i].value.num_value);
+            }
         }
         else if (variables[i].type == BOOLEAN) {
             printf("%s = %s\n", variables[i].name, variables[i].value.bool_value ? "true" : "false");
