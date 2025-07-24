@@ -52,6 +52,9 @@
 #define MAX_EXPR_LEN 256
 #define MAX_LINES 100
 
+#define PI 3.14159265358979323846
+#define EARTH_RADIUS_KM 6371.0
+
 #define WRITE "PRINT"
 
 #define EOS '\0'
@@ -107,6 +110,8 @@ airlang_intg handle_if_else(airlang_strg expression);
 airlang_intg is_aircraft_identifier(const airlang_strg value);
 
 airlang_intg is_date_format(const airlang_strg value);
+airlang_intg is_coordinate_format(const airlang_strg value);
+airlang_intg parse_coordinates(const airlang_strg coord_str, airlang_doub* lat, airlang_doub* lon);
 //airlang_intg is_flight_number(const airlang_strg value);
 
 //airlang_intg is_aircraft_id(const airlang_strg value);

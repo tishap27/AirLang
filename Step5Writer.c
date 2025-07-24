@@ -213,6 +213,8 @@ airlang_void calculate(airlang_strg expression) {
             assign_string_variable(clean_name, string_value);
         }
         else if (strchr(value_str, ',')) {
+
+
             // Remove semicolon if present
             airlang_char coord_value[64] = { 0 };
             i = 0;
@@ -222,40 +224,49 @@ airlang_void calculate(airlang_strg expression) {
                 }
                 i++;
             }
+
             // Remove trailing spaces
             while (strlen(coord_value) > 0 && isspace(coord_value[strlen(coord_value) - 1])) {
                 coord_value[strlen(coord_value) - 1] = '\0';
             }
-            assign_string_variable(clean_name, coord_value);
-        }
-        else {
-            // Handle single numeric values
-            airlang_char value_clean[64] = { 0 };
-            i = 0;
-            while (value_str[i] && value_str[i] != ';') {
-                if (!isspace(value_str[i])) {
-                    value_clean[strlen(value_clean)] = value_str[i];
-                }
-                i++;
-            }
-
-
-            if (is_date_format(value_clean)) {
-                // Remove quotes and store as string
-                airlang_char date_without_quotes[32] = { 0 };
-                strncpy_s(date_without_quotes, sizeof(date_without_quotes), value_clean + 1, strlen(value_clean) - 2);
-                assign_string_variable(clean_name, date_without_quotes);
-            }
-            // Check if it's a flight number pattern IATA , OR AIRCRAFT REGISTRATION ICAO
-            else if (is_aircraft_identifier(value_clean)) {
-                assign_string_variable(clean_name, value_clean);
+            // Check if it's a valid coordinate format
+            if (is_coordinate_format(coord_value)) {
+                assign_string_variable(clean_name, coord_value);
             }
             else {
-                // Convert to number and assign
-                airlang_doub num_value = atof(value_clean);
-                assign_numeric_variable(clean_name, num_value);
+                // Handle as regular comma-separated string (for other uses)
+                assign_string_variable(clean_name, coord_value);
             }
         }
+        else {
+                // Handle single numeric values
+                airlang_char value_clean[64] = { 0 };
+                i = 0;
+                while (value_str[i] && value_str[i] != ';') {
+                    if (!isspace(value_str[i])) {
+                        value_clean[strlen(value_clean)] = value_str[i];
+                    }
+                    i++;
+                }
+
+
+                if (is_date_format(value_clean)) {
+                    // Remove quotes and store as string
+                    airlang_char date_without_quotes[32] = { 0 };
+                    strncpy_s(date_without_quotes, sizeof(date_without_quotes), value_clean + 1, strlen(value_clean) - 2);
+                    assign_string_variable(clean_name, date_without_quotes);
+                }
+                // Check if it's a flight number pattern IATA , OR AIRCRAFT REGISTRATION ICAO
+                else if (is_aircraft_identifier(value_clean)) {
+                    assign_string_variable(clean_name, value_clean);
+                }
+                else {
+                    // Convert to number and assign
+                    airlang_doub num_value = atof(value_clean);
+                    assign_numeric_variable(clean_name, num_value);
+                }
+            }
+        
     }
     else if (strchr(expression, EQUALS)) {
         sscanf_s(expression, "%31s =", var_name, (unsigned)_countof(var_name));
@@ -699,3 +710,80 @@ airlang_intg is_date_format(const airlang_strg value) {
 
     return 0;
 }
+
+airlang_intg is_coordinate_format(const airlang_strg value) {
+    // Check if the string contains a comma
+    if (strchr(value, ',') == NULL) {
+        return 0;
+    }
+
+    // Make a copy to work with
+    airlang_char temp[128];
+    strcpy_s(temp, sizeof(temp), value);
+
+    // Find the comma
+    airlang_char* comma_pos = strchr(temp, ',');
+    if (comma_pos == NULL) {
+        return 0;
+    }
+
+    // Split at comma
+    *comma_pos = '\0';
+    airlang_char* lat_str = temp;
+    airlang_char* lon_str = comma_pos + 1;
+
+    // Remove leading/trailing spaces
+    while (isspace(*lat_str)) lat_str++;
+    while (isspace(*lon_str)) lon_str++;
+
+    // Check if both parts are numeric (can be negative)
+    // Check latitude part
+    airlang_char* lat_ptr = lat_str;
+    if (*lat_ptr == '-') lat_ptr++; // Skip negative sign
+    if (!isdigit(*lat_ptr)) return 0;
+    while (*lat_ptr && (isdigit(*lat_ptr) || *lat_ptr == '.')) lat_ptr++;
+    if (*lat_ptr != '\0' && !isspace(*lat_ptr)) return 0;
+
+    // Check longitude part  
+    airlang_char* lon_ptr = lon_str;
+    if (*lon_ptr == '-') lon_ptr++; // Skip negative sign
+    if (!isdigit(*lon_ptr)) return 0;
+    while (*lon_ptr && (isdigit(*lon_ptr) || *lon_ptr == '.')) lon_ptr++;
+    if (*lon_ptr != '\0' && !isspace(*lon_ptr)) return 0;
+
+    return 1; // Valid coordinate format
+}
+
+// Function to parse coordinates and extract latitude and longitude
+airlang_intg parse_coordinates(const airlang_strg coord_str, airlang_doub* lat, airlang_doub* lon) {
+    if (!is_coordinate_format(coord_str)) {
+        return 0;
+    }
+
+    airlang_char temp_str[128];
+    strcpy_s(temp_str, sizeof(temp_str), coord_str);
+
+    // Find the comma
+    airlang_char* comma_pos = strchr(temp_str, ',');
+    if (comma_pos == NULL) {
+        return 0;
+    }
+
+    // Split at comma
+    *comma_pos = '\0';
+    airlang_char* lat_str = temp_str;
+    airlang_char* lon_str = comma_pos + 1;
+
+    // Remove leading/trailing spaces
+    while (isspace(*lat_str)) lat_str++;
+    while (isspace(*lon_str)) lon_str++;
+
+    // Convert to double
+    *lat = atof(lat_str);
+    *lon = atof(lon_str);
+
+    return 1; // Success
+}
+
+
+
