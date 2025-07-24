@@ -98,8 +98,11 @@ airlang_void handle_write(airlang_strg expression);
 airlang_void process_file(const airlang_strg filename);
 airlang_void process_content(airlang_strg content);
 
+airlang_void calculate(const airlang_strg expression);
 airlang_void assign_numeric_variable(const airlang_strg name, airlang_doub value);
 airlang_doub evaluate_expression(const airlang_strg expr);
+airlang_intg evaluate_condition(const airlang_strg condition);
+airlang_intg handle_if_else(airlang_strg expression);
 //airlang_doub get_numeric_value(const airlang_strg name);
 //airlang_void assign_boolean_variable(const airlang_strg name, airlang_intg value);
 

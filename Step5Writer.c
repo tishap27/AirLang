@@ -57,6 +57,12 @@ airlang_intg var_count = 0;
 airlang_intg initial_phase = 1; // Flag to track the initial phase
 airlang_char output_buffer[MAX_EXPR_LEN * 10] = { 0 }; // Buffer to store write output
 
+//for if else 
+airlang_intg if_condition_result = 0;
+airlang_intg in_if_block = 0;
+airlang_intg in_else_block = 0;
+airlang_intg skip_execution = 0;
+
 /* Finds variables */
 airlang_intg find_variable(const airlang_strg name) {
     airlang_intg i = 0;
@@ -142,7 +148,21 @@ airlang_void calculate(airlang_strg expression) {
     if (!expression || strlen(expression) == 0 || expression[0] == '%') {
         return;
     }
+   // block to handle^^ comments
+        if (strstr(expression, "^^") != NULL) {
+            return; // Skip comment lines
+        }
 
+    // First check if it's an IF-ELSE statement
+    if (handle_if_else(expression)) {
+        return; // IF-ELSE handled it
+    }
+
+    // Skip execution if we're in a block that shouldn't execute
+    if (skip_execution) {
+        printf("DEBUG: Skipping execution of: %s\n", expression);
+        return;
+    }
     airlang_char var_name[32] = { 0 };
 
     // Handle PRINT statements
@@ -150,6 +170,8 @@ airlang_void calculate(airlang_strg expression) {
         handle_write(expression);
         return;
     }
+
+
 
     // Handle colon syntax: VariableName: value;
     if (strchr(expression, ':')) {
@@ -383,6 +405,7 @@ airlang_void process_content(airlang_strg fileContent) {
     airlang_intg i = 0;
 	for (i = 0; i < lineCount; i++) {
 		line = lines[i];
+        //printf("DEBUG: Processing line: '%s'\n", lines[i]);
 		calculate(line);
 	}
     initial_phase = 0; // End of initial phase
@@ -451,7 +474,7 @@ airlang_doub evaluate_expression(const airlang_strg expr) {
     }
 
     // Simple parser for expressions like: var1 * 200 + var2
-  
+
     airlang_char* context = NULL;
     airlang_char* token = strtok_s(clean_expr, "+-*/", &context);
     airlang_doub operands[10];
@@ -508,4 +531,101 @@ airlang_doub evaluate_expression(const airlang_strg expr) {
     }
 
     return result;
+}
+
+airlang_intg evaluate_condition(const airlang_strg condition) {
+    airlang_char tempCond[256];
+    strcpy_s(tempCond, sizeof(tempCond), condition);
+
+    // Remove spaces
+    airlang_char cleanCond[256] = { 0 };
+    airlang_intg i = 0, j = 0;
+    while (tempCond[i]) {
+        if (!isspace(tempCond[i])) {
+            cleanCond[j++] = tempCond[i];
+        }
+        i++;
+    }
+    cleanCond[j] = EOS;
+
+    // Find comparison operator
+    airlang_char* operatorPos = NULL;
+    if ((operatorPos = strstr(cleanCond, ">")) != NULL) {
+        // Split left and right
+        *operatorPos = '\0';
+        airlang_char* leftOperand = cleanCond;
+        airlang_char* rightOperand = operatorPos + 1;
+
+        // Get left value
+        airlang_doub leftVal = 0.0;
+        if (isdigit(leftOperand[0])) {
+            leftVal = atof(leftOperand);
+        }
+        else {
+            airlang_intg var_idx = find_variable(leftOperand);
+            if (var_idx != -1 && variables[var_idx].type == NUMERIC) {
+                leftVal = variables[var_idx].value.num_value;
+            }
+        }
+
+        // Get right value
+        airlang_doub rightVal = 0.0;
+        if (isdigit(rightOperand[0])) {
+            rightVal = atof(rightOperand);
+        }
+        else {
+            airlang_intg var_idx = find_variable(rightOperand);
+            if (var_idx != -1 && variables[var_idx].type == NUMERIC) {
+                rightVal = variables[var_idx].value.num_value;
+            }
+        }
+
+        printf("DEBUG: Comparing %.2f > %.2f = %s\n", leftVal, rightVal, (leftVal > rightVal) ? "TRUE" : "FALSE");
+        return leftVal > rightVal;
+    }
+
+    return 0;
+}
+
+airlang_intg handle_if_else(airlang_strg expression) {
+    // Trim leading whitespace
+    while (*expression && isspace(*expression)) {
+        expression++;
+    }
+
+    // Handle IF statements
+    if (strncmp(expression, "IF ", 3) == 0) {
+        airlang_char* then_pos = strstr(expression, " THEN");
+        if (then_pos != NULL) {
+            // Extract condition
+            airlang_intg cond_len = (airlang_intg)(then_pos - expression - 3);
+            airlang_char condition[256] = { 0 };
+            strncpy_s(condition, sizeof(condition), expression + 3, cond_len);
+
+            if_condition_result = evaluate_condition(condition);
+            in_if_block = 1;
+            skip_execution = !if_condition_result;
+
+            printf("DEBUG: IF condition evaluated to %s\n", if_condition_result ? "TRUE" : "FALSE");
+        }
+        return 1;
+    }
+
+    // Handle ELSE
+    if (strncmp(expression, "ELSE", 4) == 0) {
+        skip_execution = if_condition_result;
+        printf("DEBUG: ELSE block, skip = %s\n", skip_execution ? "TRUE" : "FALSE");
+        return 1;
+    }
+
+    // Handle ENDIF
+    if (strncmp(expression, "ENDIF", 5) == 0) {
+        skip_execution = 0;
+        if_condition_result = 0;
+        in_if_block = 0;
+        printf("DEBUG: ENDIF reached\n");
+        return 1;
+    }
+
+    return 0;
 }

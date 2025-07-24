@@ -40,7 +40,9 @@ MAIN {
 
 LOADSHEET {
         PassengerCount: 350;              
-        CargoWeight: 15000;      
+        CargoWeight: 15000;
+	TotalWeight: 100;
+	MaxTakeoffWeight: 70;
 	          
 	^^Weight and Balance check
         PayloadWeight = PassengerCount * 200 + CargoWeight;   ^^ 200 lbs avg per pax+baggage
@@ -63,8 +65,8 @@ LOADSHEET {
         ENDIF;
         
         
-        IF TotalFuel > FuelCapacity THEN
-            PRINT "WARNING: Insufficient fuel capacity for flight plan";
+        IF TotalFuel > FuelCapacity THEN}
+            PRINT {"WARNING: Insufficient fuel capacity for flight plan"};
         ENDIF;
         
         REPORT {
