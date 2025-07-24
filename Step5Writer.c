@@ -298,7 +298,7 @@ airlang_void calculate(airlang_strg expression) {
     
         else {
         // Handle arithmetic expression
-        airlang_doub result = evaluate_expression(clean_expr);
+        airlang_doub result = evaluate_expression_with_distance(clean_expr);
         assign_numeric_variable(var_name, result);
         if (!initial_phase) {
             if (result == (airlang_intg)result) {
@@ -430,7 +430,7 @@ airlang_void process_content(airlang_strg fileContent) {
     airlang_intg i = 0;
 	for (i = 0; i < lineCount; i++) {
 		line = lines[i];
-        //printf("DEBUG: Processing line: '%s'\n", lines[i]);
+        printf("DEBUG: Processing line: '%s'\n", lines[i]);
 		calculate(line);
 	}
     initial_phase = 0; // End of initial phase
@@ -787,3 +787,234 @@ airlang_intg parse_coordinates(const airlang_strg coord_str, airlang_doub* lat, 
 
 
 
+//DISTANCEEE
+
+
+
+airlang_doub my_sin(airlang_doub x) {
+    airlang_doub x3 = x * x * x;
+    airlang_doub x5 = x3 * x * x;
+    airlang_doub x7 = x5 * x * x;
+    return x - x3 / 6.0 + x5 / 120.0 - x7 / 5040.0;
+}
+
+airlang_doub my_cos(airlang_doub x) {
+    airlang_doub x2 = x * x;
+    airlang_doub x4 = x2 * x2;
+    airlang_doub x6 = x4 * x2;
+    return 1 - x2 / 2.0 + x4 / 24.0 - x6 / 720.0;
+}
+
+airlang_doub my_sqrt(airlang_doub n) {
+    if (n < 0) return -1;
+    if (n == 0) return 0;
+    airlang_doub x = n;
+    airlang_intg i = 0;
+    for (i = 0; i < 10; i++) {
+        x = 0.5 * (x + n / x);
+    }
+    return x;
+}
+
+airlang_doub my_atan2(airlang_doub y, airlang_doub x) {
+    if (x > 0) return y / x;
+    else if (x < 0 && y >= 0) return PI + y / x;
+    else if (x < 0 && y < 0) return -PI + y / x;
+    else if (x == 0 && y > 0) return PI / 2;
+    else if (x == 0 && y < 0) return -PI / 2;
+    else return 0;
+}
+
+airlang_doub toRadians(airlang_doub degree) {
+    return degree * (PI / 180.0);
+}
+
+// Haversine formula - exactly like your C code
+airlang_doub my_haversin(airlang_doub lat1, airlang_doub lon1, airlang_doub lat2, airlang_doub lon2) {
+    airlang_doub dlat = toRadians(lat2 - lat1);
+    airlang_doub dlon = toRadians(lon2 - lon1);
+    airlang_doub rlat1 = toRadians(lat1);
+    airlang_doub rlat2 = toRadians(lat2);
+
+    airlang_doub sin_dlat2 = my_sin(dlat / 2.0);
+    airlang_doub sin_dlon2 = my_sin(dlon / 2.0);
+    airlang_doub a = sin_dlat2 * sin_dlat2 +
+        my_cos(rlat1) * my_cos(rlat2) *
+        sin_dlon2 * sin_dlon2;
+    airlang_doub c = 2 * my_atan2(my_sqrt(a), my_sqrt(1 - a));
+    return EARTH_RADIUS_KM * c;
+}
+
+// Simple DISTANCE function for AirLang
+/*airlang_doub calculate_distance(const airlang_strg coord1_name, const airlang_strg coord2_name) {
+    printf("DEBUG: Looking for variables '%s' and '%s'\n", coord1_name, coord2_name);
+    // Find the coordinate variables
+    airlang_intg idx1 = find_variable(coord1_name);
+    airlang_intg idx2 = find_variable(coord2_name);
+
+    printf("DEBUG: idx1 = %d, idx2 = %d\n", idx1, idx2);
+
+    if (idx1 == -1 || idx2 == -1) {
+        printf("DEBUG: Variable '%s' not found\n", coord1_name);
+        return 0.0; // Variables not found
+    }
+
+    if (variables[idx1].type != STRING || variables[idx2].type != STRING) {
+        printf("DEBUG: Variable '%s' not found\n", coord2_name);
+        return 0.0; // Not string variables
+    }
+
+    printf("DEBUG: coord1 value = '%s'\n", variables[idx1].value.str_value);
+    printf("DEBUG: coord2 value = '%s'\n", variables[idx2].value.str_value);
+
+
+    // Parse coordinates
+    airlang_doub lat1, lon1, lat2, lon2;
+
+    if (!parse_coordinates(variables[idx1].value.str_value, &lat1, &lon1)) {
+        printf("DEBUG: Failed to parse coordinates from '%s'\n", variables[idx1].value.str_value);
+        return 0.0; // Invalid coordinate format
+    }
+
+    if (!parse_coordinates(variables[idx2].value.str_value, &lat2, &lon2)) {
+        return 0.0; // Invalid coordinate format
+    }
+
+   
+    // Calculate distance using haversine
+    return my_haversin(lat1, lon1, lat2, lon2);
+}
+
+
+airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
+    airlang_char temp_expr[256];
+    strcpy_s(temp_expr, sizeof(temp_expr), expr);
+
+    // Remove spaces
+    airlang_char clean_expr[256] = { 0 };
+    airlang_intg i = 0, j = 0;
+    while (temp_expr[i]) {
+        if (!isspace(temp_expr[i])) {
+            clean_expr[j++] = temp_expr[i];
+        }
+        i++;
+    }
+    clean_expr[j] = EOS;
+
+    // Check for DISTANCE function: DISTANCE(coord1,coord2)
+    if (strncmp(clean_expr, "DISTANCE(", 9) == 0) {
+        airlang_char* start = clean_expr + 9;
+        airlang_char* end = strrchr(clean_expr, ')');
+        if (end != NULL) {
+            *end = '\0';
+
+            // Find comma to separate parameters
+            airlang_char* comma = strchr(start, ',');
+            if (comma != NULL) {
+                *comma = '\0';
+                airlang_char* coord1 = start;
+                airlang_char* coord2 = comma + 1;
+
+                return calculate_distance(coord1, coord2);
+            }
+        }
+        return 0.0;
+    }
+
+    // If not DISTANCE function, use original evaluation
+    return evaluate_expression(clean_expr);
+}*/
+
+
+
+// Add this function to handle HAVERSINE keyword
+
+airlang_doub calculate_haversine_auto() {
+    // Find the last two coordinate variables automatically
+    airlang_intg coord_count = 0;
+    airlang_intg coord_indices[10]; // Store up to 10 coordinate variables
+
+    // Scan through all variables to find coordinate strings
+    airlang_intg i = 0;
+    for (i = 0; i < var_count; i++) {
+        if (variables[i].type == STRING && is_coordinate_format(variables[i].value.str_value)) {
+            coord_indices[coord_count] = i;
+            coord_count++;
+            if (coord_count >= 10) break; // Safety limit
+        }
+    }
+
+    printf("DEBUG: Found %d coordinate variables\n", coord_count);
+
+    // Need at least 2 coordinate variables
+    if (coord_count < 2) {
+        printf("DEBUG: Not enough coordinate variables found\n");
+        return 0.0;
+    }
+
+    // Use the last two coordinate variables
+    airlang_intg idx1 = coord_indices[coord_count - 2]; // Second to last
+    airlang_intg idx2 = coord_indices[coord_count - 1]; // Last
+
+    printf("DEBUG: Using variables '%s' and '%s'\n",
+        variables[idx1].name, variables[idx2].name);
+    printf("DEBUG: Values: '%s' and '%s'\n",
+        variables[idx1].value.str_value, variables[idx2].value.str_value);
+
+    // Parse coordinates
+    airlang_doub lat1, lon1, lat2, lon2;
+
+    if (!parse_coordinates(variables[idx1].value.str_value, &lat1, &lon1)) {
+        printf("DEBUG: Failed to parse first coordinate\n");
+        return 0.0;
+    }
+
+    if (!parse_coordinates(variables[idx2].value.str_value, &lat2, &lon2)) {
+        printf("DEBUG: Failed to parse second coordinate\n");
+        return 0.0;
+    }
+
+    printf("DEBUG: Calculating distance between (%.6f,%.6f) and (%.6f,%.6f)\n",
+        lat1, lon1, lat2, lon2);
+
+    // Calculate distance
+    airlang_doub distance = my_haversin(lat1, lon1, lat2, lon2);
+    printf("DEBUG: Calculated distance = %.2f km\n", distance);
+
+    return distance;
+}
+
+// Update your evaluate_expression_with_distance function to handle HAVERSINE
+airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
+    printf("DEBUG: evaluate_expression_with_distance called with: '%s'\n", expr);
+
+    airlang_char temp_expr[256];
+    strcpy_s(temp_expr, sizeof(temp_expr), expr);
+
+    // Remove spaces
+    airlang_char clean_expr[256] = { 0 };
+    airlang_intg i = 0, j = 0;
+    while (temp_expr[i]) {
+        if (!isspace(temp_expr[i])) {
+            clean_expr[j++] = temp_expr[i];
+        }
+        i++;
+    }
+    clean_expr[j] = EOS;
+
+    printf("DEBUG: cleaned expression: '%s'\n", clean_expr);
+
+    // Check for HAVERSINE keyword
+    if (strcmp(clean_expr, "AIRDIST") == 0) {
+        printf("DEBUG: Found HAVERSINE keyword\n");
+        airlang_doub result = calculate_haversine_auto();
+        printf("DEBUG: HAVERSINE returning: %.2f\n", result);
+        return result;
+    }
+
+    printf("DEBUG: Not HAVERSINE, calling original evaluate_expression\n");
+    // If not HAVERSINE, use original evaluation
+    return evaluate_expression(clean_expr);
+}
+
+// Keep all your existing math functions (my_sin, my_cos, etc.) - they're still needed

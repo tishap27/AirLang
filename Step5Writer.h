@@ -52,7 +52,7 @@
 #define MAX_EXPR_LEN 256
 #define MAX_LINES 100
 
-#define PI 3.14159265358979323846
+//#define PI 3.14159265358979323846
 #define EARTH_RADIUS_KM 6371.0
 
 #define WRITE "PRINT"
@@ -112,6 +112,23 @@ airlang_intg is_aircraft_identifier(const airlang_strg value);
 airlang_intg is_date_format(const airlang_strg value);
 airlang_intg is_coordinate_format(const airlang_strg value);
 airlang_intg parse_coordinates(const airlang_strg coord_str, airlang_doub* lat, airlang_doub* lon);
+
+
+
+// Math functions for distance calculation
+airlang_doub my_sin(airlang_doub x);
+airlang_doub my_cos(airlang_doub x);
+airlang_doub my_sqrt(airlang_doub n);
+airlang_doub my_atan2(airlang_doub y, airlang_doub x);
+airlang_doub toRadians(airlang_doub degree);
+
+// Distance calculation functions
+airlang_doub my_haversin(airlang_doub lat1, airlang_doub lon1, airlang_doub lat2, airlang_doub lon2);
+//airlang_doub calculate_distance(const airlang_strg coord1_name, const airlang_strg coord2_name);
+
+// Enhanced expression evaluation
+airlang_doub evaluate_expression_with_distance(const airlang_strg expr);
+airlang_doub calculate_haversine_auto();
 //airlang_intg is_flight_number(const airlang_strg value);
 
 //airlang_intg is_aircraft_id(const airlang_strg value);
