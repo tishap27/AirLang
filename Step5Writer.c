@@ -239,8 +239,15 @@ airlang_void calculate(airlang_strg expression) {
                 i++;
             }
 
+
+            if (is_date_format(value_clean)) {
+                // Remove quotes and store as string
+                airlang_char date_without_quotes[32] = { 0 };
+                strncpy_s(date_without_quotes, sizeof(date_without_quotes), value_clean + 1, strlen(value_clean) - 2);
+                assign_string_variable(clean_name, date_without_quotes);
+            }
             // Check if it's a flight number pattern IATA , OR AIRCRAFT REGISTRATION ICAO
-            if (is_aircraft_identifier(value_clean)) {
+            else if (is_aircraft_identifier(value_clean)) {
                 assign_string_variable(clean_name, value_clean);
             }
             else {
@@ -668,6 +675,24 @@ airlang_intg is_aircraft_identifier(const airlang_strg value) {
         if (isalpha(value[0]) && value[1] == '-' &&
             isalnum(value[2]) && isalnum(value[3]) &&
             isalnum(value[4]) && isalnum(value[5])) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+airlang_intg is_date_format(const airlang_strg value) {
+    airlang_intg len = (airlang_intg)strlen(value);
+
+    // Date with single quotes: 'YYYY-MM-DD' (e.g., '2025-05-15')
+    if (len == 12) {
+        if (value[0] == '\'' && value[11] == '\'' &&
+            isdigit(value[1]) && isdigit(value[2]) && isdigit(value[3]) && isdigit(value[4]) &&
+            value[5] == '-' &&
+            isdigit(value[6]) && isdigit(value[7]) &&
+            value[8] == '-' &&
+            isdigit(value[9]) && isdigit(value[10])) {
             return 1;
         }
     }

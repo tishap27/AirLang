@@ -105,6 +105,8 @@ airlang_intg evaluate_condition(const airlang_strg condition);
 airlang_intg handle_if_else(airlang_strg expression);
 
 airlang_intg is_aircraft_identifier(const airlang_strg value);
+
+airlang_intg is_date_format(const airlang_strg value);
 //airlang_intg is_flight_number(const airlang_strg value);
 
 //airlang_intg is_aircraft_id(const airlang_strg value);
