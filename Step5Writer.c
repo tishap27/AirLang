@@ -138,7 +138,7 @@ airlang_void handle_write(airlang_strg expression) {
 
 /* Calculate expression */
 airlang_void calculate(airlang_strg expression) {
-    
+
     if (!expression || strlen(expression) == 0 || expression[0] == '%') {
         return;
     }
@@ -157,7 +157,7 @@ airlang_void calculate(airlang_strg expression) {
         airlang_char* colon_pos = strchr(expression, ':');
 
         // Get variable name (everything before colon)
-        airlang_intg name_len = colon_pos - expression;
+        airlang_intg name_len = (airlang_intg)(colon_pos - expression);
         strncpy_s(var_name, sizeof(var_name), expression, name_len);
         var_name[name_len] = EOS;
 
@@ -221,10 +221,21 @@ airlang_void calculate(airlang_strg expression) {
             assign_numeric_variable(clean_name, num_value);
         }
     }
-      else if (strchr(expression, EQUALS)) {
+    else if (strchr(expression, EQUALS)) {
         sscanf_s(expression, "%31s =", var_name, (unsigned)_countof(var_name));
         airlang_strg expr = strchr(expression, EQUALS) + 1;
         while (isspace(*expr)) expr++;
+
+        // Remove semicolon if present
+        airlang_char clean_expr[256] = { 0 };
+        airlang_intg i = 0;
+        while (expr[i] && expr[i] != ';') {
+            clean_expr[i] = expr[i];
+            i++;
+        }
+        clean_expr[i] = EOS;
+
+
         if (*expr == QUOTES) {
             expr++;
             airlang_char str_value[256] = { 0 };
@@ -236,6 +247,20 @@ airlang_void calculate(airlang_strg expression) {
             if (!initial_phase) {
                 printf("%s = \"%s\"\n", var_name, str_value);
             }
+        }
+    
+        else {
+        // Handle arithmetic expression
+        airlang_doub result = evaluate_expression(clean_expr);
+        assign_numeric_variable(var_name, result);
+        if (!initial_phase) {
+            if (result == (airlang_intg)result) {
+                printf("%s = %.0lf\n", var_name, result);
+            }
+            else {
+                printf("%s = %.2lf\n", var_name, result);
+            }
+        }
         }
     }
     else if (strstr(expression, WRITE)) {
@@ -394,4 +419,93 @@ airlang_void assign_numeric_variable(const airlang_strg name, airlang_doub value
     }
     variables[idx].type = NUMERIC;
     variables[idx].value.num_value = value;
+}
+
+
+airlang_doub evaluate_expression(const airlang_strg expr) {
+    airlang_char temp_expr[256];
+    strcpy_s(temp_expr, sizeof(temp_expr), expr);
+
+    // Remove spaces
+    airlang_char clean_expr[256] = { 0 };
+    airlang_intg i = 0, j = 0;
+    while (temp_expr[i]) {
+        if (!isspace(temp_expr[i])) {
+            clean_expr[j++] = temp_expr[i];
+        }
+        i++;
+    }
+    clean_expr[j] = EOS;
+
+    airlang_char op_expr[256];
+    strcpy_s(op_expr, sizeof(op_expr), clean_expr);
+
+    // Extract operators first
+    airlang_char operators[10] = { 0 };
+    airlang_intg op_count = 0;
+    for (i = 0; op_expr[i]; i++) {
+        if (op_expr[i] == '+' || op_expr[i] == '-' ||
+            op_expr[i] == '*' || op_expr[i] == '/') {
+            operators[op_count++] = op_expr[i];
+        }
+    }
+
+    // Simple parser for expressions like: var1 * 200 + var2
+  
+    airlang_char* context = NULL;
+    airlang_char* token = strtok_s(clean_expr, "+-*/", &context);
+    airlang_doub operands[10];
+    airlang_intg operand_count = 0;
+
+    // Extract operators
+    while (token != NULL && operand_count < 10) {
+        if (isdigit(token[0]) || (token[0] == '-' && isdigit(token[1]))) {
+            // It's a number
+            operands[operand_count++] = atof(token);
+        }
+        else {
+            // It's a variable
+            airlang_intg var_idx = find_variable(token);
+            if (var_idx != -1 && variables[var_idx].type == NUMERIC) {
+                operands[operand_count++] = variables[var_idx].value.num_value;
+            }
+            else {
+                operands[operand_count++] = 0.0; // Default value if variable not found
+            }
+        }
+        token = strtok_s(NULL, "+-*/", &context);
+    }
+
+    // Evaluate with proper operator precedence (* and / before + and -)
+    airlang_doub result = 0.0;
+    if (operand_count > 0) {
+        // First pass: handle multiplication and division
+        for (i = 0; i < op_count; i++) {
+            if (operators[i] == '*') {
+                operands[i + 1] = operands[i] * operands[i + 1];
+                operands[i] = 0; // Mark as processed
+                operators[i] = '+'; // Change to addition for next pass
+            }
+            else if (operators[i] == '/') {
+                if (operands[i + 1] != 0) {
+                    operands[i + 1] = operands[i] / operands[i + 1];
+                }
+                operands[i] = 0; // Mark as processed
+                operators[i] = '+'; // Change to addition for next pass
+            }
+        }
+
+        // Second pass: handle addition and subtraction
+        result = operands[0];
+        for (i = 0; i < op_count; i++) {
+            if (operators[i] == '+') {
+                result += operands[i + 1];
+            }
+            else if (operators[i] == '-') {
+                result -= operands[i + 1];
+            }
+        }
+    }
+
+    return result;
 }
