@@ -238,9 +238,16 @@ airlang_void calculate(airlang_strg expression) {
                 }
                 i++;
             }
-            // Convert to number and assign
-            airlang_doub num_value = atof(value_clean);
-            assign_numeric_variable(clean_name, num_value);
+
+            // Check if it's a flight number pattern IATA , OR AIRCRAFT REGISTRATION ICAO
+            if (is_aircraft_identifier(value_clean)) {
+                assign_string_variable(clean_name, value_clean);
+            }
+            else {
+                // Convert to number and assign
+                airlang_doub num_value = atof(value_clean);
+                assign_numeric_variable(clean_name, num_value);
+            }
         }
     }
     else if (strchr(expression, EQUALS)) {
@@ -625,6 +632,44 @@ airlang_intg handle_if_else(airlang_strg expression) {
         in_if_block = 0;
         printf("DEBUG: ENDIF reached\n");
         return 1;
+    }
+
+    return 0;
+}
+
+
+/*airlang_intg is_flight_number(const airlang_strg value) {
+    if (strlen(value) != 5) {
+        return 0;
+    }
+    if (!isalpha(value[0]) || !isalpha(value[1])) {
+        return 0;
+    }
+    if (!isdigit(value[2]) || !isdigit(value[3]) || !isdigit(value[4])) {
+        return 0;
+    }
+
+    return 1;
+}
+*/
+airlang_intg is_aircraft_identifier(const airlang_strg value) {
+    airlang_intg len = (airlang_intg)strlen(value);
+
+    // Flight Id pattern: IATA STANDARD - 2 letters + 3 digits (e.g., AL123)
+    if (len == 5) {
+        if (isalpha(value[0]) && isalpha(value[1]) &&
+            isdigit(value[2]) && isdigit(value[3]) && isdigit(value[4])) {
+            return 1;
+        }
+    }
+
+    // Aircraft ID pattern: ICAO STANDARD - 1 letter + dash + 4 alphanumeric (e.g., C-GNBL)
+    if (len == 6) {
+        if (isalpha(value[0]) && value[1] == '-' &&
+            isalnum(value[2]) && isalnum(value[3]) &&
+            isalnum(value[4]) && isalnum(value[5])) {
+            return 1;
+        }
     }
 
     return 0;

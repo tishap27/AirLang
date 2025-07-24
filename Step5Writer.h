@@ -103,6 +103,12 @@ airlang_void assign_numeric_variable(const airlang_strg name, airlang_doub value
 airlang_doub evaluate_expression(const airlang_strg expr);
 airlang_intg evaluate_condition(const airlang_strg condition);
 airlang_intg handle_if_else(airlang_strg expression);
+
+airlang_intg is_aircraft_identifier(const airlang_strg value);
+//airlang_intg is_flight_number(const airlang_strg value);
+
+//airlang_intg is_aircraft_id(const airlang_strg value);
+
 //airlang_doub get_numeric_value(const airlang_strg name);
 //airlang_void assign_boolean_variable(const airlang_strg name, airlang_intg value);
 
