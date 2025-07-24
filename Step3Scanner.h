@@ -376,7 +376,7 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 26
+#define KWT_SIZE 27
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
@@ -404,8 +404,9 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"NOTAM",	    /* KW21 */
 	"FROM",			/* KW22 */
 	"WITHCONFIG",	/* KW23 */
-	"true",   
-	"false"
+	"true",			/* KW24 */
+	"false",		/* KW25 */
+	"AIRPATH"		/* KW26 */
 };
 
 /* NEW SECTION: About indentation */

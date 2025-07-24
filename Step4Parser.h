@@ -83,31 +83,33 @@ static airlang_intg		syntaxErrorNumber = 0;
 /* Constants */
 enum KEYWORDS {
 	NO_ATTR = -1,
-	KW_MAIN,		    /* KW00 */
-	KW_BRIEFING,		/* KW01 */
-	KW_AIRCRAFT,		/* KW02 */
+	KW_MAIN,		/* KW00 */
+	KW_BRIEFING,	/* KW01 */
+	KW_AIRCRAFT,	/* KW02 */
 	KW_FLIGHT,		/* KW03 */
 	KW_ROUTE,		/* KW04 */
-	KW_DISPATCH,	    /* KW05 */
+	KW_DISPATCH,	/* KW05 */
 	KW_IF,		    /* KW06 */
-	KW_THEN,			/* KW07 */
-	KW_ELSE,			/* KW08 */
+	KW_THEN,		/* KW07 */
+	KW_ELSE,		/* KW08 */
 	KW_ENDIF,		/* KW09 */
-	KW_PRINT,		/* KW010 */
+	KW_PRINT,		/* KW10 */
 	KW_REPORT,		/* KW11 */
 	KW_CALCULATE,	/* KW12 */
 	KW_ENDBRIEFING,	/* KW13 */
 	KW_ENDREPORT,	/* KW14 */
 	KW_ENDDISPATCH,	/* KW15 */
 	KW_ENDMAIN,		/* KW16 */
-	KW_LOADSHEET,	/* KW17*/
-	KW_ENDLOADSHEET, /* KW18*/
+	KW_LOADSHEET,	/* KW17 */
+	KW_ENDLOADSHEET,/* KW18 */
 	KW_REQUEST,		/* KW19 */
 	KW_METAR,		/* KW20 */
 	KW_NOTAM,		/* KW21 */
 	KW_FROM,		/* KW22 */
-	KW_WITHCONFIG   /* KW23 */
-
+	KW_WITHCONFIG,  /* KW23 */
+	KW_true,		/* KW24 */
+	KW_false,		/* KW25 */
+	KW_AIRPATH		/* KW26 */
 };
 
 /* TO_DO: Define the number of BNF rules */
