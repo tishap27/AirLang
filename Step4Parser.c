@@ -543,15 +543,61 @@ airlang_void outputStatement() {
  */
 airlang_void outputVariableList() {
 	psData.parsHistogram[BNF_outputVariableList]++;
-	switch (lookahead.code) {
+
+	printElement();
+
+	while (lookahead.code == PLUS_T) {
+		printf("%s: Concatenation operator parsed\n", STR_LANGNAME);
+		matchToken(PLUS_T, NO_ATTR);
+		printElement();
+	}
+
+	/*switch (lookahead.code) {
 	case STR_T:
 		matchToken(STR_T, NO_ATTR);
 		break;
 	default:
 		;
-	}
+	}*/
 	printf("%s%s\n", STR_LANGNAME, ": Output variable list parsed");
 }
+
+
+airlang_void printElement() {
+	switch (lookahead.code) {
+	case STR_T:     // String literals like "Fuel Capacity: "
+		matchToken(STR_T, NO_ATTR);
+		printf("%s: String literal parsed in print\n", STR_LANGNAME);
+		break;
+	case ID_T:      // Variables like FuelCapacity
+		matchToken(ID_T, NO_ATTR);
+		printf("%s: Variable parsed in print\n", STR_LANGNAME);
+		break;
+	case INT_T:     // Integer literals
+		matchToken(INT_T, NO_ATTR);
+		printf("%s: Integer literal parsed in print\n", STR_LANGNAME);
+		break;
+	case FLOAT_T:   // Float literals
+		matchToken(FLOAT_T, NO_ATTR);
+		printf("%s: Float literal parsed in print\n", STR_LANGNAME);
+		break;
+	case AIRCRAFT_ID_T:  // Aircraft IDs if they can be printed
+		matchToken(AIRCRAFT_ID_T, NO_ATTR);
+		printf("%s: Aircraft ID parsed in print\n", STR_LANGNAME);
+		break;
+	case FLIGHT_ID_T:    // Flight IDs if they can be printed
+		matchToken(FLIGHT_ID_T, NO_ATTR);
+		printf("%s: Flight ID parsed in print\n", STR_LANGNAME);
+		break;
+	default:
+		printf("%s: ERROR - Invalid print element\n", STR_LANGNAME);
+		printError();
+		// Skip invalid token and continue
+		lookahead = tokenizer();
+		break;
+	}
+}
+
 
 /*
  ************************************************************
@@ -819,7 +865,7 @@ airlang_void flightData() {
 			flightStructure();
 		}
 		else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
-			outputStatement();  // ADDED: Handle PRINT statements
+			outputStatement(); 
 		}
 		else if (lookahead.code == CMT_T) {
 			comment();  // Handle comments
@@ -894,7 +940,7 @@ airlang_void routeData() {
 			routeStructure();
 		}
 		else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
-			outputStatement();  // ADDED: Handle PRINT statements
+			outputStatement();  
 		}
 		else if (lookahead.code == CMT_T) {
 			comment();  // Handle comments
@@ -1104,7 +1150,7 @@ airlang_void reportCall() {
 			//matchToken(EOS_T, NO_ATTR);
 		}
 		else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
-			outputStatement();  // ADDED: Handle PRINT statements
+			outputStatement();  
 		}
 		else if (lookahead.code == CMT_T) {
 			comment();  // Handle comments
@@ -1276,9 +1322,14 @@ airlang_void performanceContent() {
 		printError();
 	}
 
-	// Parse right-hand expression
-	expression();
-
+	if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_AIRPATH) {
+		matchToken(KW_T, KW_AIRPATH);  // Handle AIRPATH keyword
+		printf("%s: AIRPATH keyword parsed\n", STR_LANGNAME);
+	}
+	else {
+		// Parse right-hand expression
+		expression();
+	}
 	// Semicolon
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s: Assignment statement parsed\n", STR_LANGNAME);
@@ -1334,6 +1385,16 @@ airlang_void factor() {
 			printError();
 		}
 		matchToken(RPR_T, NO_ATTR);  //  closing
+		break;
+	case KW_T:  
+		if (lookahead.attribute.codeType == KW_AIRPATH) {
+			matchToken(KW_T, KW_AIRPATH);
+			printf("%s: AIRPATH keyword in expression\n", STR_LANGNAME);
+		}
+		else {
+			printf("Error: Unexpected keyword in expression\n");
+			printError();
+		}
 		break;
 	default:
 		printf("Error: Unexpected factor\n");

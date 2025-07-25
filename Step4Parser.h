@@ -215,6 +215,7 @@ airlang_void optVarListDeclarations();
 airlang_void optionalStatements();
 airlang_void outputStatement();
 airlang_void outputVariableList();
+airlang_void printElement();
 airlang_void program();
 airlang_void statement();
 airlang_void statements();
