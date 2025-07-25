@@ -48,9 +48,9 @@
 #ifndef WRITER_H_
 #define WRITER_H_
 
-#define MAX_VARS 100
-#define MAX_EXPR_LEN 256
-#define MAX_LINES 100
+#define MAX_VARS 500
+#define MAX_EXPR_LEN 1024
+#define MAX_LINES 500
 
 //#define PI 3.14159265358979323846
 #define EARTH_RADIUS_KM 6371.0
@@ -95,6 +95,8 @@ typedef struct {
 
 airlang_intg find_variable(const airlang_strg name);
 
+void trim_whitespace(char* str);
+void safe_concat(char* dest, size_t dest_size, const char* src);
 airlang_void assign_string_variable(const airlang_strg name, const airlang_strg value);
 const airlang_strg get_string_value(const airlang_strg name);
 

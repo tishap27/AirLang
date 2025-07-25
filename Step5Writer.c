@@ -75,7 +75,7 @@ airlang_intg find_variable(const airlang_strg name) {
 }
 
 /* Assign string variable */
-airlang_void assign_string_variable(const airlang_strg name, const airlang_strg value) {
+/*airlang_void assign_string_variable(const airlang_strg name, const airlang_strg value) {
     airlang_intg idx = find_variable(name);
     if (idx == -1) {
         idx = var_count++;
@@ -85,7 +85,31 @@ airlang_void assign_string_variable(const airlang_strg name, const airlang_strg 
     strncpy_s(variables[idx].value.str_value, sizeof(variables[idx].value.str_value), value, sizeof(variables[idx].value.str_value) - 1);
     variables[idx].value.str_value[sizeof(variables[idx].value.str_value) - 1] = EOS;
 }
+*/
 
+airlang_void assign_string_variable(const airlang_strg name, const airlang_strg value) {
+    airlang_intg idx = find_variable(name);
+    if (idx == -1) {
+        if (var_count >= MAX_VARS) return; // No space
+        idx = var_count++;
+
+        // Copy name safely
+        size_t i;
+        for (i = 0; name[i] && i < sizeof(variables[idx].name) - 1; i++) {
+            variables[idx].name[i] = name[i];
+        }
+        variables[idx].name[i] = '\0';
+    }
+
+    variables[idx].type = STRING;
+
+    // Copy value safely
+    size_t i;
+    for (i = 0; value[i] && i < sizeof(variables[idx].value.str_value) - 1; i++) {
+        variables[idx].value.str_value[i] = value[i];
+    }
+    variables[idx].value.str_value[i] = '\0';
+}
 /* Gets string variable */
 const airlang_strg get_string_value(const airlang_strg name) {
     airlang_intg idx = find_variable(name);
@@ -96,7 +120,7 @@ const airlang_strg get_string_value(const airlang_strg name) {
 }
 
 /* Write output */
-airlang_void handle_write(airlang_strg expression) {
+/*airlang_void handle_write(airlang_strg expression) {
     airlang_char buffer[MAX_EXPR_LEN] = { 0 };
     airlang_strg start = strchr(expression, LPAR) + 1;
     airlang_strg end = strrchr(expression, RPAR);
@@ -151,6 +175,128 @@ airlang_void handle_write(airlang_strg expression) {
         printf("%s\n", buffer);
     }
 }
+*/
+void safe_concat(char* dest, size_t dest_size, const char* src) {
+    // Find current end of destination string
+    size_t dest_len = strlen(dest);
+
+    // Calculate remaining space (-1 for null terminator)
+    size_t remaining = dest_size - dest_len - 1;
+
+    // Copy only what fits
+    for (size_t i = 0; i < remaining && src[i] != '\0'; i++) {
+        dest[dest_len + i] = src[i];
+    }
+
+    // Always null-terminate
+    dest[dest_size - 1] = '\0';
+}
+
+airlang_void handle_write(airlang_strg expression) {
+    airlang_char buffer[MAX_EXPR_LEN] = { 0 };
+    size_t buf_pos = 0;
+
+    // Trim input first
+    trim_whitespace(expression);
+
+    // Find the content between parentheses
+    airlang_strg start = strchr(expression, '(');
+    airlang_strg end = strrchr(expression, ')');
+
+    if (!start || !end || start >= end) return;
+
+    start++; // Move past '('
+
+    while (*start && *start != ')' && buf_pos < MAX_EXPR_LEN - 1) {
+        if (*start == '"') {
+            // Handle quoted strings
+            start++;
+            while (*start != '"' && *start && buf_pos < MAX_EXPR_LEN - 1) {
+                buffer[buf_pos++] = *start++;
+            }
+            if (*start == '"') start++;
+        }
+        else if (isalpha(*start)) {
+            // Handle variables
+            airlang_char var_name[32] = { 0 };
+            size_t var_pos = 0;
+
+            // Extract variable name
+            while (isalnum(*start) && var_pos < sizeof(var_name) - 1) {
+                var_name[var_pos++] = *start++;
+            }
+            var_name[var_pos] = '\0';
+
+            // Get variable value
+            airlang_intg idx = find_variable(var_name);
+            if (idx != -1) {
+                const char* value = NULL;
+                airlang_char num_str[32];
+
+                if (variables[idx].type == STRING) {
+                    value = variables[idx].value.str_value;
+                }
+                else if (variables[idx].type == NUMERIC) {
+                    if (variables[idx].value.num_value == (int)variables[idx].value.num_value) {
+                        snprintf(num_str, sizeof(num_str), "%.0lf", variables[idx].value.num_value);
+                    }
+                    else {
+                        snprintf(num_str, sizeof(num_str), "%.2lf", variables[idx].value.num_value);
+                    }
+                    value = num_str;
+                }
+
+                // Append value to buffer
+                if (value) {
+                    while (*value && buf_pos < MAX_EXPR_LEN - 1) {
+                        buffer[buf_pos++] = *value++;
+                    }
+                }
+            }
+        }
+        else if (isspace(*start)) {
+            // Preserve whitespace
+            if (buf_pos < MAX_EXPR_LEN - 1) {
+                buffer[buf_pos++] = *start++;
+            }
+        }
+        else {
+            start++; // Skip other characters
+        }
+    }
+
+    buffer[buf_pos] = '\0'; // Ensure null termination
+
+    // Handle output
+    if (initial_phase) {
+        // Simple append to output_buffer with newline
+        size_t out_len = strlen(output_buffer);
+        size_t buf_len = strlen(buffer);
+
+        if (out_len + buf_len + 2 < sizeof(output_buffer)) { // +2 for \n and \0
+            memcpy(output_buffer + out_len, buffer, buf_len);
+            output_buffer[out_len + buf_len] = '\n';
+            output_buffer[out_len + buf_len + 1] = '\0';
+        }
+    }
+    else {
+        printf("%s\n", buffer);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Calculate expression */
 airlang_void calculate(airlang_strg expression) {
@@ -325,6 +471,23 @@ airlang_void calculate(airlang_strg expression) {
     }
 }
 
+
+void trim_whitespace(char* str) {
+    // Trim leading space
+    while (isspace((unsigned char)*str)) {
+        str++;
+    }
+
+    // Trim trailing space
+    char* end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    // Write new null terminator
+    *(end + 1) = '\0';
+}
+
 /* Process input file */
 airlang_void process_file(const airlang_strg filename) {
     FILE* file = fopen(filename, "r");
@@ -334,6 +497,10 @@ airlang_void process_file(const airlang_strg filename) {
     }
     airlang_char line[MAX_EXPR_LEN];
     while (fgets(line, sizeof(line), file)) {
+
+        // Trim whitespace first
+        trim_whitespace(line);
+
         if (line[0] == NEWLINE || line[0] == RETURN) {
             continue; // Skip empty lines
         }
@@ -947,5 +1114,3 @@ airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
     // If not AIRPATH, use original evaluation
     return evaluate_expression(clean_expr);
 }
-
-// Keep all your existing math functions (my_sin, my_cos, etc.) - they're still needed
