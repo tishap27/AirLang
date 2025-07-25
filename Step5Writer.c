@@ -200,14 +200,14 @@ airlang_void handle_write(airlang_strg expression) {
     trim_whitespace(expression);
 
     // Find the content between parentheses
-    airlang_strg start = strchr(expression, '(');
-    airlang_strg end = strrchr(expression, ')');
+    airlang_strg start = strchr(expression, '{');
+    airlang_strg end = strrchr(expression, '}');
 
     if (!start || !end || start >= end) return;
 
     start++; // Move past '('
 
-    while (*start && *start != ')' && buf_pos < MAX_EXPR_LEN - 1) {
+    while (*start && *start != '}' && buf_pos < MAX_EXPR_LEN - 1) {
         if (*start == '"') {
             // Handle quoted strings
             start++;

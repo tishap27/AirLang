@@ -424,6 +424,11 @@ airlang_void optionalStatements() {
 	switch (lookahead.code) {
 	case CMT_T:
 		comment();
+	case KW_T:
+		if (lookahead.attribute.codeType == KW_PRINT) {  
+			statements();
+			break;
+		}
 	case MNID_T:
 		if ((strncmp(lookahead.attribute.idLexeme, LANG_WRTE, 6) == 0) ||
 			(strncmp(lookahead.attribute.idLexeme, LANG_READ, 6) == 0)) {
@@ -462,6 +467,11 @@ airlang_void statements() {
 airlang_void statementsPrime() {
 	psData.parsHistogram[BNF_statementsPrime]++;
 	switch (lookahead.code) {
+	case KW_T:
+		if (lookahead.attribute.codeType == KW_PRINT) {  
+			statements();
+			break;
+		}
 	case MNID_T:
 		if (strncmp(lookahead.attribute.idLexeme, LANG_WRTE, 6) == 0) {
 			statements();
@@ -486,6 +496,9 @@ airlang_void statement() {
 	switch (lookahead.code) {
 	case KW_T:
 		switch (lookahead.attribute.codeType) {
+		case KW_PRINT:  
+			outputStatement();
+			break;
 		default:
 			printError();
 		}
@@ -510,12 +523,15 @@ airlang_void statement() {
  */
 airlang_void outputStatement() {
 	psData.parsHistogram[BNF_outputStatement]++;
-	matchToken(MNID_T, NO_ATTR);
-	matchToken(LPR_T, NO_ATTR);
-	outputVariableList();
-	matchToken(RPR_T, NO_ATTR);
-	matchToken(EOS_T, NO_ATTR);
-	printf("%s%s\n", STR_LANGNAME, ": Output statement parsed");
+
+	if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
+		matchToken(KW_T, KW_PRINT);
+		matchToken(LBR_T, NO_ATTR);
+		outputVariableList();
+		matchToken(RBR_T, NO_ATTR);
+		matchToken(EOS_T, NO_ATTR);    //SEMICOLON MANDATORY AFTER PRINT STATEMENT FOR NOW 
+		printf("%s%s\n", STR_LANGNAME, ": Output statement parsed");
+	}
 }
 
 /*
@@ -675,6 +691,9 @@ airlang_void briefingContent() {
 			case KW_ROUTE:
 				routeRecord();
 				break;
+			case KW_PRINT:
+				optionalStatements();
+				break;
 			default:
 				// Skip unknown keywords but continue parsing
 				lookahead = tokenizer();
@@ -711,6 +730,9 @@ airlang_void aircraftRecord() {
 		}
 		else if (lookahead.code == CMT_T) {
 			comment();
+		}
+		else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
+			outputStatement();
 		}
 		else {
 			printf("DEBUG: Unexpected token in aircraft block, skipping\n");
@@ -792,15 +814,30 @@ airlang_void flightRecord() {
 	printf("%s: FLIGHT RECORD parsed\n", STR_LANGNAME);
 }
 airlang_void flightData() {
-	switch (lookahead.code) {
-	case ID_T:
-		while (lookahead.code == ID_T) {
+	while(lookahead.code != RBR_T && lookahead.code != SEOF_T){
+		if (lookahead.code == ID_T) {
 			flightStructure();
 		}
-		break;
-	default:
-		; // Empty - optional content
+		else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
+			outputStatement();  // ADDED: Handle PRINT statements
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();  // Handle comments
+		}
+		else {
+			// Skip unexpected tokens but continue parsing
+			lookahead = tokenizer();
+		}
 	}
+	//switch (lookahead.code) {
+	//case ID_T:
+		//while (lookahead.code == ID_T) {
+		//	flightStructure();
+		//}
+		//break;
+	//default:
+		//; // Empty - optional content
+	//}
 }
 airlang_void flightStructure() {
 	matchToken(ID_T, NO_ATTR); 
@@ -851,7 +888,24 @@ airlang_void routeRecord() {
 	printf("%s: ROUTE RECORD parsed\n", STR_LANGNAME);
 }
 airlang_void routeData() {
-	switch (lookahead.code) {
+
+	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+		if (lookahead.code == ID_T) {
+			routeStructure();
+		}
+		else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
+			outputStatement();  // ADDED: Handle PRINT statements
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();  // Handle comments
+		}
+		else {
+			// Skip unexpected tokens but continue parsing
+			lookahead = tokenizer();
+		}
+	}
+
+	/*switch (lookahead.code) {
 	case ID_T:
 		while (lookahead.code == ID_T) {
 			routeStructure();
@@ -859,7 +913,7 @@ airlang_void routeData() {
 		break;
 	default:
 		; // Empty - optional content
-	}
+	}*/
 }
 airlang_void routeStructure() {
 
@@ -927,6 +981,9 @@ airlang_void dispatchBlock() {
 			case KW_REPORT:
 				reportStatement();
 				break;
+			case KW_PRINT:
+				outputStatement();
+				break;
 			default:
 				// Skip unknown keywords but continue parsing
 				lookahead = tokenizer();
@@ -992,17 +1049,25 @@ airlang_void ifStatement() {
 
 	matchToken(KW_T, KW_THEN);
 
-	matchToken(KW_T, KW_PRINT);
+	while (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
+		outputStatement();
+	}
 
-	matchToken(STR_T, NO_ATTR);
-	matchToken(EOS_T, NO_ATTR);
+	//matchToken(KW_T, KW_PRINT);
+
+	//matchToken(STR_T, NO_ATTR);
+	//matchToken(EOS_T, NO_ATTR);
 
 
 	if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_ELSE) {
 		matchToken(KW_T, KW_ELSE);
-		matchToken(KW_T, KW_PRINT);
-		matchToken(STR_T, NO_ATTR);
-		matchToken(EOS_T, NO_ATTR);
+		//matchToken(KW_T, KW_PRINT);
+		while (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
+			outputStatement();
+		}
+		//matchToken(STR_T, NO_ATTR);
+		//matchToken(EOS_T, NO_ATTR);
+		
 	}
 
 	//matchToken(KW_T, KW_ELSE);
@@ -1032,11 +1097,22 @@ airlang_void reportStatement() {
 	printf("%s: REPORT block parsed\n", STR_LANGNAME);
 }
 airlang_void reportCall() {
-
-	while (lookahead.code == MNID_T) {
-		methodCall();
-		//matchToken(MNID_T, NO_ATTR);
-		//matchToken(EOS_T, NO_ATTR);
+	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+		if (lookahead.code == MNID_T) {
+			methodCall();
+			//matchToken(MNID_T, NO_ATTR);
+			//matchToken(EOS_T, NO_ATTR);
+		}
+		else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
+			outputStatement();  // ADDED: Handle PRINT statements
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();  // Handle comments
+		}
+		else {
+			// Skip unexpected tokens but continue parsing
+			lookahead = tokenizer();
+		}
 	}
 }
 
@@ -1166,6 +1242,9 @@ airlang_void performanceBlock() {
 			switch (lookahead.attribute.codeType) {
 			case KW_IF:
 				ifStatement();
+				break;
+			case KW_PRINT:
+				optionalStatements();
 				break;
 			default:
 				// Skip unknown keywords but continue parsing
