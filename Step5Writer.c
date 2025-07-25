@@ -301,6 +301,8 @@ airlang_void handle_write(airlang_strg expression) {
 /* Calculate expression */
 airlang_void calculate(airlang_strg expression) {
 
+    trim_whitespace(expression);
+
     if (!expression || strlen(expression) == 0 || expression[0] == '%') {
         return;
     }
@@ -473,19 +475,44 @@ airlang_void calculate(airlang_strg expression) {
 
 
 void trim_whitespace(char* str) {
-    // Trim leading space
-    while (isspace((unsigned char)*str)) {
-        str++;
+    if (!str || *str == '\0') return;
+
+    char* start = str;
+    char* end;
+    size_t original_len = strlen(str);
+
+    // Find first non-whitespace character
+    while (isspace((unsigned char)*start)) {
+        start++;
     }
 
-    // Trim trailing space
-    char* end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) {
+    // If string is all whitespace
+    if (*start == '\0') {
+        *str = '\0';
+        return;
+    }
+
+    // Find last non-whitespace character
+    end = str + original_len - 1;
+    while (end > start && isspace((unsigned char)*end)) {
         end--;
     }
 
-    // Write new null terminator
-    *(end + 1) = '\0';
+    // Calculate length of trimmed string
+    size_t trimmed_len = end - start + 1;
+
+    // Safety check to prevent buffer overflow
+    if (trimmed_len >= original_len + 1) {
+        return; // Something went wrong, don't modify
+    }
+
+    // Move the trimmed content to the beginning of the buffer
+    if (start != str) {
+        memmove(str, start, trimmed_len);
+    }
+
+    // Null terminate
+    str[trimmed_len] = '\0';
 }
 
 /* Process input file */
@@ -599,16 +626,28 @@ airlang_void freeLines(airlang_strg* lines, airlang_intg lineCount) {
 airlang_void process_content(airlang_strg fileContent) {
     airlang_intg lineCount = 0;
     airlang_strg* lines = splitIntoLines(fileContent, &lineCount);
-    airlang_strg line = malloc(MAX_EXPR_LEN);
-    if (!lines || !line) {
+   // airlang_strg line = malloc(MAX_EXPR_LEN);
+    if (!lines ) {
         return;
     }
     printf("Lines from content:\n");
     airlang_intg i = 0;
 	for (i = 0; i < lineCount; i++) {
-		line = lines[i];
-        //printf("DEBUG: Processing line: '%s'\n", lines[i]);
-		calculate(line);
+        printf("DEBUG: Line %d length: %d\n", i, (int)strlen(lines[i]));
+        printf("DEBUG: Line %d content: '%s'\n", i, lines[i]);
+        printf("DEBUG: First 10 chars as hex: ");
+        for (int j = 0; j < 10 && lines[i][j]; j++) {
+           // printf("%02x ", (unsigned char)lines[i][j]);
+        }
+       // printf("\n");
+
+		//line = lines[i];
+        printf("DEBUG: Processing line: '%s'\n", lines[i]);
+         // TRIM WHITESPACE BEFORE PROCESSING
+        trim_whitespace(lines[i]);
+
+       // printf("DEBUG: After trim: '%s'\n", lines[i]);
+		calculate(lines[i]);
 	}
     initial_phase = 0; // End of initial phase
     printf("%s", output_buffer); // Print the buffered write output
@@ -633,6 +672,7 @@ airlang_void process_content(airlang_strg fileContent) {
             printf("%s = '%c'\n", variables[i].name, variables[i].value.char_value);
         }
     }
+    freeLines(lines, lineCount);
 }
 
 
