@@ -207,61 +207,71 @@ airlang_void handle_write(airlang_strg expression) {
 
     start++; // Move past '('
 
-    while (*start && *start != '}' && buf_pos < MAX_EXPR_LEN - 1) {
-        if (*start == '"') {
-            // Handle quoted strings
-            start++;
-            while (*start != '"' && *start && buf_pos < MAX_EXPR_LEN - 1) {
-                buffer[buf_pos++] = *start++;
-            }
-            if (*start == '"') start++;
-        }
-        else if (isalpha(*start)) {
-            // Handle variables
-            airlang_char var_name[32] = { 0 };
-            size_t var_pos = 0;
+    // Check if it's an empty string between quotes
+    while (*start && isspace(*start)) start++; // Skip whitespace
+    if (*start == '"' && *(start + 1) == '"') {
+        // Empty string - just add newline
+        buffer[0] = '\0';
+    }
+    else {
 
-            // Extract variable name
-            while (isalnum(*start) && var_pos < sizeof(var_name) - 1) {
-                var_name[var_pos++] = *start++;
-            }
-            var_name[var_pos] = '\0';
 
-            // Get variable value
-            airlang_intg idx = find_variable(var_name);
-            if (idx != -1) {
-                const char* value = NULL;
-                airlang_char num_str[32];
-
-                if (variables[idx].type == STRING) {
-                    value = variables[idx].value.str_value;
+        while (*start && *start != '}' && buf_pos < MAX_EXPR_LEN - 1) {
+            if (*start == '"') {
+                // Handle quoted strings
+                start++;
+                while (*start != '"' && *start && buf_pos < MAX_EXPR_LEN - 1) {
+                    buffer[buf_pos++] = *start++;
                 }
-                else if (variables[idx].type == NUMERIC) {
-                    if (variables[idx].value.num_value == (int)variables[idx].value.num_value) {
-                        snprintf(num_str, sizeof(num_str), "%.0lf", variables[idx].value.num_value);
-                    }
-                    else {
-                        snprintf(num_str, sizeof(num_str), "%.2lf", variables[idx].value.num_value);
-                    }
-                    value = num_str;
-                }
+                if (*start == '"') start++;
+            }
+            else if (isalpha(*start)) {
+                // Handle variables
+                airlang_char var_name[32] = { 0 };
+                size_t var_pos = 0;
 
-                // Append value to buffer
-                if (value) {
-                    while (*value && buf_pos < MAX_EXPR_LEN - 1) {
-                        buffer[buf_pos++] = *value++;
+                // Extract variable name
+                while (isalnum(*start) && var_pos < sizeof(var_name) - 1) {
+                    var_name[var_pos++] = *start++;
+                }
+                var_name[var_pos] = '\0';
+
+                // Get variable value
+                airlang_intg idx = find_variable(var_name);
+                if (idx != -1) {
+                    const char* value = NULL;
+                    airlang_char num_str[32];
+
+                    if (variables[idx].type == STRING) {
+                        value = variables[idx].value.str_value;
+                    }
+                    else if (variables[idx].type == NUMERIC) {
+                        if (variables[idx].value.num_value == (int)variables[idx].value.num_value) {
+                            snprintf(num_str, sizeof(num_str), "%.0lf", variables[idx].value.num_value);
+                        }
+                        else {
+                            snprintf(num_str, sizeof(num_str), "%.2lf", variables[idx].value.num_value);
+                        }
+                        value = num_str;
+                    }
+
+                    // Append value to buffer
+                    if (value) {
+                        while (*value && buf_pos < MAX_EXPR_LEN - 1) {
+                            buffer[buf_pos++] = *value++;
+                        }
                     }
                 }
             }
-        }
-        else if (isspace(*start)) {
-            // Preserve whitespace
-            if (buf_pos < MAX_EXPR_LEN - 1) {
-                buffer[buf_pos++] = *start++;
+            else if (isspace(*start)) {
+                // Preserve whitespace
+                if (buf_pos < MAX_EXPR_LEN - 1) {
+                    buffer[buf_pos++] = *start++;
+                }
             }
-        }
-        else {
-            start++; // Skip other characters
+            else {
+                start++; // Skip other characters
+            }
         }
     }
 
