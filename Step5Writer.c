@@ -197,7 +197,7 @@ airlang_void handle_write(airlang_strg expression) {
     size_t buf_pos = 0;
 
     // Trim input first
-    trim_whitespace(expression);
+    trimWhitespace(expression);
 
     // Find the content between parentheses
     airlang_strg start = strchr(expression, '{');
@@ -298,20 +298,10 @@ airlang_void handle_write(airlang_strg expression) {
 
 
 
-
-
-
-
-
-
-
-
-
-
 /* Calculate expression */
 airlang_void calculate(airlang_strg expression) {
 
-    trim_whitespace(expression);
+    trimWhitespace(expression);
 
     if (!expression || strlen(expression) == 0 || expression[0] == '%') {
         return;
@@ -321,6 +311,10 @@ airlang_void calculate(airlang_strg expression) {
             return; // Skip comment lines
         }
 
+        if (validateRequestStatement(expression)) {
+            handleRequestStatement(expression);
+            return;
+        }
     // First check if it's an IF-ELSE statement
     if (handle_if_else(expression)) {
         return; // IF-ELSE handled it
@@ -328,7 +322,7 @@ airlang_void calculate(airlang_strg expression) {
 
     // Skip execution if we're in a block that shouldn't execute
     if (skip_execution) {
-        printf("DEBUG: Skipping execution of: %s\n", expression);
+       // printf("DEBUG: Skipping execution of: %s\n", expression);
         return;
     }
     airlang_char var_name[32] = { 0 };
@@ -338,8 +332,6 @@ airlang_void calculate(airlang_strg expression) {
         handle_write(expression);
         return;
     }
-
-
 
     // Handle colon syntax: VariableName: value;
     if (strchr(expression, ':')) {
@@ -484,7 +476,7 @@ airlang_void calculate(airlang_strg expression) {
 }
 
 
-void trim_whitespace(char* str) {
+void trimWhitespace(char* str) {
     if (!str || *str == '\0') return;
 
     char* start = str;
@@ -536,7 +528,7 @@ airlang_void process_file(const airlang_strg filename) {
     while (fgets(line, sizeof(line), file)) {
 
         // Trim whitespace first
-        trim_whitespace(line);
+        trimWhitespace(line);
 
         if (line[0] == NEWLINE || line[0] == RETURN) {
             continue; // Skip empty lines
@@ -643,18 +635,18 @@ airlang_void process_content(airlang_strg fileContent) {
     printf("Lines from content:\n");
     airlang_intg i = 0;
 	for (i = 0; i < lineCount; i++) {
-        printf("DEBUG: Line %d length: %d\n", i, (int)strlen(lines[i]));
-        printf("DEBUG: Line %d content: '%s'\n", i, lines[i]);
-        printf("DEBUG: First 10 chars as hex: ");
+       // printf("DEBUG: Line %d length: %d\n", i, (int)strlen(lines[i]));
+       // printf("DEBUG: Line %d content: '%s'\n", i, lines[i]);
+       // printf("DEBUG: First 10 chars as hex: ");
         for (int j = 0; j < 10 && lines[i][j]; j++) {
            // printf("%02x ", (unsigned char)lines[i][j]);
         }
        // printf("\n");
 
 		//line = lines[i];
-        printf("DEBUG: Processing line: '%s'\n", lines[i]);
+       // printf("DEBUG: Processing line: '%s'\n", lines[i]);
          // TRIM WHITESPACE BEFORE PROCESSING
-        trim_whitespace(lines[i]);
+        trimWhitespace(lines[i]);
 
        // printf("DEBUG: After trim: '%s'\n", lines[i]);
 		calculate(lines[i]);
@@ -832,7 +824,7 @@ airlang_intg evaluate_condition(const airlang_strg condition) {
             }
         }
 
-        printf("DEBUG: Comparing %.2f > %.2f = %s\n", leftVal, rightVal, (leftVal > rightVal) ? "TRUE" : "FALSE");
+       // printf("DEBUG: Comparing %.2f > %.2f = %s\n", leftVal, rightVal, (leftVal > rightVal) ? "TRUE" : "FALSE");
         return leftVal > rightVal;
     }
 
@@ -858,7 +850,7 @@ airlang_intg handle_if_else(airlang_strg expression) {
             in_if_block = 1;
             skip_execution = !if_condition_result;
 
-            printf("DEBUG: IF condition evaluated to %s\n", if_condition_result ? "TRUE" : "FALSE");
+            //printf("DEBUG: IF condition evaluated to %s\n", if_condition_result ? "TRUE" : "FALSE");
         }
         return 1;
     }
@@ -866,7 +858,7 @@ airlang_intg handle_if_else(airlang_strg expression) {
     // Handle ELSE
     if (strncmp(expression, "ELSE", 4) == 0) {
         skip_execution = if_condition_result;
-        printf("DEBUG: ELSE block, skip = %s\n", skip_execution ? "TRUE" : "FALSE");
+        //printf("DEBUG: ELSE block, skip = %s\n", skip_execution ? "TRUE" : "FALSE");
         return 1;
     }
 
@@ -875,7 +867,7 @@ airlang_intg handle_if_else(airlang_strg expression) {
         skip_execution = 0;
         if_condition_result = 0;
         in_if_block = 0;
-        printf("DEBUG: ENDIF reached\n");
+       // printf("DEBUG: ENDIF reached\n");
         return 1;
     }
 
@@ -1164,3 +1156,99 @@ airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
     // If not AIRPATH, use original evaluation
     return evaluate_expression(clean_expr);
 }
+
+
+//WEATHERRRRR
+
+airlang_intg validateRequestStatement(const airlang_strg expression) {
+
+    if (strncmp(expression, "REQUEST", 7) == 0) {
+        return 1;
+    }
+    return 0; 
+}
+
+airlang_void handleRequestStatement(airlang_strg expression) {
+
+    trimWhitespace(expression);
+
+    //REQUEST METAR FROM "blabla"
+    if (strstr(expression, "REQUEST METAR FROM") != NULL) {
+        //GO FOR QUOTES
+
+        airlang_char* quoteStart = strchr(expression, QUOTES);
+        airlang_char* quoteEnd = NULL; 
+
+        if (quoteStart != NULL) {
+            quoteEnd = strchr(quoteStart + 1, QUOTES);
+            if (quoteEnd != NULL) {
+                airlang_intg urlLen = (airlang_intg)(quoteEnd - quoteStart - 1);
+                airlang_char url[256] = { 0 };
+
+                // Safely copy URL
+                airlang_intg i;
+                for (i = 0; i < urlLen && i < sizeof(url) - 1; i++) {
+                    url[i] = quoteStart[1 + i];
+                }
+                url[i] = '\0';
+                assign_string_variable("METAR_REQUEST_URL", url);
+
+                if (initial_phase) {
+                    size_t outLen = strlen(output_buffer);
+                    const char* msg = "METAR request sent to service\n";
+                    size_t msgLen = strlen(msg);
+
+                    if (outLen + msgLen + 1 < sizeof(output_buffer)) {
+                        memcpy(output_buffer + outLen, msg, msgLen);
+                        output_buffer[outLen + msgLen] = '\0';
+                    }
+                }
+                else {
+                    printf("METAR request sent to service\n");
+                }
+                return;
+            }
+        }
+    }
+
+    //NOTAM FOR NOW 
+    if (strstr(expression, "REQUEST NOTAM FROM") != NULL) {
+        //GO FOR QUOTES
+
+        airlang_char* quoteStart = strchr(expression, QUOTES);
+        airlang_char* quoteEnd = NULL;
+
+        if (quoteStart != NULL) {
+            quoteEnd = strchr(quoteStart + 1, QUOTES);
+            if (quoteEnd != NULL) {
+                airlang_intg urlLen = (airlang_intg)(quoteEnd - quoteStart - 1);
+                airlang_char url[256] = { 0 };
+
+                // Safely copy URL
+                airlang_intg i;
+                for (i = 0; i < urlLen && i < sizeof(url) - 1; i++) {
+                    url[i] = quoteStart[1 + i];
+                }
+                url[i] = '\0';
+                assign_string_variable("NOTAM_REQUEST_URL", url);
+
+                if (initial_phase) {
+                    size_t outLen = strlen(output_buffer);
+                    const char* msg = "NOTAM request sent to service\n";
+                    size_t msgLen = strlen(msg);
+
+                    if (outLen + msgLen + 1 < sizeof(output_buffer)) {
+                        memcpy(output_buffer + outLen, msg, msgLen);
+                        output_buffer[outLen + msgLen] = '\0';
+                    }
+                }
+                else {
+                    printf("NOTAM request sent to service\n");
+                }
+                return;
+            }
+        }
+    }
+
+}
+

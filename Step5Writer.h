@@ -95,7 +95,7 @@ typedef struct {
 
 airlang_intg find_variable(const airlang_strg name);
 
-void trim_whitespace(char* str);
+void trimWhitespace(char* str);
 void safe_concat(char* dest, size_t dest_size, const char* src);
 airlang_void assign_string_variable(const airlang_strg name, const airlang_strg value);
 const airlang_strg get_string_value(const airlang_strg name);
@@ -132,6 +132,9 @@ airlang_doub calculateAirpath(airlang_doub lat1, airlang_doub lon1, airlang_doub
 // Enhanced expression evaluation
 airlang_doub evaluate_expression_with_distance(const airlang_strg expr);
 airlang_doub calcLastLegDistance();
+
+airlang_void handleRequestStatement(airlang_strg expression);
+airlang_intg validateRequestStatement(const airlang_strg expression);
 //airlang_intg is_flight_number(const airlang_strg value);
 
 //airlang_intg is_aircraft_id(const airlang_strg value);
