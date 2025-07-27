@@ -184,10 +184,10 @@ airlang_void handle_write(airlang_strg expression) {
                     }
                     else if (variables[idx].type == NUMERIC) {
                         if (variables[idx].value.num_value == (int)variables[idx].value.num_value) {
-                            snprintf(num_str, sizeof(num_str), "%.0lf", variables[idx].value.num_value);
+                            snprintf(num_str, sizeof(num_str), "%.0f", variables[idx].value.num_value);
                         }
                         else {
-                            snprintf(num_str, sizeof(num_str), "%.2lf", variables[idx].value.num_value);
+                            snprintf(num_str, sizeof(num_str), "%.2f", variables[idx].value.num_value);
                         }
                         value = num_str;
                     }
@@ -207,7 +207,14 @@ airlang_void handle_write(airlang_strg expression) {
                 }
             }
             else {
-                start++; // Skip other characters
+                if (*start == '+') {
+                    start++; // Skip the + and continue processing
+                    // Skip any whitespace after +
+                    while (*start && isspace(*start)) start++;
+                }
+                else {
+                    start++; // Skip other characters
+                }
             }
         }
     }
@@ -373,10 +380,11 @@ airlang_void calculate(airlang_strg expression) {
             }
         
     }
-    else if (strchr(expression, EQUALS) && (strstr(expression, "HEADWIND()") || strstr(expression, "CROSSWIND()"))) {
+    else if (strchr(expression, EQUALS)) {
 
         extract_airport_from_assignment(expression, current_airport);
         airlang_char var_name[32] = { 0 };
+
 
         sscanf_s(expression, "%31s =", var_name, (unsigned)_countof(var_name));
         airlang_strg expr = strchr(expression, EQUALS) + 1;
@@ -407,33 +415,36 @@ airlang_void calculate(airlang_strg expression) {
     
         else {
         // Handle arithmetic expression
-        airlang_doub result = evaluate_expression_with_distance(clean_expr);
-
-        // Create proper variable name
-        if (strstr(clean_expr, "HEADWIND")) {
-            airlang_char full_name[32];
-            snprintf(full_name, sizeof(full_name), "%s_HEADWIND", var_name);
-            assign_numeric_variable(full_name, result);
-            assign_numeric_variable(var_name, result);  // Also assign to base variable
-        }
-        else if (strstr(clean_expr, "CROSSWIND")) {
-            airlang_char full_name[32];
-            snprintf(full_name, sizeof(full_name), "%s_CROSSWIND", var_name);
-            assign_numeric_variable(full_name, result);
-           // assign_numeric_variable(var_name, result);  // Also assign to base variable
-        }
-       
-            //assign_numeric_variable(var_name, result);
-        
-        //assign_numeric_variable(var_name, result);
-        if (!initial_phase ) {
+            airlang_doub result = evaluate_expression_with_distance(clean_expr);
+            assign_numeric_variable(var_name, result);
+            if (!initial_phase) {
+                printf("DEBUG: Assigned %s = %.2f\n", var_name, result);
             if (result == (airlang_intg)result) {
                 printf("%s = %.0lf\n", var_name, result);
             }
             else {
                 printf("%s = %.2lf\n", var_name, result);
+                }
             }
-        }
+
+            // Create proper variable name
+            if (strstr(clean_expr, "HEADWIND")) {
+            airlang_char full_name[32];
+            snprintf(full_name, sizeof(full_name), "%s_HEADWIND", var_name);
+            assign_numeric_variable(full_name, result);
+            assign_numeric_variable(var_name, result);  // Also assign to base variable
+            }
+            else if (strstr(clean_expr, "CROSSWIND")) {
+            airlang_char full_name[32];
+            snprintf(full_name, sizeof(full_name), "%s_CROSSWIND", var_name);
+            assign_numeric_variable(full_name, result);
+           // assign_numeric_variable(var_name, result);  // Also assign to base variable
+             }
+       
+            //assign_numeric_variable(var_name, result);
+        
+            //assign_numeric_variable(var_name, result);
+       
         }
     }
     else if (strstr(expression, WRITE)) {
@@ -1159,13 +1170,13 @@ airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
     
     // Check for AIRPATH keyword
     if (strcmp(clean_expr, "AIRPATH") == 0) {
-        //printf("DEBUG: Found AIRPATH keyword\n");
+        printf("DEBUG: Found AIRPATH keyword\n");
         airlang_doub result = calcLastLegDistance();
-        //printf("DEBUG: AIRPATH returning: %.2f\n", result);
+        printf("DEBUG: AIRPATH returning: %.2f\n", result);
         return result;
     }
 
-    //printf("DEBUG: Not AIRPATH, calling original evaluate_expression\n");
+    printf("DEBUG: Not AIRPATH, calling original evaluate_expression\n");
     // If not AIRPATH, use original evaluation
     return evaluate_expression(clean_expr);
 }
