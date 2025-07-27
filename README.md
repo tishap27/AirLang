@@ -75,44 +75,28 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Output
 
 * *Program Structure* 
 
+```
 
+	MAIN {
+    	    BRIEFING {
+              AIRCRAFT { AircraftID: C-GNBL; AircraftType: "Boeing 747-400"; }
+              FLIGHT { FlightNumber: AL123; FlightDate: '2025-05-15'; }
+              ROUTE { DepartureCoords: 45.3225, -75.6692; }
+            } ENDBRIEFING;
+    
+            LOADSHEET {
+                ^^ Load calculations optional
+                PayloadWeight = PassengerCount * 200 + CargoWeight;
+                IF TotalWeight > MaxTakeoffWeight THEN
+                   PRINT {"WARNING: Exceeds MTOW"};
+                ENDIF;
+    	    } ENDLOADSHEET;
+	    DISPATCH {
+		PRINT {"Flight log accepted"};
+	    }ENDDISPATCH; 
+        } ENDMAIN;
 
-&nbsp;	MAIN {
-
-&nbsp;   	    BRIEFING {
-
-&nbsp;             AIRCRAFT { AircraftID: C-GNBL; AircraftType: "Boeing 747-400"; }
-
-&nbsp;             FLIGHT { FlightNumber: AL123; FlightDate: '2025-05-15'; }
-
-&nbsp;             ROUTE { DepartureCoords: 45.3225, -75.6692; }
-
-&nbsp;           } ENDBRIEFING;
-
-&nbsp;   
-
-&nbsp;           LOADSHEET {
-
-&nbsp;               ^^ Load calculations optional
-
-&nbsp;               PayloadWeight = PassengerCount \* 200 + CargoWeight;
-
-&nbsp;               IF TotalWeight > MaxTakeoffWeight THEN
-
-&nbsp;                  PRINT {"WARNING: Exceeds MTOW"};
-
-&nbsp;               ENDIF;
-
-&nbsp;   	    } ENDLOADSHEET;
-
-&nbsp;	    DISPATCH {
-
-&nbsp;		     PRINT {"Flight log accepted"};
-
-&nbsp;	    }ENDDISPATCH; 
-
-&nbsp;       } ENDMAIN;
-
+```
 
 
 
@@ -153,20 +137,14 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Output
 
 * *Conditional Logic \& Safety Checks*
 
-
-
-&nbsp;	IF TotalWeight > MaxTakeoffWeight THEN
-
-&nbsp;  	 PRINT{"WARNING: Exceeds MTOW"};
-
-&nbsp;	 PRINT {"Current Weight: " + TotalWeight + " lbs"};
-
-&nbsp;	ELSE
-
-&nbsp;  	 PRINT{"Weight Check: WITHIN LIMITS"};
-
-&nbsp;	ENDIF;
-
+```
+  IF TotalWeight > MaxTakeoffWeight THEN
+   	 PRINT{"WARNING: Exceeds MTOW"};
+	 PRINT {"Current Weight: " + TotalWeight + " lbs"};
+	ELSE
+   	 PRINT{"Weight Check: WITHIN LIMITS"};
+	ENDIF;
+```
 
 
 * *Aviation-Specific Functions*
@@ -190,9 +168,7 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Output
 
 
 * *Output Statements*
-
 &nbsp;	
-
 &nbsp;	PRINT{"Flight: " + FlightNumber + " ready for departure"};
 
 &nbsp;	PRINT{"Distance: " + Distance + " nautical miles"};
@@ -334,7 +310,7 @@ AirLang provides clear error messages for common issues:
 
 
 
-FINALLY!!
+FINALLY!!  
 Tisha
 
 
