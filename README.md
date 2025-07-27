@@ -1,17 +1,10 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 @@                             @@
-
-@@            \_\_|\_\_            @@
-
-@@-------@--o--(\_)--o--@-------@@
-
+@@            __|__            @@
+@@-------@--o--(_)--o--@-------@@
 @@                             @@
-
 @@        A I R L A N G        @@
-
 @@                             @@
-
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
@@ -20,7 +13,7 @@
 
 
 
-AirLang is a Domain Specific Language designed for flight dispatchers and aviation professionals. It provides native support for flight planning calculations, weight and balance computation, and route planning with aviation- specific datatypes. 
+AirLang is a domain-specific language designed for flight dispatchers and aviation professionals. It provides native support for flight planning calculations, weight and balance computation, and route planning with aviation-specific datatypes. 
 
 
 
@@ -60,15 +53,15 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Output
 
 
 
-1\. Coder  : File preprocessing and cypher/decypher.
+1\. Coder: File preprocessing and cypher/decypher.
 
-2\. Reader : Managing buffer and character stream, validating input.
+2\. Reader: Managing buffer and character stream, validating input.
 
 3\. Scanner: Tokenizing source code via FSM and lexical analysis.
 
-4\. Parser : Applying BNF grammar rules to build syntax tree.
+4\. Parser: Applying BNF grammar rules to build a syntax tree.
 
-5\. Writer : Generating dispatch reports and final output.
+5\. Writer: Generating dispatch reports and final output.
 
 
 
@@ -112,7 +105,7 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Output
 
 &nbsp;	    DISPATCH {
 
-&nbsp;		PRINT {"Flight log accepted"};
+&nbsp;		     PRINT {"Flight log accepted"};
 
 &nbsp;	    }ENDDISPATCH; 
 
@@ -339,10 +332,7 @@ AirLang provides clear error messages for common issues:
 
 
 
-
-
-
-FINALLLY!!
+FINALLY!!
 Tisha
 
 
