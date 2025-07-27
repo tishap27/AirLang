@@ -63,6 +63,9 @@ airlang_intg in_if_block = 0;
 airlang_intg in_else_block = 0;
 airlang_intg skip_execution = 0;
 
+//AIRPORT CODES
+airlang_char current_airport[16] = { 0 };
+
 /* Finds variables */
 airlang_intg find_variable(const airlang_strg name) {
     airlang_intg i = 0;
@@ -231,7 +234,7 @@ airlang_void handle_write(airlang_strg expression) {
                 size_t var_pos = 0;
 
                 // Extract variable name
-                while (isalnum(*start) && var_pos < sizeof(var_name) - 1) {
+                while ((isalnum(*start) || *start == '_') && var_pos < sizeof(var_name) - 1) {
                     var_name[var_pos++] = *start++;
                 }
                 var_name[var_pos] = '\0';
@@ -309,9 +312,9 @@ airlang_void calculate(airlang_strg expression) {
 
     //wind
 
-    if(strstr(expression, "CYOW_WIND_DIR") && strchr(expression, '=')) {
+    /*if(strstr(expression, "%s_WIND_DIR") && strchr(expression, '=')) {
         // Also store as generic WindDirection for functions
-        assign_numeric_variable("WindDirection", variables[find_variable("CYOW_WIND_DIR")].value.num_value);
+        assign_numeric_variable("WindDirection", variables[find_variable("%s_WIND_DIR")].value.num_value);
     }
     if (strstr(expression, "CYOW_WIND_SPEED") && strchr(expression, '=')) {
         assign_numeric_variable("WindSpeed", variables[find_variable("CYOW_WIND_SPEED")].value.num_value);
@@ -323,7 +326,7 @@ airlang_void calculate(airlang_strg expression) {
         while (isspace(*value_str)) value_str++;
         airlang_doub runway = atof(value_str);
         assign_numeric_variable("RunwayHeading", runway);
-    }
+    }*/
 
 
    // block to handle^^ comments
@@ -453,7 +456,11 @@ airlang_void calculate(airlang_strg expression) {
             }
         
     }
-    else if (strchr(expression, EQUALS)) {
+    else if (strchr(expression, EQUALS) && (strstr(expression, "HEADWIND()") || strstr(expression, "CROSSWIND()"))) {
+
+        extract_airport_from_assignment(expression, current_airport);
+        airlang_char var_name[32] = { 0 };
+
         sscanf_s(expression, "%31s =", var_name, (unsigned)_countof(var_name));
         airlang_strg expr = strchr(expression, EQUALS) + 1;
         while (isspace(*expr)) expr++;
@@ -484,8 +491,55 @@ airlang_void calculate(airlang_strg expression) {
         else {
         // Handle arithmetic expression
         airlang_doub result = evaluate_expression_with_distance(clean_expr);
-        assign_numeric_variable(var_name, result);
-        if (!initial_phase) {
+
+        // Create proper variable name
+        if (strstr(clean_expr, "HEADWIND")) {
+            airlang_char full_name[32];
+            snprintf(full_name, sizeof(full_name), "%s_HEADWIND", var_name);
+            assign_numeric_variable(full_name, result);
+            assign_numeric_variable(var_name, result);  // Also assign to base variable
+        }
+        else if (strstr(clean_expr, "CROSSWIND")) {
+            airlang_char full_name[32];
+            snprintf(full_name, sizeof(full_name), "%s_CROSSWIND", var_name);
+            assign_numeric_variable(full_name, result);
+           // assign_numeric_variable(var_name, result);  // Also assign to base variable
+        }
+        /*
+        else if (strchr(expression, EQUALS) && strstr(expression, "WIND()")) {
+            // Extract airport code from variable name (e.g., "CYOW = WIND()" -> "CYOW")
+            airlang_char* equals_pos = strchr(expression, EQUALS);
+            airlang_char airport_code[16] = { 0 };
+
+            // Get airport code (everything before '=')
+            airlang_intg name_len = (airlang_intg)(equals_pos - expression);
+            airlang_intg i, j = 0;
+            for (i = 0; i < name_len && j < sizeof(airport_code) - 1; i++) {
+                if (!isspace(expression[i])) {
+                    airport_code[j++] = expression[i];
+                }
+            }
+            airport_code[j] = '\0';
+
+            // Calculate wind components for this airport
+            airlang_doub result = calculate_wind_components(airport_code);
+
+            // Also assign to the base variable name
+            assign_numeric_variable(airport_code, result);
+
+            if (!initial_phase) {
+                printf("Wind calculations completed for %s\n", airport_code);
+            }
+        }
+        */
+            // For WIND(), just assign to the base variable
+            // The calculate_wind_components function handles creating _HEADWIND and _CROSSWIND variables
+            //assign_numeric_variable(var_name, result);
+       
+
+        
+        //assign_numeric_variable(var_name, result);
+        if (!initial_phase && !strstr(clean_expr, "WIND()")) {
             if (result == (airlang_intg)result) {
                 printf("%s = %.0lf\n", var_name, result);
             }
@@ -1168,14 +1222,25 @@ airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
     clean_expr[j] = EOS;
 
     //printf("DEBUG: cleaned expression: '%s'\n", clean_expr);
-     
+    /*if (strcmp(clean_expr, "WIND()") == 0) {
+        if (strlen(current_airport) == 0) return 0.0; // No airport context
+
+        return calculate_wind_components(current_airport);
+    }*/
    
     //check for HEADWIND KEYWORD
     if (strcmp(clean_expr, "HEADWIND()") == 0) {
+        if (strlen(current_airport) == 0) return 0.0; // No airport context
         
-        airlang_intg wind_dir_idx = find_variable("WindDirection");
-        airlang_intg wind_speed_idx = find_variable("WindSpeed");
-        airlang_intg runway_idx = find_variable("RunwayHeading");
+        airlang_char wind_dir[32], wind_speed[32], rwy_hdg[32];
+        snprintf(wind_dir, sizeof(wind_dir), "%s_WIND_DIR", current_airport);
+        snprintf(wind_speed, sizeof(wind_speed), "%s_WIND_SPEED", current_airport);
+        snprintf(rwy_hdg, sizeof(rwy_hdg), "%s_RUNWAY", current_airport);
+
+
+        airlang_intg wind_dir_idx = find_variable(wind_dir);
+        airlang_intg wind_speed_idx = find_variable(wind_speed);
+        airlang_intg runway_idx = find_variable(rwy_hdg);
 
         if (wind_dir_idx != -1 && wind_speed_idx != -1 && runway_idx != -1) {
             airlang_doub wind_dir = variables[wind_dir_idx].value.num_value;
@@ -1188,9 +1253,16 @@ airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
     }
 
     if (strcmp(clean_expr, "CROSSWIND()") == 0) {
-        airlang_intg wind_dir_idx = find_variable("WindDirection");
-        airlang_intg wind_speed_idx = find_variable("WindSpeed");
-        airlang_intg runway_idx = find_variable("RunwayHeading");
+        if (strlen(current_airport) == 0) return 0.0; // No airport context
+
+        airlang_char wind_dir[32], wind_speed[32], rwy_hdg[32];
+        snprintf(wind_dir, sizeof(wind_dir), "%s_WIND_DIR", current_airport);
+        snprintf(wind_speed, sizeof(wind_speed), "%s_WIND_SPEED", current_airport);
+        snprintf(rwy_hdg, sizeof(rwy_hdg), "%s_RUNWAY", current_airport);
+
+        airlang_intg wind_dir_idx = find_variable(wind_dir);
+        airlang_intg wind_speed_idx = find_variable(wind_speed);
+        airlang_intg runway_idx = find_variable(rwy_hdg);
 
         if (wind_dir_idx != -1 && wind_speed_idx != -1 && runway_idx != -1) {
             airlang_doub wind_dir = variables[wind_dir_idx].value.num_value;
@@ -1649,7 +1721,7 @@ airlang_doub headwind(airlang_doub windDirection, airlang_doub windSpeed, airlan
 
     //within -180 to +180
     while (angle_diff > 180) angle_diff -= 360;
-    while (angle_diff <= 180) angle_diff += 360;
+    while (angle_diff <= -180) angle_diff += 360;
 
     airlang_doub headwind = windSpeed * my_cos(angle_diff * (PI / 180.0));
     return headwind;
@@ -1660,9 +1732,72 @@ airlang_doub crosswind(airlang_doub windDirection, airlang_doub windSpeed, airla
 
     //within -180 to +180
     while (angle_diff > 180) angle_diff -= 360;
-    while (angle_diff <= 180) angle_diff += 360;
+    while (angle_diff <= -180) angle_diff += 360;
 
     airlang_doub crosswind = windSpeed * my_sin(angle_diff * (PI / 180.0));
     return (crosswind<0) ? -crosswind: crosswind ;
 }
 
+/*
+airlang_doub calculate_wind_components(const airlang_strg airport_code) {
+    // Build variable names for this airport
+    airlang_char wind_dir_var[32], wind_speed_var[32], runway_var[32];
+    snprintf(wind_dir_var, sizeof(wind_dir_var), "%s_WIND_DIR", airport_code);
+    snprintf(wind_speed_var, sizeof(wind_speed_var), "%s_WIND_SPEED", airport_code);
+    snprintf(runway_var, sizeof(runway_var), "%s_RUNWAY", airport_code);
+
+    // Find the variables
+    airlang_intg wind_dir_idx = find_variable(wind_dir_var);
+    airlang_intg wind_speed_idx = find_variable(wind_speed_var);
+    airlang_intg runway_idx = find_variable(runway_var);
+
+    if (wind_dir_idx == -1 || wind_speed_idx == -1 || runway_idx == -1) {
+        return 0.0;
+    }
+
+    airlang_doub wind_dir = variables[wind_dir_idx].value.num_value;
+    airlang_doub wind_spd = variables[wind_speed_idx].value.num_value;
+    airlang_doub runway = variables[runway_idx].value.num_value;
+
+    // Calculate wind angle difference
+    airlang_doub angle_diff = wind_dir - runway;
+    while (angle_diff > 180) angle_diff -= 360;
+    while (angle_diff <= -180) angle_diff += 360;
+
+    // Convert to radians
+    airlang_doub angle_rad = angle_diff * (PI / 180.0);
+
+    // Calculate components
+    airlang_doub headwind_val = wind_spd * my_cos(angle_rad);
+    airlang_doub crosswind_val = wind_spd * my_sin(angle_rad);
+    crosswind_val = (crosswind_val < 0) ? -crosswind_val : crosswind_val;
+
+    // Store both values
+    airlang_char headwind_var[32], crosswind_var[32];
+    snprintf(headwind_var, sizeof(headwind_var), "%s_HEADWIND", airport_code);
+    snprintf(crosswind_var, sizeof(crosswind_var), "%s_CROSSWIND", airport_code);
+
+    assign_numeric_variable(headwind_var, headwind_val);
+    assign_numeric_variable(crosswind_var, crosswind_val);
+
+    return headwind_val;
+}
+*/
+
+
+// to work with any airport code CYOW, CYYZ, KORD ,
+airlang_void extract_airport_from_assignment(const airlang_strg expression, airlang_char* airport_out) {
+    airlang_char* equals_pos = strchr(expression, '=');
+    if (!equals_pos) return;
+
+    // Get everything before the '='
+    airlang_intg name_len = (airlang_intg)(equals_pos - expression);
+    airlang_intg i, j = 0;
+
+    for (i = 0; i < name_len && j < 15; i++) {
+        if (!isspace(expression[i])) {
+            airport_out[j++] = expression[i];
+        }
+    }
+    airport_out[j] = '\0';
+}

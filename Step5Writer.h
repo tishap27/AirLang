@@ -145,6 +145,10 @@ airlang_void temperatureInfo(const airlang_strg metar, const airlang_strg statio
 //WIND CALCULATION
 airlang_doub headwind(airlang_doub windDirection , airlang_doub windSpeed , airlang_doub runwayHdg);
 airlang_doub crosswind(airlang_doub windDirection, airlang_doub windSpeed, airlang_doub runwayHdg);
+
+airlang_void extract_airport_from_assignment(const airlang_strg expression, airlang_char* airport_out);
+
+//airlang_doub calculate_wind_components(const airlang_strg airport_code);
 //airlang_intg is_flight_number(const airlang_strg value);
 
 //airlang_intg is_aircraft_id(const airlang_strg value);
