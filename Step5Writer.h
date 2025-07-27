@@ -63,6 +63,8 @@
 #define STREMPTY ""
 #define LPAR '('
 #define RPAR ')'
+#define LBAR '{'
+#define RBAR '}'
 #define PLUS '+'
 #define MINUS '-'
 #define MULT '*'
