@@ -1310,6 +1310,108 @@ airlang_void windInfo(const airlang_strg metar, const airlang_strg station_id) {
     }
 }
 
+
+//statue Miles eg 10SM
+airlang_void visibilityInfo(const airlang_strg metar, const airlang_strg station_id) {
+    airlang_doub visibility = 0.0;
+
+    airlang_char* sm_pos = strstr(metar, "SM");
+    if (sm_pos != NULL) {
+        //10SM SO MOVE BACK GET NUMBER
+        airlang_char* vis_end = sm_pos; 
+        airlang_char* vis_start = vis_end - 1;
+
+        //ok now find number start position so go back 
+        while (vis_start > metar && (isdigit(*vis_start) || *vis_start == '/')) {
+            vis_start--;
+        }
+        if (!isdigit(*vis_start) && *vis_start != '/') vis_start++;
+
+        //ok now extract the string ending SM 
+        airlang_intg visLen = (airlang_intg)(vis_end - vis_start);
+        if (visLen > 0 && visLen < 10) {
+            airlang_char vis_str[16] = { 0 };
+            airlang_intg i;
+            for (i = 0; i < visLen && i < sizeof(vis_str) - 1; i++) {
+                vis_str[i] = vis_start[i];
+            }
+            vis_str[i] = '\0';
+
+            // Convert to meters (1 statute mile = 1609 meters)
+            //visibility = atof(vis_str) * 1609.0;     
+            visibility = atof(vis_str);
+        }
+        //BUT WHAT IF METAR SHOWS IN METERS NOT SM JUST NUMBERS ; International
+    }
+    else {
+        const airlang_char* pos = metar;
+        while (*pos) {
+            if (isdigit(*pos)) {
+                airlang_intg digitCount = 0; 
+                const airlang_char* digitStart = pos; 
+
+                while (isdigit(*pos)) {
+                    digitCount++;
+                    pos++;
+                }
+                //5000 : 4 DIGIT NUMBER 
+                if (digitCount == 4) {
+                    airlang_char vis_str[8] = { 0 };
+                    airlang_intg i; 
+                    for (i = 0; i < 4;i++) {
+                        vis_str[i] = digitStart[i];
+                    }
+                    vis_str[4] = '\0';
+                    visibility = (airlang_doub)atoi(vis_str);
+                    break;
+                }
+            }
+            else
+            {
+                pos++;
+            }
+        }
+    }
+    airlang_char var_name[64];
+    snprintf(var_name, sizeof(var_name), "%s_VISIBILITY", station_id);
+    assign_numeric_variable(var_name, visibility);
+}
+
+
+//08/06 temperature/dewpoint
+/*airlang_void temperatureInfo(const airlang_strg metar, const airlang_strg station_id) {
+
+
+}*/
+
+
+// A5432 ; A FOLLOWED BY 4 DIGITS 
+airlang_void altimeterInfo(const airlang_strg metar, const airlang_strg station_id) {
+    const airlang_char* pos = metar;
+
+    while (*pos) {
+        if (*pos == 'A' && isdigit(pos[1]) && isdigit(pos[2]) && isdigit(pos[3]) && isdigit(pos[4])) {
+
+            //Extract all 4 digits    sscanf??
+
+            //5432 = 5000 + 400 + 30 + 2; 
+            airlang_intg alt_temp = (pos[1] - '0') * 1000 + (pos[2] - '0') * 100 + (pos[3] - '0') * 10 + (pos[4] - '0');
+
+            //converting to decimal as we say decimalll
+            airlang_doub altimeter = (airlang_doub)alt_temp / 100.0;
+
+            airlang_char var_name[64];
+            snprintf(var_name, sizeof(var_name), "%s_ALTIMETER", station_id);
+            assign_numeric_variable(var_name, altimeter);
+
+            break; 
+
+        }
+        pos++;
+    }
+
+}
+
 airlang_void parseMetar(const airlang_strg metar_string, const airlang_strg station_id) {
     airlang_char temp_metar[512] = { 0 };
 
@@ -1329,11 +1431,11 @@ airlang_void parseMetar(const airlang_strg metar_string, const airlang_strg stat
         temp_metar[i - 1] = '\0'; // Remove the last quote
     }
 
-    //extracting metar components   METAR CYOW 251630Z 27015G25KT 5000 -RA BKN008 OVC015 08/06 A2995 RMK
+    //extracting metar components   METAR CYOW 251630Z 27015G25KT 10SM 5000 -RA BKN008 OVC015 08/06 A2995 RMK
     windInfo(temp_metar, station_id);
-    //visibility_info(temp_metar, station_id);
-    //temperature_info(temp_metar, station_id);
-   // altimeter_info(temp_metar, station_id);
+    visibilityInfo(temp_metar, station_id);
+    //temperatureInfo(temp_metar, station_id);
+   altimeterInfo(temp_metar, station_id);
 }
 
 
