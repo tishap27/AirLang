@@ -141,6 +141,10 @@ airlang_void windInfo(const airlang_strg metar, const airlang_strg station_id);
 airlang_void visibilityInfo(const airlang_strg metar, const airlang_strg station_id);
 airlang_void altimeterInfo(const airlang_strg metar, const airlang_strg station_id);
 airlang_void temperatureInfo(const airlang_strg metar, const airlang_strg station_id);
+
+//WIND CALCULATION
+airlang_doub headwind(airlang_doub windDirection , airlang_doub windSpeed , airlang_doub runwayHdg);
+airlang_doub crosswind(airlang_doub windDirection, airlang_doub windSpeed, airlang_doub runwayHdg);
 //airlang_intg is_flight_number(const airlang_strg value);
 
 //airlang_intg is_aircraft_id(const airlang_strg value);

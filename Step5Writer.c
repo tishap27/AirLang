@@ -306,6 +306,26 @@ airlang_void calculate(airlang_strg expression) {
     if (!expression || strlen(expression) == 0 || expression[0] == '%') {
         return;
     }
+
+    //wind
+
+    if(strstr(expression, "CYOW_WIND_DIR") && strchr(expression, '=')) {
+        // Also store as generic WindDirection for functions
+        assign_numeric_variable("WindDirection", variables[find_variable("CYOW_WIND_DIR")].value.num_value);
+    }
+    if (strstr(expression, "CYOW_WIND_SPEED") && strchr(expression, '=')) {
+        assign_numeric_variable("WindSpeed", variables[find_variable("CYOW_WIND_SPEED")].value.num_value);
+    }
+    if (strstr(expression, "CYOW") && strchr(expression, ':')) {
+        // Store runway heading as generic variable too
+        airlang_char* colon_pos = strchr(expression, ':');
+        airlang_strg value_str = colon_pos + 1;
+        while (isspace(*value_str)) value_str++;
+        airlang_doub runway = atof(value_str);
+        assign_numeric_variable("RunwayHeading", runway);
+    }
+
+
    // block to handle^^ comments
         if (strstr(expression, "^^") != NULL) {
             return; // Skip comment lines
@@ -1129,7 +1149,7 @@ airlang_doub calcLastLegDistance() {
     return distance;
 }
 
-// Update your evaluate_expression_with_distance function to handle HAVERSINE
+
 airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
    // printf("DEBUG: evaluate_expression_with_distance called with: '%s'\n", expr);
 
@@ -1148,7 +1168,40 @@ airlang_doub evaluate_expression_with_distance(const airlang_strg expr) {
     clean_expr[j] = EOS;
 
     //printf("DEBUG: cleaned expression: '%s'\n", clean_expr);
+     
+   
+    //check for HEADWIND KEYWORD
+    if (strcmp(clean_expr, "HEADWIND()") == 0) {
+        
+        airlang_intg wind_dir_idx = find_variable("WindDirection");
+        airlang_intg wind_speed_idx = find_variable("WindSpeed");
+        airlang_intg runway_idx = find_variable("RunwayHeading");
 
+        if (wind_dir_idx != -1 && wind_speed_idx != -1 && runway_idx != -1) {
+            airlang_doub wind_dir = variables[wind_dir_idx].value.num_value;
+            airlang_doub wind_speed = variables[wind_speed_idx].value.num_value;
+            airlang_doub runway = variables[runway_idx].value.num_value;
+
+            return headwind(wind_dir, wind_speed, runway);
+        }
+        return 0.0;
+    }
+
+    if (strcmp(clean_expr, "CROSSWIND()") == 0) {
+        airlang_intg wind_dir_idx = find_variable("WindDirection");
+        airlang_intg wind_speed_idx = find_variable("WindSpeed");
+        airlang_intg runway_idx = find_variable("RunwayHeading");
+
+        if (wind_dir_idx != -1 && wind_speed_idx != -1 && runway_idx != -1) {
+            airlang_doub wind_dir = variables[wind_dir_idx].value.num_value;
+            airlang_doub wind_speed = variables[wind_speed_idx].value.num_value;
+            airlang_doub runway = variables[runway_idx].value.num_value;
+
+            return crosswind(wind_dir, wind_speed, runway);
+        }
+        return 0.0;
+    }
+    
     // Check for AIRPATH keyword
     if (strcmp(clean_expr, "AIRPATH") == 0) {
         //printf("DEBUG: Found AIRPATH keyword\n");
@@ -1590,4 +1643,26 @@ airlang_void handle_metar_assignment(airlang_strg expression) {
     }
 }
 
+//CALCULATE WIND
+airlang_doub headwind(airlang_doub windDirection, airlang_doub windSpeed, airlang_doub runwayHdg) {
+    airlang_doub angle_diff = windDirection - runwayHdg ;
+
+    //within -180 to +180
+    while (angle_diff > 180) angle_diff -= 360;
+    while (angle_diff <= 180) angle_diff += 360;
+
+    airlang_doub headwind = windSpeed * my_cos(angle_diff * (PI / 180.0));
+    return headwind;
+}
+
+airlang_doub crosswind(airlang_doub windDirection, airlang_doub windSpeed, airlang_doub runwayHdg) {
+    airlang_doub angle_diff = windDirection - runwayHdg;
+
+    //within -180 to +180
+    while (angle_diff > 180) angle_diff -= 360;
+    while (angle_diff <= 180) angle_diff += 360;
+
+    airlang_doub crosswind = windSpeed * my_sin(angle_diff * (PI / 180.0));
+    return (crosswind<0) ? -crosswind: crosswind ;
+}
 
