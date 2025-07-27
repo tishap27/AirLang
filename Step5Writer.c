@@ -1378,11 +1378,6 @@ airlang_void visibilityInfo(const airlang_strg metar, const airlang_strg station
 }
 
 
-//08/06 temperature/dewpoint
-/*airlang_void temperatureInfo(const airlang_strg metar, const airlang_strg station_id) {
-
-
-}*/
 
 
 // A5432 ; A FOLLOWED BY 4 DIGITS 
@@ -1412,6 +1407,76 @@ airlang_void altimeterInfo(const airlang_strg metar, const airlang_strg station_
 
 }
 
+
+
+//08/06 temperature/dewpoint
+airlang_void temperatureInfo(const airlang_strg metar, const airlang_strg station_id) {
+    const airlang_char* pos = metar; 
+
+    while (*pos) {
+        if (*pos == '/') {
+            //temp/dewpoint 
+            const airlang_char* slash_pos = pos;
+            const airlang_char* start_temp = slash_pos - 1;
+            const airlang_char* start_dew = slash_pos + 1;
+
+            //again go baack to find temp start 
+            while (start_temp > metar && (isdigit(*start_temp) || *start_temp == 'M')) {
+                start_temp--;
+            }
+            if (!isdigit(*start_temp) && *start_temp != 'M') start_temp++;
+
+
+            airlang_intg tempLen = (airlang_intg)(slash_pos - start_temp);
+            if (tempLen >= 2 && tempLen <= 3) {
+                // Extract temperature
+                airlang_intg temperature = 0;
+                airlang_intg temp_negative = 0;
+
+                if (*start_temp == 'M') {
+                    temp_negative = 1;
+                    start_temp++;
+                }
+                if (isdigit(start_temp[0])) {
+                    temperature = start_temp[0] - '0';
+                    if (isdigit(start_temp[1])) {
+                        temperature = temperature * 10 + (start_temp[1] - '0');
+                    }
+                    if (temp_negative) temperature = -temperature;
+
+                    airlang_char var_name[64];
+                    snprintf(var_name, sizeof(var_name), "%s_TEMP", station_id);
+                    assign_numeric_variable(var_name, (airlang_doub)temperature);
+                }
+                // Extract dewpoint
+                airlang_intg dewpoint = 0;
+                airlang_intg dewp_negative = 0;
+
+                if (*start_dew == 'M') {
+                    dewp_negative = 1;
+                    start_dew++;
+                }
+                if (isdigit(start_dew[0])) {
+                    dewpoint = start_dew[0] - '0';
+                    if (isdigit(start_dew[1])) {
+                        dewpoint = dewpoint * 10 + (start_dew[1] - '0');
+                    }
+                    if (dewp_negative) dewpoint = -dewpoint;
+
+                    airlang_char var_name[64];
+                    snprintf(var_name, sizeof(var_name), "%s_DEWPOINT", station_id);
+                    assign_numeric_variable(var_name, (airlang_doub)dewpoint);
+                }
+                break;
+            }
+        }
+        pos++;
+    }
+
+}
+
+
+
 airlang_void parseMetar(const airlang_strg metar_string, const airlang_strg station_id) {
     airlang_char temp_metar[512] = { 0 };
 
@@ -1434,30 +1499,45 @@ airlang_void parseMetar(const airlang_strg metar_string, const airlang_strg stat
     //extracting metar components   METAR CYOW 251630Z 27015G25KT 10SM 5000 -RA BKN008 OVC015 08/06 A2995 RMK
     windInfo(temp_metar, station_id);
     visibilityInfo(temp_metar, station_id);
-    //temperatureInfo(temp_metar, station_id);
-   altimeterInfo(temp_metar, station_id);
+    temperatureInfo(temp_metar, station_id);
+    altimeterInfo(temp_metar, station_id);
 }
 
 
 
 airlang_void handle_metar_assignment(airlang_strg expression) {
-    if (strstr(expression, "METAR_") == NULL) return;
+   // if (strstr(expression, "METAR_") == NULL) return;
 
     airlang_char* colon_pos = strchr(expression, ':');
     if (colon_pos == NULL) return;
 
-    // Get variable name (everything before colon)
+    // Get variable name (should be "METAR")
+    airlang_char var_name[32] = { 0 };
     airlang_intg name_len = (airlang_intg)(colon_pos - expression);
-    airlang_char var_name[64] = { 0 };
+
+    // Copy and clean variable name
+    airlang_intg i, j = 0;
+    for (i = 0; i < name_len && i < sizeof(var_name) - 1; i++) {
+        if (!isspace(expression[i])) {
+            var_name[j++] = expression[i];
+        }
+    }
+    var_name[j] = '\0';
+
+    if (strcmp(var_name, "METAR") != 0) return;
+
+    // Get variable name (everything before colon)
+    //airlang_intg name_len = (airlang_intg)(colon_pos - expression);
+   // airlang_char var_name[64] = { 0 };
 
     // Copy variable name safely
-    airlang_intg i;
+    /*airlang_intg i;
     for (i = 0; i < name_len && i < sizeof(var_name) - 1; i++) {
         if (!isspace(expression[i])) {
             var_name[strlen(var_name)] = expression[i];
         }
     }
-
+    */
     // Get METAR string (everything after colon)
     airlang_strg metar_start = colon_pos + 1;
     while (isspace(*metar_start)) metar_start++;
@@ -1471,13 +1551,39 @@ airlang_void handle_metar_assignment(airlang_strg expression) {
     }
     metar_string[i] = '\0';
 
+    // Remove quotes if present
+    if (metar_string[0] == QUOTES && metar_string[strlen(metar_string) - 1] == QUOTES) {
+        for (i = 0; metar_string[i + 1]; i++) {
+            metar_string[i] = metar_string[i + 1];
+        }
+        metar_string[i - 1] = '\0';
+    }
+
+    // Extract airport code (second word after "METAR")
+    airlang_char station_id[16] = { 0 };
+    airlang_char* metar_pos = strstr(metar_string, "METAR");
+    if (metar_pos != NULL) {
+        // Skip "METAR" and whitespace
+        metar_pos += 5;
+        while (*metar_pos && isspace(*metar_pos)) metar_pos++;
+
+        // Extract airport code (next 4 characters typically)
+        i = 0;
+        while (*metar_pos && !isspace(*metar_pos) && i < sizeof(station_id) - 1) {
+            station_id[i++] = *metar_pos++;
+        }
+        station_id[i] = '\0';
+    }
+
     // Store the raw METAR string
-    assign_string_variable(var_name, metar_string);
+   // assign_string_variable(var_name, metar_string);
 
     // Extract station ID (METAR_CYOW -> CYOW)
-    if (strlen(var_name) > 6 && strncmp(var_name, "METAR_", 6) == 0) {
-        airlang_char station_id[16] = { 0 };
-        strcpy_s(station_id, sizeof(station_id), var_name + 6);
+    if (strlen(station_id) >  0) {
+        airlang_char full_var_name[64];
+        snprintf(full_var_name, sizeof(full_var_name), "METAR_%s", station_id);
+        assign_string_variable(full_var_name, metar_string);
+
 
         // Parse METAR and create weather variables
         parseMetar(metar_string, station_id);
