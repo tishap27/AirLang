@@ -315,6 +315,11 @@ airlang_void calculate(airlang_strg expression) {
             handleRequestStatement(expression);
             return;
         }
+
+        if (strstr(expression, "METAR") != NULL && strchr(expression, ':') != NULL) {
+            handle_metar_assignment(expression);
+            return;
+        }
     // First check if it's an IF-ELSE statement
     if (handle_if_else(expression)) {
         return; // IF-ELSE handled it
@@ -1251,4 +1256,130 @@ airlang_void handleRequestStatement(airlang_strg expression) {
     }
 
 }
+
+airlang_void windInfo(const airlang_strg metar, const airlang_strg station_id) {
+    // Look for wind pattern: 3 digits + 2 digits + optional G + digits + KT
+    // Example: 27015KT or 27015G25KT
+
+    airlang_char* kt_pos = strstr(metar, "KT");
+    if (kt_pos == NULL) return;
+
+    // Go backwards from KT to find start of wind group
+    airlang_char* wind_start = kt_pos;
+    while (wind_start > metar && !isspace(*(wind_start - 1))) {
+        wind_start--;
+    }
+
+    // Check if we have enough characters for wind data
+    airlang_intg wind_len = (airlang_intg)(kt_pos - wind_start);
+    if (wind_len < 5) return; // Need at least 5 chars (DDDSS)
+
+    // Extract wind direction (first 3 digits)
+    if (isdigit(wind_start[0]) && isdigit(wind_start[1]) && isdigit(wind_start[2])) {
+        airlang_intg wind_dir = (wind_start[0] - '0') * 100 +
+            (wind_start[1] - '0') * 10 +
+            (wind_start[2] - '0');
+
+        airlang_char var_name[64];
+        snprintf(var_name, sizeof(var_name), "%s_WIND_DIR", station_id);
+        assign_numeric_variable(var_name, (airlang_doub)wind_dir);
+    }
+
+    // Extract wind speed (next 2 digits)
+    if (wind_len >= 5 && isdigit(wind_start[3]) && isdigit(wind_start[4])) {
+        airlang_intg wind_speed = (wind_start[3] - '0') * 10 + (wind_start[4] - '0');
+
+        airlang_char var_name[64];
+        snprintf(var_name, sizeof(var_name), "%s_WIND_SPEED", station_id);
+        assign_numeric_variable(var_name, (airlang_doub)wind_speed);
+    }
+
+    // Check for gusts (G followed by 2 digits)
+    airlang_char* gust_pos = wind_start + 5; // Start looking after speed
+    while (gust_pos < kt_pos) {
+        if (*gust_pos == 'G' && (gust_pos + 2) < kt_pos &&
+            isdigit(gust_pos[1]) && isdigit(gust_pos[2])) {
+            airlang_intg gust_speed = (gust_pos[1] - '0') * 10 + (gust_pos[2] - '0');
+
+            airlang_char var_name[64];
+            snprintf(var_name, sizeof(var_name), "%s_WIND_GUST", station_id);
+            assign_numeric_variable(var_name, (airlang_doub)gust_speed);
+            break;
+        }
+        gust_pos++;
+    }
+}
+
+airlang_void parseMetar(const airlang_strg metar_string, const airlang_strg station_id) {
+    airlang_char temp_metar[512] = { 0 };
+
+    airlang_intg i; 
+    for (i = 0; metar_string[i] && i < sizeof(temp_metar) - 1; i++) {
+        temp_metar[i] = metar_string[i];
+    }
+    temp_metar[i] = '\0';
+
+    //Removing quotes
+    if (temp_metar[0] == QUOTES && temp_metar[strlen(temp_metar) - 1] == QUOTES) {
+
+        //Shift 
+        for (i = 0; temp_metar[i + 1]; i++) {
+            temp_metar[i] = temp_metar[i + 1];
+        }
+        temp_metar[i - 1] = '\0'; // Remove the last quote
+    }
+
+    //extracting metar components   METAR CYOW 251630Z 27015G25KT 5000 -RA BKN008 OVC015 08/06 A2995 RMK
+    windInfo(temp_metar, station_id);
+    //visibility_info(temp_metar, station_id);
+    //temperature_info(temp_metar, station_id);
+   // altimeter_info(temp_metar, station_id);
+}
+
+
+
+airlang_void handle_metar_assignment(airlang_strg expression) {
+    if (strstr(expression, "METAR_") == NULL) return;
+
+    airlang_char* colon_pos = strchr(expression, ':');
+    if (colon_pos == NULL) return;
+
+    // Get variable name (everything before colon)
+    airlang_intg name_len = (airlang_intg)(colon_pos - expression);
+    airlang_char var_name[64] = { 0 };
+
+    // Copy variable name safely
+    airlang_intg i;
+    for (i = 0; i < name_len && i < sizeof(var_name) - 1; i++) {
+        if (!isspace(expression[i])) {
+            var_name[strlen(var_name)] = expression[i];
+        }
+    }
+
+    // Get METAR string (everything after colon)
+    airlang_strg metar_start = colon_pos + 1;
+    while (isspace(*metar_start)) metar_start++;
+
+    // Copy METAR string, removing semicolon
+    airlang_char metar_string[512] = { 0 };
+    i = 0;
+    while (metar_start[i] && metar_start[i] != ';' && i < sizeof(metar_string) - 1) {
+        metar_string[i] = metar_start[i];
+        i++;
+    }
+    metar_string[i] = '\0';
+
+    // Store the raw METAR string
+    assign_string_variable(var_name, metar_string);
+
+    // Extract station ID (METAR_CYOW -> CYOW)
+    if (strlen(var_name) > 6 && strncmp(var_name, "METAR_", 6) == 0) {
+        airlang_char station_id[16] = { 0 };
+        strcpy_s(station_id, sizeof(station_id), var_name + 6);
+
+        // Parse METAR and create weather variables
+        parseMetar(metar_string, station_id);
+    }
+}
+
 

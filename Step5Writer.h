@@ -135,6 +135,10 @@ airlang_doub calcLastLegDistance();
 
 airlang_void handleRequestStatement(airlang_strg expression);
 airlang_intg validateRequestStatement(const airlang_strg expression);
+airlang_void parseMetar(const airlang_strg metar_string, const airlang_strg station_id);
+airlang_void windInfo(const airlang_strg metar, const airlang_strg station_id);
+airlang_void handle_metar_assignment(airlang_strg expression);
+
 //airlang_intg is_flight_number(const airlang_strg value);
 
 //airlang_intg is_aircraft_id(const airlang_strg value);
