@@ -112,18 +112,18 @@ enum KEYWORDS {
 	KW_AIRPATH,		/* KW26 */
 	KW_WEATHER,		/* KW27 */
 	KW_ENDWEATHER,	/* KW28 */
-	KW_RECEIVEDATA,	/* KW29 */
-	KW_ENDRECEIVEDATA,	/* KW30 */
+	KW_RECEIVEDDATA,	/* KW29 */
+	KW_ENDRECEIVEDDATA,	/* KW30 */
 	KW_RUNWAYDATA,		/* KW31 */
 	KW_ENDRUNWAYDATA,	/* KW32 */
 	KW_WINDANALYSIS,	/* KW33 */
 	KW_ENDWINDANALYSIS,	/* KW34 */
-	KW_SAFETYALERTS,	/* KW35 */
-	KW_ENDSAFETYALERTS	/* KW36 */
+	KW_SAFETYALERT,		/* KW35 */
+	KW_ENDSAFETYALERT	/* KW36 */
 };
 
 /* TO_DO: Define the number of BNF rules */
-#define NUM_BNF_RULES 32
+#define NUM_BNF_RULES 37
 
 /* Parser */
 typedef struct parserData {
@@ -176,7 +176,13 @@ enum BNF_RULES {
 	BNF_requestStatement,
 	BNF_methodCall, 
 	BNF_withConfigBlock, 
-	BNF_optConfigList
+	BNF_optConfigList,
+
+	BNF_weatherBlock,
+	BNF_receivedDataBlock,
+	BNF_runwayDataBlock,
+	BNF_windAnalysisBlock,
+	BNF_safetyAlertsBlock
 };
 
 
@@ -213,7 +219,13 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 	"BNF_requestStatement",
 	"BNF_methodCall",
 	"BNF_withConfigBlock",
-	"BNF_optConfigList"
+	"BNF_optConfigList",
+
+	"BNF_weatherBlock",
+	"BNF_receivedDataBlock",
+	"BNF_runwayDataBlock",
+	"BNF_windAnalysisBlock",
+	"BNF_safetyAlertsBlock"
 
 };
 
@@ -270,7 +282,15 @@ airlang_void methodCall();
 airlang_void optwithConfigBlock();
 airlang_void optionalConfigList();
 airlang_void configAssignment();
+airlang_void configValue();
 airlang_void optConfigStatement();
+
+airlang_void weatherBlock();
+airlang_void receivedDataBlock();
+airlang_void receivedDataAssignment();
+airlang_void runwayDataBlock();
+airlang_void windAnalysisBlock();
+airlang_void safetyAlertBlock();
 
 
 

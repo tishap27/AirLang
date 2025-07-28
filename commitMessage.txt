@@ -1,0 +1,7 @@
+Implement WEATHER block with WEATHERDATA, RUNWAYDATA, and WIND ANALYSIS/CALCULATIONS
+
+- Added weather block parsing between briefing and dispatch blocks
+- Support for METAR data assignments and runway heading configurations  
+- Enhanced IF statements to handle integer comparisons for safety thresholds
+- Updated config assignments to support both = and : operators
+- Added wind calculation method calls (HEADWIND, CROSSWIND)

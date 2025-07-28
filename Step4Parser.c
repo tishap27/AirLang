@@ -649,9 +649,13 @@ airlang_void mainBlock() {
 			}
 			briefingBlock();  // <briefing_block>
 			
+			if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_WEATHER) {
+				weatherBlock();
+			}
 			if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_LOADSHEET) {
 				performanceBlock();
 			}
+			
 			
 			dispatchBlock();
 			
@@ -1086,6 +1090,13 @@ airlang_void ifStatement() {
 	else if (lookahead.code == BOOL_T) {
 		matchToken(BOOL_T, NO_ATTR);
 	}
+	else if (lookahead.code == INT_T) {
+		matchToken(INT_T, NO_ATTR);
+	}
+	else if (lookahead.code ==FLOAT_T) {
+		matchToken(FLOAT_T, NO_ATTR);
+	}
+
 	else {
 		// Error handling - unexpected token
 		printf("Expected identifier or string literal");
@@ -1214,11 +1225,22 @@ airlang_void configAssignment() {
 	}
 
 
-	//printf("EQL_T: =\n");
-	matchToken(EQL_T, NO_ATTR);
+	if (lookahead.code == EQL_T) {
+		matchToken(EQL_T, NO_ATTR);
+		printf("%s: Equals assignment operator parsed\n", STR_LANGNAME);
+	}
+	else if (lookahead.code == COLON_T) {
+		matchToken(COLON_T, NO_ATTR);
+		printf("%s: Colon assignment operator parsed\n", STR_LANGNAME);
+	}
+	else {
+		printf("%s: ERROR - Expected assignment operator (= or :)\n", STR_LANGNAME);
+		printError();
+		return;
+	}
 
 	//optConfigStatement();
-	if (lookahead.code == ID_T) {
+	/*if (lookahead.code == ID_T) {
 		matchToken(ID_T, NO_ATTR);
 
 		if (lookahead.code == DEC_T) {
@@ -1232,12 +1254,63 @@ airlang_void configAssignment() {
 				printError();
 			}
 		}
-	}
+	}*/
+	configValue();
 
 
 	matchToken(EOS_T, NO_ATTR);
 
 	printf("%s: optional Config assignment parsed\n", STR_LANGNAME);
+}
+airlang_void configValue() {
+	switch (lookahead.code) {
+	case ID_T:
+		matchToken(ID_T, NO_ATTR);
+
+		// Check if this is dotted notation (ID.ID)
+		if (lookahead.code == DEC_T) {
+			matchToken(DEC_T, NO_ATTR);
+			if (lookahead.code == ID_T) {
+				matchToken(ID_T, NO_ATTR);
+			}
+			else {
+				printError();
+			}
+		}
+		break;
+
+	case MNID_T:
+		// Handle method calls like HEADWIND(), CROSSWIND()
+		matchToken(MNID_T, NO_ATTR);
+
+		// Check if there are parentheses (method call)
+		if (lookahead.code == LPR_T) {
+			matchToken(LPR_T, NO_ATTR);
+			matchToken(RPR_T, NO_ATTR);
+			printf("%s: Method call in config parsed\n", STR_LANGNAME);
+		}
+		break;
+
+	case INT_T:
+		matchToken(INT_T, NO_ATTR);
+		break;
+	case DEC_T:
+		matchToken(DEC_T, NO_ATTR);
+		break;
+
+	case FLOAT_T:
+		matchToken(FLOAT_T, NO_ATTR);
+		break;
+
+	case STR_T:
+		matchToken(STR_T, NO_ATTR);
+		break;
+
+	default:
+		printf("%s: ERROR - Invalid config value\n", STR_LANGNAME);
+		printError();
+		break;
+	}
 }
 
 airlang_void optConfigStatement() {
@@ -1429,4 +1502,178 @@ airlang_void requestList() {
 		printf("%s: Wrong keyword used\n", STR_LANGNAME);
 		printError();
 	}
+}
+
+airlang_void weatherBlock() {
+	psData.parsHistogram[BNF_weatherBlock]++;
+
+	matchToken(KW_T, KW_WEATHER);
+	matchToken(LBR_T, NO_ATTR);
+
+	/* Parse weather content - all sub - blocks are optional*/
+		while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+			if (lookahead.code == KW_T) {
+				switch (lookahead.attribute.codeType) {
+				case KW_RECEIVEDDATA:
+					receivedDataBlock();
+					break;
+				case KW_RUNWAYDATA:
+					runwayDataBlock();
+					break;
+				case KW_WINDANALYSIS:
+					windAnalysisBlock();
+					break;
+				case KW_SAFETYALERT:
+					safetyAlertBlock();
+					break;
+				default:
+					// Skip unknown keywords but continue parsing
+					lookahead = tokenizer();
+					break;
+				}
+			}
+			else if (lookahead.code == CMT_T) {
+				comment();  // Handle comments
+			}
+			else {
+				// Skip unexpected tokens but continue parsing
+				lookahead = tokenizer();
+			}
+		}
+
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDWEATHER);
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: Weather block parsed\n", STR_LANGNAME);
+}
+
+airlang_void receivedDataBlock() {
+	psData.parsHistogram[BNF_receivedDataBlock]++;
+
+	matchToken(KW_T, KW_RECEIVEDDATA);
+	matchToken(LBR_T, NO_ATTR);
+	// Parse weather data content
+	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+		if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
+			outputStatement();
+		}
+		else if (lookahead.code == KW_T && lookahead.attribute.codeType ==KW_METAR) {
+			// Handle METAR assignments like: METAR: "METAR string";
+			receivedDataAssignment();
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();
+		}
+		else {
+			lookahead = tokenizer();
+		}
+	}
+
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDRECEIVEDDATA);
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: Received  data block parsed\n", STR_LANGNAME);
+}
+
+
+airlang_void receivedDataAssignment() {
+	matchToken(KW_T, KW_METAR);  // METAR
+	matchToken(COLON_T, NO_ATTR);
+	matchToken(STR_T, NO_ATTR);  // METAR string
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: Received data assignment parsed\n", STR_LANGNAME);
+
+}
+airlang_void runwayDataBlock() {
+	psData.parsHistogram[BNF_runwayDataBlock]++;
+
+	matchToken(KW_T, KW_RUNWAYDATA);
+	matchToken(LBR_T, NO_ATTR);
+
+	// Parse runway content
+	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+		if (lookahead.code == MNID_T) {
+			// Handle method calls like RUNWAYHEADING()
+			methodCall();
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();
+		}
+		else {
+			lookahead = tokenizer();
+		}
+	}
+
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDRUNWAYDATA);
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: Runway data block parsed\n", STR_LANGNAME);
+
+}
+airlang_void windAnalysisBlock() {
+	psData.parsHistogram[BNF_windAnalysisBlock]++;
+
+	matchToken(KW_T, KW_WINDANALYSIS);
+	matchToken(LBR_T, NO_ATTR);
+
+	// Parse wind calculations content
+	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+		if (lookahead.code == MNID_T) {
+			// Handle method calls like WIND()
+			methodCall();
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();
+		}
+		else {
+			lookahead = tokenizer();
+		}
+	}
+
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDWINDANALYSIS);
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: Wind Analysis block parsed\n", STR_LANGNAME);
+
+}
+airlang_void safetyAlertBlock() {
+	psData.parsHistogram[BNF_safetyAlertsBlock]++;
+
+	matchToken(KW_T, KW_SAFETYALERT);
+	matchToken(LBR_T, NO_ATTR);
+
+	// Parse weather check content
+	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
+		if (lookahead.code == KW_T) {
+			switch (lookahead.attribute.codeType) {
+			case KW_IF:
+				ifStatement();
+				break;
+			case KW_PRINT:
+				outputStatement();
+				break;
+			default:
+				lookahead = tokenizer();
+				break;
+			}
+		}
+		else if (lookahead.code == CMT_T) {
+			comment();
+		}
+		else {
+			lookahead = tokenizer();
+		}
+	}
+
+	matchToken(RBR_T, NO_ATTR);
+	matchToken(KW_T, KW_ENDSAFETYALERT);
+	matchToken(EOS_T, NO_ATTR);
+
+	printf("%s: Safety Alert block parsed\n", STR_LANGNAME);
+
 }

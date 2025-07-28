@@ -415,8 +415,8 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"ENDRUNWAYDATA",		/* KW32 */
 	"WINDANALYSIS",			/* KW33 */
 	"ENDWINDANALYSIS",		/* KW34 */
-	"SAFETYALERTS",			/* KW35 */
-	"ENDSAFETYALERTS"		/* KW36 */
+	"SAFETYALERT",			/* KW35 */
+	"ENDSAFETYALERT"		/* KW36 */
 };
 
 /* NEW SECTION: About indentation */
