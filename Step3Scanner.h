@@ -376,7 +376,7 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 27
+#define KWT_SIZE 37
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
@@ -406,7 +406,17 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"WITHCONFIG",	/* KW23 */
 	"true",			/* KW24 */
 	"false",		/* KW25 */
-	"AIRPATH"		/* KW26 */
+	"AIRPATH",		/* KW26 */
+	"WEATHER",		/* KW27 */
+	"ENDWEATHER",	/* KW28 */
+	"RECEIVEDDATA",	/* KW29 */
+	"ENDRECEIVEDDATA",		/* KW30 */
+	"RUNWAYDATA",			/* KW31 */
+	"ENDRUNWAYDATA",		/* KW32 */
+	"WINDANALYSIS",			/* KW33 */
+	"ENDWINDANALYSIS",		/* KW34 */
+	"SAFETYALERTS",			/* KW35 */
+	"ENDSAFETYALERTS"		/* KW36 */
 };
 
 /* NEW SECTION: About indentation */
