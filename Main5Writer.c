@@ -64,6 +64,10 @@
 #include "Step5Writer.h"
 #endif
 
+
+/*Function declaration*/
+void displayWriterContent(const char* content);
+
 /*
 ************************************************************
 * Main function from Buffer
@@ -73,6 +77,7 @@
 *	Success operation.
 ************************************************************
 */
+
 
 airlang_intg main5Writer(airlang_intg argc, airlang_strg* argv) {
 	if (argc >= 2) {
@@ -86,8 +91,18 @@ airlang_intg main5Writer(airlang_intg argc, airlang_strg* argv) {
 			printf("The input file %s %s\n", source, "is not completely loaded.");
 		}
 		else {
+			displayWriterContent(content);
 			process_content(content);
+			
 		}
 	}
 	return EXIT_SUCCESS;
+}
+
+void displayWriterContent(const char* content) {
+	printf("\nPrinting input buffer parameters:\n\n");
+	printf("%s\n", content);
+	printf("\n");
+	printf("Running the source file...\n");
+	printf("\n");
 }
