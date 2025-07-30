@@ -110,28 +110,6 @@ airlang_void matchToken(airlang_intg tokenCode, airlang_intg tokenAttribute) {
 		syncErrorHandler(tokenCode);
 	}
 }
-	/*switch (lookahead.code) {
-	case KW_T:
-		if (lookahead.attribute.codeType != tokenAttribute)
-			matchFlag = 0;
-
-	default:
-		if (lookahead.code != tokenCode)
-			matchFlag = 0;
-	}
-	if (matchFlag && lookahead.code == SEOF_T)
-		return;
-	if (matchFlag) {
-		lookahead = tokenizer();
-		if (lookahead.code == ERR_T) {
-			printError();
-			lookahead = tokenizer();
-			syntaxErrorNumber++;
-		}
-	}
-	else
-		syncErrorHandler(tokenCode);
-}*/
 
 /*
  ************************************************************
@@ -257,7 +235,6 @@ airlang_void program() {
 			break;
 		case KW_AIRCRAFT:
 			aircraftRecord();
-			//briefingContent();
 			break;
 		case KW_FLIGHT:
 			flightRecord();
@@ -268,9 +245,6 @@ airlang_void program() {
 		case KW_DISPATCH:
 			dispatchBlock();
 			break;
-		//case KW_REPORT:
-			//reportBlock();
-			//break;
 		default:
 			printError();
 			break;
@@ -283,8 +257,6 @@ airlang_void program() {
 			matchToken(MNID_T, NO_ATTR);
 			matchToken(LBR_T, NO_ATTR);
 			//optParams();
-			//dataSession();
-			//codeSession();
 			matchToken(RBR_T, NO_ATTR);
 			break;
 		}
@@ -350,27 +322,6 @@ airlang_void paramList() {
 	printf("%s%s\n", STR_LANGNAME, ": Param list parsed");
 }
 
-/*
- ************************************************************
- * dataSession
- * BNF: <dataSession> -> data { <opt_varlist_declarations> }
- * FIRST(<program>)= {KW_T (KW_data)}.
- ***********************************************************
- */
-
-/*airlang_void dataSession() {
-	psData.parsHistogram[BNF_dataSession]++;
-	switch (lookahead.code) {
-	case CMT_T:
-		comment();
-	default:
-		matchToken(KW_T, KW_data);
-		matchToken(LBR_T, NO_ATTR);
-		optVarListDeclarations();
-		matchToken(RBR_T, NO_ATTR);
-		printf("%s%s\n", STR_LANGNAME, ": Data Session parsed");
-	}
-}*/
 
 /*
  ************************************************************
@@ -388,28 +339,19 @@ airlang_void optVarListDeclarations() {
 	printf("%s%s\n", STR_LANGNAME, ": Optional Variable List Declarations parsed");
 }
 
-/*
- ************************************************************
- * codeSession statement
- * BNF: <codeSession> -> code { <opt_statements> }
- * FIRST(<codeSession>)= {KW_T (KW_code)}.
- ***********************************************************
- */
-/*airlang_void codeSession() {
-	psData.parsHistogram[BNF_codeSession]++;
-	switch (lookahead.code) {
-	case CMT_T:
-		comment();
-	default:
-		matchToken(KW_T, KW_code);
-		matchToken(LBR_T, NO_ATTR);
-		optionalStatements();
-		matchToken(RBR_T, NO_ATTR);
-		printf("%s%s\n", STR_LANGNAME, ": Code Session parsed");
+/*A function made for debugging */
+/*airlang_void printCurrentToken() {
+	printf("DEBUG: Current token - Code: %d, ", lookahead.code);
+	if (lookahead.code == ID_T || lookahead.code == MNID_T || lookahead.code == AIRCRAFT_ID_T) {
+		printf("Lexeme: %s\n", lookahead.attribute.idLexeme);
+	}
+	else if (lookahead.code == KW_T) {
+		printf("Keyword: %d\n", lookahead.attribute.codeType);
+	}
+	else {
+		printf("Simple token\n");
 	}
 }*/
-
-/* TO_DO: Continue the development (all non-terminal functions) */
 
 /*
  ************************************************************
@@ -551,18 +493,16 @@ airlang_void outputVariableList() {
 		matchToken(PLUS_T, NO_ATTR);
 		printElement();
 	}
-
-	/*switch (lookahead.code) {
-	case STR_T:
-		matchToken(STR_T, NO_ATTR);
-		break;
-	default:
-		;
-	}*/
 	printf("%s%s\n", STR_LANGNAME, ": Output variable list parsed");
 }
 
-
+/*
+ ************************************************************
+ * Print Element
+ * BNF: <print_element> -> STR_T | ID_T | INT_T | FLOAT_T | AIRCRAFT_ID_T | FLIGHT_ID_T
+ * FIRST(<print_element>) = {STR_T, ID_T, INT_T, FLOAT_T, AIRCRAFT_ID_T, FLIGHT_ID_T}.
+ ***********************************************************
+ */
 airlang_void printElement() {
 	switch (lookahead.code) {
 	case STR_T:     // String literals like "Fuel Capacity: "
@@ -680,7 +620,13 @@ airlang_void mainBlock() {
 }
 
 
-// <briefing_block> ::= "BRIEFING" "{" <aircraft_block> <flight_block> <route_block> "}" "ENDBRIEFING" ";"
+/*
+ ************************************************************
+ * Briefing Block statement
+ * BNF: <briefing_block> -> "BRIEFING" "{" <briefing_content> "}" "ENDBRIEFING" ";"
+ * FIRST(<briefing_block>) = {KW_T (KW_BRIEFING)}.
+ ***********************************************************
+ */
 airlang_void briefingBlock() {
 	psData.parsHistogram[BNF_briefingBlock]++;
 	matchToken(KW_T, KW_BRIEFING);
@@ -715,18 +661,15 @@ airlang_void briefingBlock() {
 
 	printf("%s: Briefing block parsed\n", STR_LANGNAME);
 }
-/*airlang_void printCurrentToken() {
-	printf("DEBUG: Current token - Code: %d, ", lookahead.code);
-	if (lookahead.code == ID_T || lookahead.code == MNID_T || lookahead.code == AIRCRAFT_ID_T) {
-		printf("Lexeme: %s\n", lookahead.attribute.idLexeme);
-	}
-	else if (lookahead.code == KW_T) {
-		printf("Keyword: %d\n", lookahead.attribute.codeType);
-	}
-	else {
-		printf("Simple token\n");
-	}
-}*/
+
+
+/*
+ ************************************************************
+ * Briefing Content
+ * BNF: <briefing_content> -> <aircraft_record> <flight_record> <route_record>
+ * FIRST(<briefing_content>) = {KW_T (KW_AIRCRAFT), KW_T (KW_FLIGHT), KW_T (KW_ROUTE), CMT_T}.
+ ***********************************************************
+ */
 airlang_void briefingContent() {
 	//printf("DEBUG: Entering briefingContent\n");
 	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
@@ -761,6 +704,14 @@ airlang_void briefingContent() {
 	}
 
 }
+
+/*
+ ************************************************************
+ * Aircraft Record statement
+ * BNF: <aircraft_record> -> "AIRCRAFT" "{" <aircraft_structure>* "}"
+ * FIRST(<aircraft_record>) = {KW_T (KW_AIRCRAFT)}.
+ ***********************************************************
+ */
 airlang_void aircraftRecord() {
 	psData.parsHistogram[BNF_aircraftRecord]++;
 	//printf("DEBUG: Starting AIRCRAFT record\n");
@@ -794,6 +745,16 @@ airlang_void aircraftRecord() {
 	matchToken(RBR_T, NO_ATTR);
 	printf("%s: AIRCRAFT RECORD parsed\n", STR_LANGNAME);
 }
+
+
+/*
+ ************************************************************
+ * Aircraft Structure
+ * BNF: <aircraft_structure> -> <field_name> ":" <aircraft_value> ";"
+ * FIRST(<aircraft_structure>) = {ID_T, AIRCRAFT_ID_T}.
+ ***********************************************************
+ */
+
 airlang_void aircraftStructure() {
 
 	// Match field name
@@ -819,6 +780,14 @@ airlang_void aircraftStructure() {
 	// Match semicolon
 	matchToken(EOS_T, NO_ATTR);
 }
+
+/*
+ ************************************************************
+ * Aircraft Value
+ * BNF: <aircraft_value> -> AIRCRAFT_ID_T | ID_T | STR_T | INT_T | FLOAT_T | BOOL_T
+ * FIRST(<aircraft_value>) = {AIRCRAFT_ID_T, ID_T, STR_T, INT_T, FLOAT_T, BOOL_T}.
+ ***********************************************************
+ */
 airlang_void aircraftValue() {
 
 	switch (lookahead.code) {
@@ -853,6 +822,14 @@ airlang_void aircraftValue() {
 	}
 }
 
+
+/*
+ ************************************************************
+ * Flight Record statement
+ * BNF: <flight_record> -> "FLIGHT" "{" <flight_data> "}"
+ * FIRST(<flight_record>) = {KW_T (KW_FLIGHT)}.
+ ***********************************************************
+ */
 airlang_void flightRecord() {
 	psData.parsHistogram[BNF_flightRecord]++;
 	matchToken(KW_T, KW_FLIGHT);
@@ -863,6 +840,14 @@ airlang_void flightRecord() {
 	matchToken(RBR_T, NO_ATTR);
 	printf("%s: FLIGHT RECORD parsed\n", STR_LANGNAME);
 }
+
+/*
+ ************************************************************
+ * Flight Data
+ * BNF: <flight_data> -> <flight_structure>*
+ * FIRST(<flight_data>) = {ID_T, KW_T (KW_PRINT), CMT_T, ε}.
+ ***********************************************************
+ */
 airlang_void flightData() {
 	while(lookahead.code != RBR_T && lookahead.code != SEOF_T){
 		if (lookahead.code == ID_T) {
@@ -879,16 +864,15 @@ airlang_void flightData() {
 			lookahead = tokenizer();
 		}
 	}
-	//switch (lookahead.code) {
-	//case ID_T:
-		//while (lookahead.code == ID_T) {
-		//	flightStructure();
-		//}
-		//break;
-	//default:
-		//; // Empty - optional content
-	//}
 }
+
+/*
+ ************************************************************
+ * Flight Structure
+ * BNF: <flight_structure> -> ID_T ":" <flight_value> ";"
+ * FIRST(<flight_structure>) = {ID_T}.
+ ***********************************************************
+ */
 airlang_void flightStructure() {
 	matchToken(ID_T, NO_ATTR); 
 	matchToken(COLON_T, NO_ATTR); 
@@ -898,6 +882,14 @@ airlang_void flightStructure() {
 	matchToken(EOS_T , NO_ATTR);
 
 }
+
+/*
+ ************************************************************
+ * Flight Value
+ * BNF: <flight_value> -> FLIGHT_ID_T | DATE_T | STR_T | INT_T | FLOAT_T | BOOL_T
+ * FIRST(<flight_value>) = {FLIGHT_ID_T, DATE_T, STR_T, INT_T, FLOAT_T, BOOL_T}.
+ ***********************************************************
+ */
 airlang_void flightValue() {
 	switch (lookahead.code) {
 	case FLIGHT_ID_T:     // FLIGHT ID values like C-GHPQ 
@@ -926,6 +918,13 @@ airlang_void flightValue() {
 }
 
 
+/*
+ ************************************************************
+ * Route Record statement
+ * BNF: <route_record> -> "ROUTE" "{" <route_data> "}"
+ * FIRST(<route_record>) = {KW_T (KW_ROUTE)}.
+ ***********************************************************
+ */
 airlang_void routeRecord() {
 	psData.parsHistogram[BNF_routeRecord]++;
 	matchToken(KW_T, KW_ROUTE);
@@ -937,6 +936,14 @@ airlang_void routeRecord() {
 
 	printf("%s: ROUTE RECORD parsed\n", STR_LANGNAME);
 }
+
+/*
+ ************************************************************
+ * Route Data
+ * BNF: <route_data> -> <route_structure>*
+ * FIRST(<route_data>) = {ID_T, KW_T (KW_PRINT), CMT_T, ε}.
+ ***********************************************************
+ */
 airlang_void routeData() {
 
 	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
@@ -954,17 +961,15 @@ airlang_void routeData() {
 			lookahead = tokenizer();
 		}
 	}
-
-	/*switch (lookahead.code) {
-	case ID_T:
-		while (lookahead.code == ID_T) {
-			routeStructure();
-		}
-		break;
-	default:
-		; // Empty - optional content
-	}*/
 }
+
+/*
+ ************************************************************
+ * Route Structure
+ * BNF: <route_structure> -> ID_T ":" <route_value> ";"
+ * FIRST(<route_structure>) = {ID_T}.
+ ***********************************************************
+ */
 airlang_void routeStructure() {
 
 	matchToken(ID_T, NO_ATTR); 
@@ -974,6 +979,14 @@ airlang_void routeStructure() {
 
 	matchToken(EOS_T, NO_ATTR); 
 }
+
+/*
+ ************************************************************
+ * Route Value
+ * BNF: <route_value> -> STR_T | INT_T | FLOAT_T | BOOL_T | <coordinate_pair>
+ * FIRST(<route_value>) = {STR_T, INT_T, FLOAT_T, BOOL_T}.
+ ***********************************************************
+ */
 airlang_void routeValue() {
 	
 	switch (lookahead.code) {
@@ -1017,6 +1030,13 @@ airlang_void routeValue() {
 	}
 }
 
+/*
+ ************************************************************
+ * Dispatch Block statement
+ * BNF: <dispatch_block> -> "DISPATCH" "{" <dispatch_content> "}" "ENDDISPATCH" ";"
+ * FIRST(<dispatch_block>) = {KW_T (KW_DISPATCH)}.
+ ***********************************************************
+ */
 airlang_void dispatchBlock() {
 	psData.parsHistogram[BNF_dispatchBlock]++;
 	matchToken(KW_T, KW_DISPATCH);
@@ -1056,6 +1076,14 @@ airlang_void dispatchBlock() {
 	printf("%s: Dispatch block parsed\n", STR_LANGNAME);
 }
 
+
+/*
+ ************************************************************
+ * If Statement
+ * BNF: <if_statement> -> "IF" ID_T <comparison_op> <comparison_value> "THEN" <print_statements> [<else_clause>] "ENDIF" ";"
+ * FIRST(<if_statement>) = {KW_T (KW_IF)}.
+ ***********************************************************
+ */
 airlang_void ifStatement() {
 	psData.parsHistogram[BNF_ifStatementRecord]++;
 	matchToken(KW_T, KW_IF);
@@ -1099,21 +1127,15 @@ airlang_void ifStatement() {
 
 	else {
 		// Error handling - unexpected token
-		printf("Expected identifier or string literal");
+		printf("Expected identifier , string literal or Integer literal");
 	}
 
-	//matchToken(STR_T, NO_ATTR);
 
 	matchToken(KW_T, KW_THEN);
 
 	while (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
 		outputStatement();
 	}
-
-	//matchToken(KW_T, KW_PRINT);
-
-	//matchToken(STR_T, NO_ATTR);
-	//matchToken(EOS_T, NO_ATTR);
 
 
 	if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_ELSE) {
@@ -1122,16 +1144,8 @@ airlang_void ifStatement() {
 		while (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
 			outputStatement();
 		}
-		//matchToken(STR_T, NO_ATTR);
-		//matchToken(EOS_T, NO_ATTR);
 		
 	}
-
-	//matchToken(KW_T, KW_ELSE);
-	//matchToken(KW_T, KW_PRINT);
-
-	//matchToken(STR_T, NO_ATTR);
-	//matchToken(EOS_T, NO_ATTR);
 
 	matchToken(KW_T, KW_ENDIF);
 	matchToken(EOS_T, NO_ATTR);
@@ -1140,6 +1154,14 @@ airlang_void ifStatement() {
 
 }
 
+
+/*
+ ************************************************************
+ * Report Statement
+ * BNF: <report_statement> -> "REPORT" "{" <report_call> "}" "ENDREPORT" ";"
+ * FIRST(<report_statement>) = {KW_T (KW_REPORT)}.
+ ***********************************************************
+ */
 airlang_void reportStatement() {
 	psData.parsHistogram[BNF_reportRecord]++;
 	
@@ -1153,12 +1175,18 @@ airlang_void reportStatement() {
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s: REPORT block parsed\n", STR_LANGNAME);
 }
+
+/*
+ ************************************************************
+ * Report Call
+ * BNF: <report_call> -> <method_call>* | <output_statement>*
+ * FIRST(<report_call>) = {MNID_T, KW_T (KW_PRINT), CMT_T, ε}.
+ ***********************************************************
+ */
 airlang_void reportCall() {
 	while (lookahead.code != RBR_T && lookahead.code != SEOF_T) {
 		if (lookahead.code == MNID_T) {
 			methodCall();
-			//matchToken(MNID_T, NO_ATTR);
-			//matchToken(EOS_T, NO_ATTR);
 		}
 		else if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_PRINT) {
 			outputStatement();  
@@ -1173,7 +1201,14 @@ airlang_void reportCall() {
 	}
 }
 
-//DISTANCE() WITHCONFIG { BLA BLA };
+
+/*
+ ************************************************************
+ * Method Call
+ * BNF: <method_call> -> MNID_T [<opt_with_config_block>] ";"
+ * FIRST(<method_call>) = {MNID_T}.
+ ***********************************************************
+ */
 airlang_void methodCall() {
 	psData.parsHistogram[BNF_methodCall]++;
 
@@ -1188,6 +1223,14 @@ airlang_void methodCall() {
 	printf("%s: Method Call parsed\n", STR_LANGNAME);
 }
 
+
+/*
+ ************************************************************
+ * Optional With Config Block
+ * BNF: <opt_with_config_block> -> "WITHCONFIG" "{" <optional_config_list> "}"
+ * FIRST(<opt_with_config_block>) = {KW_T (KW_WITHCONFIG), ε}.
+ ***********************************************************
+ */
 airlang_void optwithConfigBlock() {
 	psData.parsHistogram[BNF_withConfigBlock]++;
 
@@ -1202,6 +1245,14 @@ airlang_void optwithConfigBlock() {
 	printf("%s: Optional ConfigBlock parsed\n", STR_LANGNAME);
 }
 
+
+/*
+ ************************************************************
+ * Optional Config List
+ * BNF: <optional_config_list> -> <config_assignment>*
+ * FIRST(<optional_config_list>) = {ID_T, ε}.
+ ***********************************************************
+ */
 airlang_void optionalConfigList() {
 	psData.parsHistogram[BNF_optConfigList]++;
 
@@ -1213,6 +1264,14 @@ airlang_void optionalConfigList() {
 		}
 	}
 }
+
+/*
+ ************************************************************
+ * Config Assignment
+ * BNF: <config_assignment> -> ID_T <assignment_op> <config_value> ";"
+ * FIRST(<config_assignment>) = {ID_T}.
+ ***********************************************************
+ */
 airlang_void configAssignment() {
 
 	if (lookahead.code == ID_T) {
@@ -1223,7 +1282,6 @@ airlang_void configAssignment() {
 		printError();
 		return;
 	}
-
 
 	if (lookahead.code == EQL_T) {
 		matchToken(EQL_T, NO_ATTR);
@@ -1239,22 +1297,6 @@ airlang_void configAssignment() {
 		return;
 	}
 
-	//optConfigStatement();
-	/*if (lookahead.code == ID_T) {
-		matchToken(ID_T, NO_ATTR);
-
-		if (lookahead.code == DEC_T) {
-			matchToken(DEC_T, NO_ATTR);
-
-			if (lookahead.code == ID_T) {
-				//printf("ID_T: %s\n", lookahead.attribute.idLexeme);
-				matchToken(ID_T, NO_ATTR);
-			}
-			else {
-				printError();
-			}
-		}
-	}*/
 	configValue();
 
 
@@ -1262,6 +1304,14 @@ airlang_void configAssignment() {
 
 	printf("%s: optional Config assignment parsed\n", STR_LANGNAME);
 }
+
+/*
+ ************************************************************
+ * Config Value
+ * BNF: <config_value> -> ID_T ["." ID_T] | MNID_T ["(" ")"] | INT_T | FLOAT_T | STR_T | DEC_T
+ * FIRST(<config_value>) = {ID_T, MNID_T, INT_T, FLOAT_T, STR_T, DEC_T}.
+ ***********************************************************
+ */
 airlang_void configValue() {
 	switch (lookahead.code) {
 	case ID_T:
@@ -1313,6 +1363,13 @@ airlang_void configValue() {
 	}
 }
 
+/*
+ ************************************************************
+ * Optional Config Statement
+ * BNF: <opt_config_statement> -> ID_T ["." ID_T] | INT_T | FLOAT_T | STR_T
+ * FIRST(<opt_config_statement>) = {ID_T, INT_T, FLOAT_T, STR_T}.
+ ***********************************************************
+ */
 airlang_void optConfigStatement() {
 	if (lookahead.code == ID_T) {
 		//printf("ID_T: %s\n", lookahead.attribute.idLexeme);
@@ -1344,6 +1401,13 @@ airlang_void optConfigStatement() {
 }
 
 
+/*
+ ************************************************************
+ * Performance Block statement (LoadSheet)
+ * BNF: <performance_block> -> "LOADSHEET" "{" <performance_content>* "}" "ENDLOADSHEET" ";"
+ * FIRST(<performance_block>) = {KW_T (KW_LOADSHEET)}.
+ ***********************************************************
+ */
 airlang_void performanceBlock() {
 	psData.parsHistogram[BNF_loadsheetBlock]++;
 	//printf("DEBUG: Entering performanceBlock\n");
@@ -1380,6 +1444,14 @@ airlang_void performanceBlock() {
 	matchToken(EOS_T, NO_ATTR);
 	printf("%s: Loadsheet block parsed\n", STR_LANGNAME);
 }
+
+/*
+ ************************************************************
+ * Performance Content
+ * BNF: <performance_content> -> ID_T <assignment_op> <expression> ";"
+ * FIRST(<performance_content>) = {ID_T}.
+ ***********************************************************
+ */
 airlang_void performanceContent() {
 	//printf("DEBUG: Entering performanceContent\n");
 	matchToken(ID_T, NO_ATTR);
@@ -1409,6 +1481,13 @@ airlang_void performanceContent() {
 
 }
 
+/*
+ ************************************************************
+ * Expression
+ * BNF: <expression> -> <term> [("+" | "-") <term>]*
+ * FIRST(<expression>) = {ID_T, INT_T, FLOAT_T, LPR_T, KW_T (KW_AIRPATH)}.
+ ***********************************************************
+ */
 airlang_void expression() {
 	//printf("DEBUG: Parsing expression\n");
 	psData.parsHistogram[BNF_expression]++;
@@ -1421,6 +1500,15 @@ airlang_void expression() {
 		term();
 	}
 }
+
+
+ /*
+  ************************************************************
+  * Term
+  * BNF: <term> -> <factor> [("*" | "/") <factor>]*
+  * FIRST(<term>) = {ID_T, INT_T, FLOAT_T, LPR_T, KW_T (KW_AIRPATH)}.
+  ***********************************************************
+  */
 airlang_void term() {
 	//printf("DEBUG: Parsing term\n");
 	psData.parsHistogram[BNF_term]++;
@@ -1432,6 +1520,13 @@ airlang_void term() {
 	}
 }
 
+/*
+ ************************************************************
+ * Factor
+ * BNF: <factor> -> ID_T | INT_T | FLOAT_T | "(" <expression> ")" | KW_T (KW_AIRPATH)
+ * FIRST(<factor>) = {ID_T, INT_T, FLOAT_T, LPR_T, KW_T (KW_AIRPATH)}.
+ ***********************************************************
+ */
 airlang_void factor() {
 	//printf("DEBUG: Parsing factor\n");
 	psData.parsHistogram[BNF_factor]++;
@@ -1476,8 +1571,13 @@ airlang_void factor() {
 	}
 }
 
-//REQUEST METAR FROM "STRING"  
-//Basically Import of Airlang 
+/*
+ ************************************************************
+ * Request Statement 
+ * BNF: <request_statement> -> "REQUEST" <request_list> "FROM" STR_T ";"
+ * FIRST(<request_statement>) = {KW_T (KW_REQUEST)}.
+ ***********************************************************
+ */
 airlang_void requestStatement() {
 	psData.parsHistogram[BNF_requestStatement]++;
 	
@@ -1491,8 +1591,15 @@ airlang_void requestStatement() {
 
 	printf("%s: REQUEST statement parsed\n", STR_LANGNAME);
 
-
 }
+
+/*
+ ************************************************************
+ * Request List
+ * BNF: <request_list> -> "METAR" | "NOTAM"
+ * FIRST(<request_list>) = {KW_T (KW_METAR), KW_T (KW_NOTAM)}.
+ ***********************************************************
+ */
 airlang_void requestList() {
 	// will include more options that time switch case 
 	if (lookahead.code == KW_T && (lookahead.attribute.codeType == KW_METAR || lookahead.attribute.codeType == KW_NOTAM)) {  
@@ -1504,6 +1611,13 @@ airlang_void requestList() {
 	}
 }
 
+/*
+ ************************************************************
+ * Weather Block statement
+ * BNF: <weather_block> -> "WEATHER" "{" <weather_content>* "}" "ENDWEATHER" ";"
+ * FIRST(<weather_block>) = {KW_T (KW_WEATHER)}.
+ ***********************************************************
+ */
 airlang_void weatherBlock() {
 	psData.parsHistogram[BNF_weatherBlock]++;
 
@@ -1548,6 +1662,13 @@ airlang_void weatherBlock() {
 	printf("%s: Weather block parsed\n", STR_LANGNAME);
 }
 
+/*
+ ************************************************************
+ * Received Data Block
+ * BNF: <received_data_block> -> "RECEIVEDDATA" "{" <received_data_content>* "}" "ENDRECEIVEDDATA" ";"
+ * FIRST(<received_data_block>) = {KW_T (KW_RECEIVEDDATA)}.
+ ***********************************************************
+ */
 airlang_void receivedDataBlock() {
 	psData.parsHistogram[BNF_receivedDataBlock]++;
 
@@ -1578,6 +1699,13 @@ airlang_void receivedDataBlock() {
 }
 
 
+/*
+ ************************************************************
+ * Received Data Assignment
+ * BNF: <received_data_assignment> -> "METAR" ":" STR_T ";"
+ * FIRST(<received_data_assignment>) = {KW_T (KW_METAR)}.
+ ***********************************************************
+ */
 airlang_void receivedDataAssignment() {
 	matchToken(KW_T, KW_METAR);  // METAR
 	matchToken(COLON_T, NO_ATTR);
@@ -1587,6 +1715,14 @@ airlang_void receivedDataAssignment() {
 	printf("%s: Received data assignment parsed\n", STR_LANGNAME);
 
 }
+
+/*
+ ************************************************************
+ * Runway Data Block
+ * BNF: <runway_data_block> -> "RUNWAYDATA" "{" <runway_content>* "}" "ENDRUNWAYDATA" ";"
+ * FIRST(<runway_data_block>) = {KW_T (KW_RUNWAYDATA)}.
+ ***********************************************************
+ */
 airlang_void runwayDataBlock() {
 	psData.parsHistogram[BNF_runwayDataBlock]++;
 
@@ -1614,6 +1750,14 @@ airlang_void runwayDataBlock() {
 	printf("%s: Runway data block parsed\n", STR_LANGNAME);
 
 }
+
+/*
+ ************************************************************
+ * Wind Analysis Block
+ * BNF: <wind_analysis_block> -> "WINDANALYSIS" "{" <wind_content>* "}" "ENDWINDANALYSIS" ";"
+ * FIRST(<wind_analysis_block>) = {KW_T (KW_WINDANALYSIS)}.
+ ***********************************************************
+ */
 airlang_void windAnalysisBlock() {
 	psData.parsHistogram[BNF_windAnalysisBlock]++;
 
@@ -1641,6 +1785,14 @@ airlang_void windAnalysisBlock() {
 	printf("%s: Wind Analysis block parsed\n", STR_LANGNAME);
 
 }
+
+/*
+ ************************************************************
+ * Safety Alert Block
+ * BNF: <safety_alert_block> -> "SAFETYALERT" "{" <safety_content>* "}" "ENDSAFETYALERT" ";"
+ * FIRST(<safety_alert_block>) = {KW_T (KW_SAFETYALERT)}.
+ ***********************************************************
+ */
 airlang_void safetyAlertBlock() {
 	psData.parsHistogram[BNF_safetyAlertsBlock]++;
 
