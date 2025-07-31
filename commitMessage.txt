@@ -1,7 +1,10 @@
-Implement WEATHER block with WEATHERDATA, RUNWAYDATA, and WIND ANALYSIS/CALCULATIONS
+Add: AX6- Step6Generator - Basic bytecode generation
 
-- Added weather block parsing between briefing and dispatch blocks
-- Support for METAR data assignments and runway heading configurations  
-- Enhanced IF statements to handle integer comparisons for safety thresholds
-- Updated config assignments to support both = and : operators
-- Added wind calculation method calls (HEADWIND, CROSSWIND)
+- Update: compilers.c  compilers.h to include main6Generator
+- Implement Step6Generator.h/.c with core instruction generation
+- Add initGenerator(), generateCode(), emitInstruction() functions  
+- PRINT statements now compile to bytecode 
+- Debug printf to check the bytecode 
+- Generate binary .air files with magic header and instruction count
+- Successfully generates OP_LOAD_STR, OP_PRINT, OP_HALT instructions [Prints AirLang]
+

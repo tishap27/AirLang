@@ -158,6 +158,7 @@ Programs:
 3: Scanner - invokes Main3Scanner code
 4: Parser - invokes Main4Parser code
 5: Writer - invokes Main5Writer code
+6: Generator - invokes Main6Generator code
 ------------------------------------------------------------
 */
 enum PROGRAMS {
@@ -166,6 +167,7 @@ enum PROGRAMS {
 	PGM_SCN = '3', // Scanner:	15pt
 	PGM_PSR = '4', // Parser:	15pt
 	PGM_WRT = '5', // Writer:	10pt
+	PGM_GEN = '6',  // Generator
 };
 
 /*
@@ -179,6 +181,8 @@ airlang_intg main2Reader(airlang_intg argc, airlang_strg* argv);
 airlang_intg main3Scanner(airlang_intg argc, airlang_strg* argv);
 airlang_intg main4Parser(airlang_intg argc, airlang_strg* argv);
 airlang_intg main5Writer(airlang_intg argc, airlang_strg* argv);
+airlang_intg main6Generator(airlang_intg argc, airlang_strg* argv);
+
 
 airlang_void printLogo();
 airlang_void errorPrint(airlang_strg fmt, ...);
