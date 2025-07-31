@@ -75,6 +75,9 @@ typedef struct {
 
 /*Function declarations now */
 
+airlang_void processFileGeneration(const airlang_strg source, const airlang_strg content);
+airlang_void displayGeneratedCode(const Generator* cg);
+
 airlang_void initGenerator(Generator* cg, const airlang_strg output_file);
 
 airlang_void generateCode(const airlang_strg source_content, Generator* cg);

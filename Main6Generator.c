@@ -52,7 +52,6 @@
 
 /*Function declaration*/
 airlang_void displayGeneratorContent(const char* content);
-airlang_void displayGeneratedCode(const Generator* cg);
 
 /*
 ************************************************************
@@ -82,25 +81,7 @@ airlang_intg main6Generator(airlang_intg argc, airlang_strg* argv) {
             displayGeneratorContent(content);
         }
 
-        // Initialize code generator
-        Generator cg;
-        airlang_char output_filename[256];
-        snprintf(output_filename, sizeof(output_filename), "%s.air", source);
-
-        initGenerator(&cg, output_filename);
-
-        // Generate code
-        generateCode(content, &cg);
-
-        // Display generated instructions
-        displayGeneratedCode(&cg);
-
-        // Write binary file
-        writeBinaryFile(&cg);
-
-        printf("\nCode generation completed successfully!\n");
-        printf("Output file: %s\n", output_filename);
-
+        processFileGeneration(source, content);
     }
     else {
         printf("Usage: %s <option> <input_file>\n", argv[0]);
@@ -111,36 +92,7 @@ airlang_intg main6Generator(airlang_intg argc, airlang_strg* argv) {
     return EXIT_SUCCESS;
 }
 
-airlang_void displayGeneratedCode(const Generator* cg) {
-    printf("\n=== GENERATED INSTRUCTIONS ===\n");
 
-    for (airlang_intg i = 0; i < cg->instruction_count; i++) {
-        const Instruction* inst = &cg->instructions[i];
-        printf("%3d: ", i);
-
-        switch (inst->opCode) {
-        case OP_LOAD_NUM:
-            printf("LOAD_NUM %.2f\n", inst->operand.num_operand);
-            break;
-        case OP_LOAD_STR:
-            printf("LOAD_STR \"%s\n", inst->operand.str_operand);
-            break;
-        case OP_STORE_VAR:
-            printf("STORE_VAR %s\n", inst->operand.str_operand);
-            break;
-        case OP_PRINT:
-            printf("PRINT\n");
-            break;
-        case OP_HALT:
-            printf("HALT\n");
-            break;
-        default:
-            printf("UNKNOWN\n");
-            break;
-        }
-    }
-    printf("===============================\n");
-}
 
 airlang_void displayGeneratorContent(const char* content) {
     printf("\nPrinting input buffer parameters:\n\n");
