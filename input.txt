@@ -1,8 +1,10 @@
-Welcome to AirLang! Safe flights.
+%Welcome to AirLang! Safe flights. This is a simple test file for Step1coder and step2reader
+Warning: will not work from step3Scanner and ahead%
 
+-- one line comment 
 [AIRCRAFT]
 Aircraft: C-GHPQ
-Type: B747
+Type: "B747"
 Fuel Capacity: 26000
 Cruise Speed: 430
 Fuel per NM: 35
@@ -17,7 +19,7 @@ Estimated fuel required: 1575
 
 [DEPARTURE]
 Departure Airport: YOW
-Departure Name: Ottawa International Airport
+Departure Name: "Ottawa International Airport"
 Departure Coordinates: 45.3225,-75.6692
 
 [ARRIVAL]
