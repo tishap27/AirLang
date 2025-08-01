@@ -82,6 +82,8 @@ airlang_void initGenerator(Generator* cg, const airlang_strg output_file);
 
 airlang_void generateCode(const airlang_strg source_content, Generator* cg);
 
+airlang_void parseAndGenerate(const airlang_strg content, Generator* cg);
+
 airlang_void emitInstruction(Generator* cg, OpCode op, airlang_doub num_val, const airlang_strg str_val);
 
 airlang_void writeBinaryFile(const Generator* cg);
@@ -90,6 +92,9 @@ airlang_void generatePrint(const airlang_strg line, Generator* cg);
 
 airlang_intg isPrintStatement(const airlang_strg line);
 
+airlang_void generateAssignment(const airlang_strg line, Generator* cg);
+
+airlang_intg isAssignment(const airlang_strg line);
 
 
 

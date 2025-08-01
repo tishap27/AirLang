@@ -50,7 +50,7 @@ airlang_void processFileGeneration(const airlang_strg source, const airlang_strg
     // Initialize code generator
     Generator* cg = malloc(sizeof(Generator));
     airlang_char output_filename[256];
-    snprintf(output_filename, sizeof(output_filename), "%s.air", source);
+    snprintf(output_filename, sizeof(output_filename), "%s.air", source);  // so will become file.txt.air; weird filename- will change later
 
     initGenerator(cg, output_filename);
 
@@ -115,13 +115,45 @@ airlang_void generateCode(const airlang_strg source_content, Generator* cg) {
 
 	printf("Starting Code Generation...\n");
 
-    if (isPrintStatement(source_content)) {
-        generatePrint(source_content, cg);
-    }
+   // if (isPrintStatement(source_content)) {
+     //   generatePrint(source_content, cg);
+    //}
+    parseAndGenerate(source_content, cg);
 
 	emitInstruction(cg, OP_HALT, 0, "");
 
 	printf("Code Generation complete. Generated %d instructions.\n", cg->instruction_count);
+}
+airlang_void parseAndGenerate(const airlang_strg content, Generator* cg) {
+    airlang_char line[1024];
+    airlang_intg i = 0, line_start = 0;
+
+    // Simple line-by-line parsing
+    while (content[i] != '\0') {
+        if (content[i] == '\n' || content[i] == ';') {
+            // Extract line
+            airlang_intg line_len = i - line_start;
+            strncpy(line, &content[line_start], line_len);
+            line[line_len] = '\0';
+
+            // Trim whitespace
+            airlang_char* trimmed = line;
+            while (*trimmed == ' ' || *trimmed == '\t') trimmed++;
+
+            if (strlen(trimmed) > 0 && trimmed[0] != '^' && trimmed[0] != '%') {
+                // Generate code based on line type
+                if (isAssignment(trimmed)) {
+                    generateAssignment(trimmed, cg);
+                }
+                else if (isPrintStatement(trimmed)) {
+                    generatePrint(trimmed, cg);
+                }
+            }
+
+            line_start = i + 1;
+        }
+        i++;
+    }
 }
 
 airlang_void emitInstruction(Generator* cg, OpCode op, airlang_doub num_val, const airlang_strg str_val) {
@@ -185,6 +217,46 @@ airlang_intg isPrintStatement(const airlang_strg line) {
     return strstr(line, "PRINT") != NULL && strchr(line, '{') != NULL ;
 }
 
+airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
+    airlang_char var_name[64];
+    airlang_char value_str[256];
+
+    // Simple parsing: VarName: Value;
+    if (sscanf(line, "%63[^:]: %255[^;]", var_name, value_str) == 2) {
+        // Trim spaces
+        airlang_char* trimmed_var = var_name;
+        while (*trimmed_var == ' ') trimmed_var++;
+
+        airlang_char* trimmed_val = value_str;
+        while (*trimmed_val == ' ') trimmed_val++;
+
+        // Check if value is numeric
+        airlang_doub num_val;
+        if (sscanf(trimmed_val, "%lf", &num_val) == 1) {
+            // Numeric assignment
+            emitInstruction(cg, OP_LOAD_NUM, num_val, "");
+            emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
+        }
+        else {
+            // String assignment
+            // Remove quotes if present
+            if (trimmed_val[0] == '"') {
+                trimmed_val++;
+                airlang_intg len = (airlang_intg)strlen(trimmed_val);
+                if (len > 0 && trimmed_val[len - 1] == '"') {
+                    trimmed_val[len - 1] = '\0';
+                }
+            }
+            emitInstruction(cg, OP_LOAD_STR, 0, trimmed_val);
+            emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
+        }
+    }
+}
+
+
+airlang_intg isAssignment(const airlang_strg line) {
+    return strchr(line, ':') != NULL && !strstr(line, "PRINT");
+}
 
 airlang_void writeBinaryFile(const Generator* cg) {
 
