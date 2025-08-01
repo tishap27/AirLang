@@ -44,9 +44,13 @@
 #include "Step4Parser.h"
 #endif*/
 
-/*#ifndef PARSER_H_
+#ifndef SCANNER_H_
+#include "Step3Scanner.h"
+#endif
+
+#ifndef PARSER_H_
 #include "Step4Parser.h"
-#endif*/
+#endif
 
 #ifndef WRITER_H_
 #include "Step5Writer.h"
@@ -61,6 +65,9 @@
 
 #include <stddef.h>  // For size_t
 
+//Global 
+extern airlang_strg keywordTable[KWT_SIZE];
+
 #define SAFE_COPY(dest, src) strncpy(dest, src, sizeof(dest)-1); dest[sizeof(dest)-1] = '\0'
 #define IS_QUOTE(c) (c == '"' || c == '\'')
 
@@ -73,7 +80,38 @@ typedef enum {
 	ARTHOP_ADD,
 	ARTHOP_SUB, 
 	ARTHOP_MULTI,
-	ARTHOP_DIV
+	ARTHOP_DIV,
+
+	OP_ENTER_MAIN,
+	OP_EXIT_MAIN,
+	OP_ENTER_BRIEFING,
+	OP_EXIT_BRIEFING,
+	OP_ENTER_WEATHER,
+	OP_EXIT_WEATHER,
+	OP_ENTER_LOADSHEET,
+	OP_EXIT_LOADSHEET,
+	OP_ENTER_DISPATCH,
+	OP_EXIT_DISPATCH,
+
+	OP_ENTER_AIRCRAFT,
+
+	OP_ENTER_FLIGHT,
+	
+	OP_ENTER_ROUTE,
+
+
+	OP_ENTER_RECEIVEDDATA,
+	OP_EXIT_RECEIVEDDATA,
+	OP_ENTER_RUNWAYDATA,
+	OP_EXIT_RUNWAYDATA,
+	OP_ENTER_WINDANALYSIS,
+	OP_EXIT_WINDANALYSIS,
+	OP_ENTER_SAFETYALERT,
+	OP_EXIT_SAFETYALERT,
+	OP_ENTER_REPORT,
+	OP_EXIT_REPORT,
+	
+	OP_ENTER_BLOCK  // fallback generic opcode
 
 }OpCode;
 
@@ -121,6 +159,20 @@ airlang_void generateCalculation(const airlang_strg line, Generator* cg);
 airlang_intg isCalculation(const airlang_strg line);
 
 static airlang_void removeQuotes(airlang_strg str);
+
+
+airlang_intg getKeywordCode(const airlang_strg word);
+
+const airlang_strg getBlockNameFromKeyword(airlang_intg keyword);
+OpCode getBlockOpFromKeyword(airlang_intg keyword);
+airlang_intg isBlockKeyword(airlang_intg keyword);
+
+airlang_intg isBlockStart(const airlang_strg line);
+airlang_intg isBlockEnd(const airlang_strg line);
+
+airlang_void generateBlockStart(const airlang_strg line, Generator* cg);
+
+airlang_void generateBlockEnd(const airlang_strg line, Generator* cg);
 
 
 #endif

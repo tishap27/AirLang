@@ -48,10 +48,10 @@
 #include "Compilers.h"
 #endif
 #ifndef READER_H_
-#include "Reader.h"
+#include "Step2Reader.h"
 #endif
 #ifndef SCANNER_H_
-#include "Scanner.h"
+#include "Step3Scanner.h"
 #endif
 
 /* Global vars */
