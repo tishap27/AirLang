@@ -575,7 +575,7 @@ airlang_intg isBlockStart(const airlang_strg line) {
 
 /*
  * Function: isBlockEnd
- * Purpose: Clean check for block end keywords
+ * Purpose:  check for block end keywords
  */
 airlang_intg isBlockEnd(const airlang_strg line) {
     // Create a copy for tokenization
@@ -590,7 +590,7 @@ airlang_intg isBlockEnd(const airlang_strg line) {
         if (isInKeywordArray(keyword, BLOCK_END_KEYWORDS, BLOCK_END_COUNT)) {
             return 1;
         }
-        token = strtok(NULL, " \t{}");
+        token = strtok(NULL, " \t{}");    // strtok might remove later 
     }
     return 0;
 }
@@ -648,14 +648,9 @@ airlang_void generateBlockEnd(const airlang_strg line, Generator* cg) {
     }
 }
 
-/*
- * LEGACY FUNCTIONS - NOW MUCH SIMPLER
- */
 
- /*
-  * Function: getBlockNameFromKeyword
-  * Purpose: Get block name using lookup table
-  */
+
+ 
   /*
    * Function: getKeywordCode
    * Purpose: Find keyword in your existing keywordTable[]
@@ -664,11 +659,14 @@ airlang_void generateBlockEnd(const airlang_strg line, Generator* cg) {
 airlang_intg getKeywordCode(const airlang_strg word) {
     for (airlang_intg i = 0; i < KWT_SIZE; i++) {
         if (strcmp(word, keywordTable[i]) == 0) {
-            return i; // Returns the enum index (KW_MAIN=0, KW_BRIEFING=1, etc.)
+            return i; // Returns the enum index now  (KW_MAIN=0, KW_BRIEFING=1, etc.)
         }
     }
     return NO_ATTR; // Not found
 }
+
+
+
 const airlang_strg getBlockNameFromKeyword(airlang_intg keyword) {
     const BlockMapping* mapping = getBlockMapping(keyword);
     return (mapping != NULL) ? mapping->block_name : "UNKNOWN";
