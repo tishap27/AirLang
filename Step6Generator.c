@@ -82,7 +82,7 @@ airlang_void displayGeneratedCode(const Generator* cg) {
             printf("LOAD_NUM %.2f\n", inst->operand.num_operand);
             break;
         case OP_LOAD_STR:
-            printf("LOAD_STR \"%s\n", inst->operand.str_operand);
+            printf("LOAD_STR \"%s\"\n", inst->operand.str_operand);
             break;
         case OP_STORE_VAR:
             printf("STORE_VAR %s\n", inst->operand.str_operand);
@@ -93,16 +93,16 @@ airlang_void displayGeneratedCode(const Generator* cg) {
         case OP_HALT:
             printf("HALT\n");
             break;
-        case OP_ADD:
+        case ARTHOP_ADD:
             printf("ADD\n");
             break;
-        case OP_SUB:
+        case ARTHOP_SUB:
             printf("SUB\n");
             break;
-        case OP_MUL:
+        case ARTHOP_MULTI:
             printf("MUL\n");
             break;
-        case OP_DIV:
+        case ARTHOP_DIV:
             printf("DIV\n");
             break;
         default:
@@ -136,6 +136,16 @@ airlang_void generateCode(const airlang_strg source_content, Generator* cg) {
 
 	printf("Code Generation complete. Generated %d instructions.\n", cg->instruction_count);
 }
+
+/* Helper to remove quotes from strings */
+static void removeQuotes(airlang_strg str) {
+    if (IS_QUOTE(str[0])) {
+        memmove(str, str + 1, strlen(str));
+        if (IS_QUOTE(str[strlen(str) - 1])) {
+            str[strlen(str) - 1] = '\0';
+        }
+    }
+}
 airlang_void parseAndGenerate(const airlang_strg content, Generator* cg) {
     airlang_char line[1024];
     airlang_intg i = 0, line_start = 0;
@@ -149,19 +159,19 @@ airlang_void parseAndGenerate(const airlang_strg content, Generator* cg) {
             line[line_len] = '\0';
 
             // Trim whitespace
-            airlang_char* trimmed = line;
-            while (*trimmed == ' ' || *trimmed == '\t') trimmed++;
+         
+            trimWhitespace(line);
 
-            if (strlen(trimmed) > 0 && trimmed[0] != '^' && trimmed[0] != '%') {
+            if (strlen(line) > 0 && line[0] != '^' && line[0] != '%') {
                 // Generate code based on line type
-                if (isAssignment(trimmed)) {
-                    generateAssignment(trimmed, cg);
+                if (isAssignment(line)) {
+                    generateAssignment(line, cg);
                 }
-                else if (isPrintStatement(trimmed)) {
-                    generatePrint(trimmed, cg);
+                else if (isPrintStatement(line)) {
+                    generatePrint(line, cg);
                 }
-                else if (isCalculation(trimmed)) {
-                    generateCalculation(trimmed, cg);
+                else if (isCalculation(line)) {
+                    generateCalculation(line, cg);
                 }
             }
 
@@ -209,19 +219,13 @@ airlang_void generatePrint(const airlang_strg line, Generator* cg) {
         print_content[len] = '\0';
 
         // Trim spaces
-        airlang_char* trimmed = print_content;
-        while (*trimmed == ' ') trimmed++;
+        trimWhitespace(print_content);
 
+        removeQuotes(print_content);
         // Remove quotes if present
-        if (trimmed[0] == '"') {
-            trimmed++;
-            airlang_intg str_len = (airlang_intg)strlen(trimmed);
-            if (str_len > 0 && trimmed[str_len - 1] == '"') {
-                trimmed[str_len - 1] = '\0';
-            }
-        }
+      
 
-        emitInstruction(cg, OP_LOAD_STR, 0, trimmed);
+        emitInstruction(cg, OP_LOAD_STR, 0, print_content);
         emitInstruction(cg, OP_PRINT, 0, "");
     }
 }
@@ -239,41 +243,43 @@ airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
     // Simple parsing: VarName: Value;
     if (sscanf(line, "%63[^:]: %255[^;]", var_name, value_str) == 2) {
         // Trim spaces
-        airlang_char* trimmed_var = var_name;
-        while (*trimmed_var == ' ') trimmed_var++;
+        trimWhitespace(var_name);
+        trimWhitespace(value_str);
 
-        airlang_char* trimmed_val = value_str;
-        while (*trimmed_val == ' ') trimmed_val++;
-
+       
         // Check if value is numeric
         airlang_doub num_val;
-        if (sscanf(trimmed_val, "%lf", &num_val) == 1) {
+        if (sscanf(value_str, "%lf", &num_val) == 1) {
             // Numeric assignment
             emitInstruction(cg, OP_LOAD_NUM, num_val, "");
-            emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
+            //emitInstruction(cg, OP_STORE_VAR, 0, value_str);
         }
         else {
+
+            removeQuotes(value_str);
+            emitInstruction(cg, OP_LOAD_STR, 0, value_str);
             // String assignment
             // Remove quotes if present
-            if (trimmed_val[0] == '"') {
-                trimmed_val++;
-                airlang_intg len = (airlang_intg)strlen(trimmed_val);
-                if (len > 0 && trimmed_val[len - 1] == '"') {
-                    trimmed_val[len - 1] = '\0';
-                }
+            //if (value_str[0] == '"') {
+              //  value_str++;
+               // airlang_intg len = (airlang_intg)strlen(trimmed_val);
+               // if (len > 0 && trimmed_val[len - 1] == '"') {
+                    //trimmed_val[len - 1] = '\0';
+               // }
             }
-            emitInstruction(cg, OP_LOAD_STR, 0, trimmed_val);
-            emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
+           // emitInstruction(cg, OP_LOAD_STR, 0, trimmed_val);
+            //emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
+        emitInstruction(cg, OP_STORE_VAR, 0, var_name);
         }
     }
-}
+
 
 
 airlang_intg isAssignment(const airlang_strg line) {
     return strchr(line, ':') != NULL && !strstr(line, "PRINT");
 }
 
-airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
+/*airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
     // For now, just emit a comment instruction
     airlang_char var_name[64] = { 0 };
     airlang_char operand1_str[64] = { 0 };
@@ -339,10 +345,38 @@ airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
     // Emit instructions: LOAD_NUM op1, LOAD_NUM op2, ADD, STORE_VAR var_name
     emitInstruction(cg, OP_LOAD_NUM, op1, "");
     emitInstruction(cg, OP_LOAD_NUM, op2, "");
-    emitInstruction(cg, OP_ADD, 0, "");         // this fixed forr now just to check 7 + 7 
+    emitInstruction(cg, ARTHOP_ADD, 0, "");         // this fixed forr now just to check 7 + 7 
     emitInstruction(cg, OP_STORE_VAR, 0, var_name);
 
+}*/
+
+
+airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
+    airlang_char var_name[255] = { 0 };
+    airlang_char expr[255] = { 0 };
+
+    // Split at '='
+    char* eq_pos = strchr(line, '=');
+    if (!eq_pos) return;
+
+    // Get variable name
+    strncpy(var_name, line, eq_pos - line);
+      trimWhitespace(var_name);
+
+    // Get expression
+    strcpy(expr, eq_pos + 1);
+    trimWhitespace(expr);
+
+    // Simple support for addition only (as per original)
+    airlang_doub op1, op2;
+    if (sscanf(expr, "%lf + %lf", &op1, &op2) == 2) {
+        emitInstruction(cg, OP_LOAD_NUM, op1, "");
+        emitInstruction(cg, OP_LOAD_NUM, op2, "");
+        emitInstruction(cg, ARTHOP_ADD, 0, "");
+        emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+    }
 }
+
 
 airlang_intg isCalculation(const airlang_strg line) {
     return strchr(line, '=') != NULL && !strchr(line, ':');

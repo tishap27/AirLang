@@ -40,6 +40,19 @@
 #include "Compilers.h"
 #endif
 
+/*#ifndef STEP4PARSER_H_
+#include "Step4Parser.h"
+#endif*/
+
+/*#ifndef PARSER_H_
+#include "Step4Parser.h"
+#endif*/
+
+#ifndef WRITER_H_
+#include "Step5Writer.h"
+#endif
+
+
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
@@ -48,16 +61,19 @@
 
 #include <stddef.h>  // For size_t
 
+#define SAFE_COPY(dest, src) strncpy(dest, src, sizeof(dest)-1); dest[sizeof(dest)-1] = '\0'
+#define IS_QUOTE(c) (c == '"' || c == '\'')
+
 typedef enum {
-	OP_LOAD_NUM, 
+	OP_LOAD_NUM,
 	OP_LOAD_STR,
 	OP_STORE_VAR,
 	OP_PRINT,
 	OP_HALT,
-	OP_ADD,          
-	OP_SUB,         
-	OP_MUL,          
-	OP_DIV
+	ARTHOP_ADD,
+	ARTHOP_SUB, 
+	ARTHOP_MULTI,
+	ARTHOP_DIV
 
 }OpCode;
 
@@ -104,7 +120,7 @@ airlang_void generateCalculation(const airlang_strg line, Generator* cg);
 
 airlang_intg isCalculation(const airlang_strg line);
 
-
+static airlang_void removeQuotes(airlang_strg str);
 
 
 #endif
