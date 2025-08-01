@@ -1,10 +1,11 @@
-Add: AX6- Step6Generator - Basic bytecode generation
+Replaced hardcoded block keyword detection with lookup table approach now only requires updating the lookup arrays 
+instead of modifying multiple functions with long conditional chains.
 
-- Update: compilers.c  compilers.h to include main6Generator
-- Implement Step6Generator.h/.c with core instruction generation
-- Add initGenerator(), generateCode(), emitInstruction() functions  
-- PRINT statements now compile to bytecode 
-- Debug printf to check the bytecode 
-- Generate binary .air files with magic header and instruction count
-- Successfully generates OP_LOAD_STR, OP_PRINT, OP_HALT instructions [Prints AirLang]
+- Removed OR chains from isBlockKeyword(), isBlockStart(), isBlockEnd()
+- Added BLOCK_START_KEYWORDS[] and BLOCK_END_KEYWORDS[] arrays for clean lookups
+- Created BLOCK_MAPPINGS[] table that maps keywords to their instruction opcodes
+  (e.g., MAIN keyword -> OP_ENTER_MAIN instruction)
+- Added generic isInKeywordArray() helper to eliminate code duplication
+- Used extern declaration for keywordTable[] to avoid redeclaring parser data
+- Simplified block generation using centralized keyword arrays
 

@@ -500,11 +500,167 @@ airlang_void writeBinaryFile(const Generator* cg) {
 
 }
 
+/*
+ * Function: isInKeywordArray
+ * Purpose: Generic function to check if keyword exists in an array
+ */
+static airlang_intg isInKeywordArray(airlang_intg keyword, const airlang_intg* array, airlang_intg array_size) {
+    for (airlang_intg i = 0; i < array_size; i++) {
+        if (array[i] == keyword) {
+            return 1; // Found
+        }
+    }
+    return 0; // Not found
+}
 
 /*
- * Function: getKeywordCode
- * Purpose: Find keyword in your existing keywordTable[]
+ * Function: getBlockMapping
+ * Purpose: Find block mapping for a keyword
  */
+static const BlockMapping* getBlockMapping(airlang_intg keyword) {
+    for (airlang_intg i = 0; i < BLOCK_MAPPING_COUNT; i++) {
+        if (BLOCK_MAPPINGS[i].keyword == keyword) {
+            return &BLOCK_MAPPINGS[i];
+        }
+    }
+    return NULL; // Not found
+}
+
+/*
+ * Function: getEndKeywordFromStart
+ * Purpose: Get the corresponding END keyword for a start keyword
+ */
+static airlang_intg getEndKeywordFromStart(airlang_intg start_keyword) {
+    switch (start_keyword) {
+    case KW_MAIN: return KW_ENDMAIN;
+    case KW_BRIEFING: return KW_ENDBRIEFING;
+    case KW_WEATHER: return KW_ENDWEATHER;
+    case KW_LOADSHEET: return KW_ENDLOADSHEET;
+    case KW_DISPATCH: return KW_ENDDISPATCH;
+    case KW_RECEIVEDDATA: return KW_ENDRECEIVEDDATA;
+    case KW_RUNWAYDATA: return KW_ENDRUNWAYDATA;
+    case KW_WINDANALYSIS: return KW_ENDWINDANALYSIS;
+    case KW_SAFETYALERT: return KW_ENDSAFETYALERT;
+    case KW_REPORT: return KW_ENDREPORT;
+    default: return NO_ATTR;
+    }
+}
+
+/*
+ * REFACTORED MAIN FUNCTIONS
+ */
+
+ /*
+  * Function: isBlockKeyword
+  * Purpose: Clean check if keyword is block-related (MUCH CLEANER!)
+  */
+airlang_intg isBlockKeyword(airlang_intg keyword) {
+    return (isInKeywordArray(keyword, BLOCK_START_KEYWORDS, BLOCK_START_COUNT) ||
+        isInKeywordArray(keyword, BLOCK_END_KEYWORDS, BLOCK_END_COUNT));
+}
+
+/*
+ * Function: isBlockStart
+ * Purpose: Clean check for block start keywords
+ */
+airlang_intg isBlockStart(const airlang_strg line) {
+    airlang_char first_word[64];
+    if (sscanf(line, "%63s", first_word) != 1) {
+        return 0;
+    }
+
+    airlang_intg keyword = getKeywordCode(first_word);
+    return isInKeywordArray(keyword, BLOCK_START_KEYWORDS, BLOCK_START_COUNT);
+}
+
+/*
+ * Function: isBlockEnd
+ * Purpose: Clean check for block end keywords
+ */
+airlang_intg isBlockEnd(const airlang_strg line) {
+    // Create a copy for tokenization
+    airlang_char line_copy[1024];
+    strncpy(line_copy, line, sizeof(line_copy) - 1);
+    line_copy[sizeof(line_copy) - 1] = '\0';
+
+    // Check each word in the line
+    airlang_char* token = strtok(line_copy, " \t{}");
+    while (token != NULL) {
+        airlang_intg keyword = getKeywordCode(token);
+        if (isInKeywordArray(keyword, BLOCK_END_KEYWORDS, BLOCK_END_COUNT)) {
+            return 1;
+        }
+        token = strtok(NULL, " \t{}");
+    }
+    return 0;
+}
+
+/*
+ * Function: generateBlockStart
+ * Purpose: Generate block start using lookup table
+ */
+airlang_void generateBlockStart(const airlang_strg line, Generator* cg) {
+    airlang_char first_word[64];
+    if (sscanf(line, "%63s", first_word) != 1) {
+        return;
+    }
+
+    airlang_intg keyword = getKeywordCode(first_word);
+    const BlockMapping* mapping = getBlockMapping(keyword);
+
+    if (mapping != NULL) {
+        emitInstruction(cg, mapping->enter_op, 0, mapping->block_name);
+        printf("Generated ENTER_%s block (keyword: %d)\n", mapping->block_name, keyword);
+    }
+    else {
+        printf("Warning: Unknown block start keyword: %s\n", first_word);
+    }
+}
+
+/*
+ * Function: generateBlockEnd
+ * Purpose: Generate block end using lookup table
+ */
+airlang_void generateBlockEnd(const airlang_strg line, Generator* cg) {
+    // Create a copy for tokenization
+    airlang_char line_copy[1024];
+    strncpy(line_copy, line, sizeof(line_copy) - 1);
+    line_copy[sizeof(line_copy) - 1] = '\0';
+
+    // Find the END keyword
+    airlang_char* token = strtok(line_copy, " \t{}");
+    while (token != NULL) {
+        airlang_intg keyword = getKeywordCode(token);
+
+        if (isInKeywordArray(keyword, BLOCK_END_KEYWORDS, BLOCK_END_COUNT)) {
+            const BlockMapping* mapping = getBlockMapping(keyword);
+
+            if (mapping != NULL) {
+                emitInstruction(cg, mapping->exit_op, 0, mapping->block_name);
+                printf("Generated EXIT_%s block (keyword: %d)\n", mapping->block_name, keyword);
+            }
+            else {
+                printf("Warning: Unknown block end keyword: %s\n", token);
+            }
+            break;
+        }
+        token = strtok(NULL, " \t{}");
+    }
+}
+
+/*
+ * LEGACY FUNCTIONS - NOW MUCH SIMPLER
+ */
+
+ /*
+  * Function: getBlockNameFromKeyword
+  * Purpose: Get block name using lookup table
+  */
+  /*
+   * Function: getKeywordCode
+   * Purpose: Find keyword in your existing keywordTable[]
+   * Returns: The enum index of the keyword, or NO_ATTR if not found
+   */
 airlang_intg getKeywordCode(const airlang_strg word) {
     for (airlang_intg i = 0; i < KWT_SIZE; i++) {
         if (strcmp(word, keywordTable[i]) == 0) {
@@ -513,220 +669,25 @@ airlang_intg getKeywordCode(const airlang_strg word) {
     }
     return NO_ATTR; // Not found
 }
-
-
-/*
- * Function: getBlockNameFromKeyword
- * Purpose: Convert keyword enum to block name string
- */
 const airlang_strg getBlockNameFromKeyword(airlang_intg keyword) {
-    switch (keyword) {
-    case KW_MAIN:
-    case KW_ENDMAIN:
-        return "MAIN";
-    case KW_BRIEFING:
-    case KW_ENDBRIEFING:
-        return "BRIEFING";
-    case KW_WEATHER:
-    case KW_ENDWEATHER:
-        return "WEATHER";
-    case KW_LOADSHEET:
-    case KW_ENDLOADSHEET:
-        return "LOADSHEET";
-    case KW_DISPATCH:
-    case KW_ENDDISPATCH:
-        return "DISPATCH";
-    case KW_AIRCRAFT: 
-        return "AIRCRAFT";
-    case KW_FLIGHT:
-        return "FLIGHT";
-    case KW_ROUTE: 
-        return "ROUTE";
-    case KW_RECEIVEDDATA: 
-    case KW_ENDRECEIVEDDATA: 
-        return "RECEIVEDDATA";
-    case KW_RUNWAYDATA: 
-    case KW_ENDRUNWAYDATA: 
-        return "RUNWAYDATA";
-    case KW_WINDANALYSIS: 
-    case KW_ENDWINDANALYSIS:
-        return "WINDANALYSIS";
-    case KW_SAFETYALERT: 
-    case KW_ENDSAFETYALERT: 
-        return "SAFETYALERT";
-    case KW_REPORT: 
-    case KW_ENDREPORT: 
-        return "REPORT";
-    default:
-        return "UNKNOWN";
-    }
+    const BlockMapping* mapping = getBlockMapping(keyword);
+    return (mapping != NULL) ? mapping->block_name : "UNKNOWN";
 }
 
 /*
  * Function: getBlockOpFromKeyword
- * Purpose: Convert keyword enum to appropriate opcode
+ * Purpose: Get opcode using lookup table
  */
 OpCode getBlockOpFromKeyword(airlang_intg keyword) {
-    switch (keyword) {
-    case KW_MAIN:
-        return OP_ENTER_MAIN;
-    case KW_ENDMAIN:
-        return OP_EXIT_MAIN;
-    case KW_BRIEFING:
-        return OP_ENTER_BRIEFING;
-    case KW_ENDBRIEFING:
-        return OP_EXIT_BRIEFING;
-    case KW_WEATHER:
-        return OP_ENTER_WEATHER;
-    case KW_ENDWEATHER:
-        return OP_EXIT_WEATHER;
-    case KW_LOADSHEET:
-        return OP_ENTER_LOADSHEET;
-    case KW_ENDLOADSHEET:
-        return OP_EXIT_LOADSHEET;
-    case KW_DISPATCH:
-        return OP_ENTER_DISPATCH;
-    case KW_ENDDISPATCH:
-        return OP_EXIT_DISPATCH;
-    case KW_AIRCRAFT: return OP_ENTER_AIRCRAFT;
-   
-    case KW_FLIGHT: return OP_ENTER_FLIGHT;
-   
-    case KW_ROUTE: return OP_ENTER_ROUTE;
-
-    case KW_RECEIVEDDATA: return OP_ENTER_RECEIVEDDATA;
-    case KW_ENDRECEIVEDDATA: return OP_EXIT_RECEIVEDDATA;
-    case KW_RUNWAYDATA: return OP_ENTER_RUNWAYDATA;
-    case KW_ENDRUNWAYDATA: return OP_EXIT_RUNWAYDATA;
-    case KW_WINDANALYSIS: return OP_ENTER_WINDANALYSIS;
-    case KW_ENDWINDANALYSIS: return OP_EXIT_WINDANALYSIS;
-    case KW_SAFETYALERT: return OP_ENTER_SAFETYALERT;
-    case KW_ENDSAFETYALERT: return OP_EXIT_SAFETYALERT;
-    case KW_REPORT: return OP_ENTER_REPORT;
-    case KW_ENDREPORT: return OP_EXIT_REPORT;
-    default:
-        return OP_ENTER_BLOCK; // Generic fallback
-    }
-}
-
-/*
- * Function: isBlockKeyword
- * Purpose: Check if keyword is a block-related keyword
- */
-airlang_intg isBlockKeyword(airlang_intg keyword) {
-    return (keyword == KW_MAIN || keyword == KW_ENDMAIN ||
-        keyword == KW_BRIEFING || keyword == KW_ENDBRIEFING ||
-        keyword == KW_WEATHER || keyword == KW_ENDWEATHER ||
-        keyword == KW_LOADSHEET || keyword == KW_ENDLOADSHEET ||
-        keyword == KW_DISPATCH || keyword == KW_ENDDISPATCH);
-}
-
-/*
- * Function: isBlockStart
- * Purpose: Check if keyword is a block start keyword
- */
-airlang_intg isBlockStart(const airlang_strg line) {
-    // Extract first word from line
-    airlang_char first_word[64];
-    sscanf(line, "%63s", first_word);
-
-    airlang_intg keyword = getKeywordCode(first_word);
-
-    return (keyword == KW_MAIN ||
-        keyword == KW_BRIEFING ||
-        keyword == KW_WEATHER ||
-        keyword == KW_LOADSHEET ||
-        keyword == KW_DISPATCH);
-}
-
-/*
- * Function: isBlockEnd
- * Purpose: Check if keyword is a block end keyword
- */
-airlang_intg isBlockEnd(const airlang_strg line) {
-    // Look for END keywords anywhere in line
-    airlang_char words[10][64];
-    airlang_intg word_count = 0;
-
-    // Simple word extraction
-    airlang_char* token = strtok((char*)line, " \t{}");
-    while (token != NULL && word_count < 10) {
-        strcpy(words[word_count], token);
-        word_count++;
-        token = strtok(NULL, " \t{}");
-    }
-
-    // Check each word for end keywords
-    for (int i = 0; i < word_count; i++) {
-        airlang_intg keyword = getKeywordCode(words[i]);
-        if (keyword == KW_ENDMAIN ||
-            keyword == KW_ENDBRIEFING ||
-            keyword == KW_ENDWEATHER ||
-            keyword == KW_ENDLOADSHEET ||
-            keyword == KW_ENDDISPATCH) {
-            return 1;
+    const BlockMapping* mapping = getBlockMapping(keyword);
+    if (mapping != NULL) {
+        // For END keywords, we need to find the corresponding start keyword
+        if (isInKeywordArray(keyword, BLOCK_END_KEYWORDS, BLOCK_END_COUNT)) {
+            return mapping->exit_op;
+        }
+        else {
+            return mapping->enter_op;
         }
     }
-    return 0;
-}
-
-/*
- * Function: generateBlockStart
- * Purpose: Generate block start using keyword enum
- */
-airlang_void generateBlockStart(const airlang_strg line, Generator* cg) {
-    // Extract first word
-    airlang_char first_word[64];
-    sscanf(line, "%63s", first_word);
-
-    airlang_intg keyword = getKeywordCode(first_word);
-    OpCode block_op = getBlockOpFromKeyword(keyword);
-    const airlang_strg block_name = getBlockNameFromKeyword(keyword);
-
-    // Emit the block entry instruction
-    emitInstruction(cg, block_op, 0, block_name);
-
-    printf("Generated ENTER_%s block (keyword: %d)\n", block_name, keyword);
-}
-
-/*
- * Function: generateBlockEnd
- * Purpose: Generate block end using keyword enum
- */
-airlang_void generateBlockEnd(const airlang_strg line, Generator* cg) {
-    // Find the END keyword in the line
-    airlang_char words[10][64];
-    airlang_intg word_count = 0;
-    airlang_intg end_keyword = NO_ATTR;
-
-    // Extract words
-    airlang_char line_copy[1024];
-    strcpy(line_copy, line);
-    airlang_char* token = strtok(line_copy, " \t{}");
-
-    while (token != NULL && word_count < 10) {
-        strcpy(words[word_count], token);
-        airlang_intg kw = getKeywordCode(words[word_count]);
-
-        // Check if this is an END keyword
-        if (kw == KW_ENDMAIN || kw == KW_ENDBRIEFING ||
-            kw == KW_ENDWEATHER || kw == KW_ENDLOADSHEET ||
-            kw == KW_ENDDISPATCH) {
-            end_keyword = kw;
-            break;
-        }
-
-        word_count++;
-        token = strtok(NULL, " \t{}");
-    }
-
-    if (end_keyword != NO_ATTR) {
-        OpCode block_op = getBlockOpFromKeyword(end_keyword);
-        const airlang_strg block_name = getBlockNameFromKeyword(end_keyword);
-
-        // Emit the block exit instruction
-        emitInstruction(cg, block_op, 0, block_name);
-
-        printf("Generated EXIT_%s block (keyword: %d)\n", block_name, end_keyword);
-    }
+    return OP_ENTER_BLOCK; // Generic fallback
 }

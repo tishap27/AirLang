@@ -131,6 +131,50 @@ typedef struct {
 
 }Generator;
 
+
+// Table of block start keywords
+static const airlang_intg BLOCK_START_KEYWORDS[] = {
+	KW_MAIN, KW_BRIEFING, KW_WEATHER, KW_LOADSHEET, KW_DISPATCH,
+	KW_AIRCRAFT, KW_FLIGHT, KW_ROUTE, KW_RECEIVEDDATA, KW_RUNWAYDATA,
+	KW_WINDANALYSIS, KW_SAFETYALERT, KW_REPORT
+};
+static const airlang_intg BLOCK_START_COUNT = sizeof(BLOCK_START_KEYWORDS) / sizeof(airlang_intg);
+
+// Table of block end keywords
+static const airlang_intg BLOCK_END_KEYWORDS[] = {
+	KW_ENDMAIN, KW_ENDBRIEFING, KW_ENDWEATHER, KW_ENDLOADSHEET, KW_ENDDISPATCH,
+	KW_ENDRECEIVEDDATA, KW_ENDRUNWAYDATA, KW_ENDWINDANALYSIS, KW_ENDSAFETYALERT, KW_ENDREPORT
+};
+static const airlang_intg BLOCK_END_COUNT = sizeof(BLOCK_END_KEYWORDS) / sizeof(airlang_intg);
+
+// Mapping table for keyword to opcode (start blocks)
+typedef struct {
+	airlang_intg keyword;
+	OpCode enter_op;
+	OpCode exit_op;
+	const airlang_strg block_name;
+} BlockMapping;
+
+static const BlockMapping BLOCK_MAPPINGS[] = {
+	{KW_MAIN,        OP_ENTER_MAIN,        OP_EXIT_MAIN,        "MAIN"},
+	{KW_BRIEFING,    OP_ENTER_BRIEFING,    OP_EXIT_BRIEFING,    "BRIEFING"},
+	{KW_WEATHER,     OP_ENTER_WEATHER,     OP_EXIT_WEATHER,     "WEATHER"},
+	{KW_LOADSHEET,   OP_ENTER_LOADSHEET,   OP_EXIT_LOADSHEET,   "LOADSHEET"},
+	{KW_DISPATCH,    OP_ENTER_DISPATCH,    OP_EXIT_DISPATCH,    "DISPATCH"},
+	{KW_AIRCRAFT,    OP_ENTER_AIRCRAFT,    OP_ENTER_AIRCRAFT,   "AIRCRAFT"},     // No exit for single keywords
+	{KW_FLIGHT,      OP_ENTER_FLIGHT,      OP_ENTER_FLIGHT,     "FLIGHT"},
+	{KW_ROUTE,       OP_ENTER_ROUTE,       OP_ENTER_ROUTE,      "ROUTE"},
+	{KW_RECEIVEDDATA, OP_ENTER_RECEIVEDDATA, OP_EXIT_RECEIVEDDATA, "RECEIVEDDATA"},
+	{KW_RUNWAYDATA,  OP_ENTER_RUNWAYDATA,  OP_EXIT_RUNWAYDATA,  "RUNWAYDATA"},
+	{KW_WINDANALYSIS, OP_ENTER_WINDANALYSIS, OP_EXIT_WINDANALYSIS, "WINDANALYSIS"},
+	{KW_SAFETYALERT, OP_ENTER_SAFETYALERT, OP_EXIT_SAFETYALERT, "SAFETYALERT"},
+	{KW_REPORT,      OP_ENTER_REPORT,      OP_EXIT_REPORT,      "REPORT"}
+};
+static const airlang_intg BLOCK_MAPPING_COUNT = sizeof(BLOCK_MAPPINGS) / sizeof(BlockMapping);
+
+
+
+
 /*Function declarations now */
 
 airlang_void processFileGeneration(const airlang_strg source, const airlang_strg content);
@@ -161,7 +205,7 @@ airlang_intg isCalculation(const airlang_strg line);
 static airlang_void removeQuotes(airlang_strg str);
 
 
-airlang_intg getKeywordCode(const airlang_strg word);
+//airlang_intg getKeywordCode(const airlang_strg word);
 
 const airlang_strg getBlockNameFromKeyword(airlang_intg keyword);
 OpCode getBlockOpFromKeyword(airlang_intg keyword);
@@ -174,5 +218,27 @@ airlang_void generateBlockStart(const airlang_strg line, Generator* cg);
 
 airlang_void generateBlockEnd(const airlang_strg line, Generator* cg);
 
+/*
+ * Block keyword checking functions
+ */
+airlang_intg isBlockKeyword(airlang_intg keyword);
+airlang_intg isBlockStart(const airlang_strg line);
+airlang_intg isBlockEnd(const airlang_strg line);
 
+/*
+ * Block code generation functions
+ */
+airlang_void generateBlockStart(const airlang_strg line, Generator* cg);
+airlang_void generateBlockEnd(const airlang_strg line, Generator* cg);
+
+/*
+ * Block mapping helper functions
+ */
+const airlang_strg getBlockNameFromKeyword(airlang_intg keyword);
+OpCode getBlockOpFromKeyword(airlang_intg keyword);
+
+/*
+ * Existing function that should already be declared
+ */
+airlang_intg getKeywordCode(const airlang_strg word);
 #endif
