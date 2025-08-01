@@ -53,7 +53,11 @@ typedef enum {
 	OP_LOAD_STR,
 	OP_STORE_VAR,
 	OP_PRINT,
-	OP_HALT
+	OP_HALT,
+	OP_ADD,          
+	OP_SUB,         
+	OP_MUL,          
+	OP_DIV
 
 }OpCode;
 
@@ -95,6 +99,10 @@ airlang_intg isPrintStatement(const airlang_strg line);
 airlang_void generateAssignment(const airlang_strg line, Generator* cg);
 
 airlang_intg isAssignment(const airlang_strg line);
+
+airlang_void generateCalculation(const airlang_strg line, Generator* cg);
+
+airlang_intg isCalculation(const airlang_strg line);
 
 
 

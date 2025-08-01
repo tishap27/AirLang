@@ -93,6 +93,18 @@ airlang_void displayGeneratedCode(const Generator* cg) {
         case OP_HALT:
             printf("HALT\n");
             break;
+        case OP_ADD:
+            printf("ADD\n");
+            break;
+        case OP_SUB:
+            printf("SUB\n");
+            break;
+        case OP_MUL:
+            printf("MUL\n");
+            break;
+        case OP_DIV:
+            printf("DIV\n");
+            break;
         default:
             printf("UNKNOWN\n");
             break;
@@ -147,6 +159,9 @@ airlang_void parseAndGenerate(const airlang_strg content, Generator* cg) {
                 }
                 else if (isPrintStatement(trimmed)) {
                     generatePrint(trimmed, cg);
+                }
+                else if (isCalculation(trimmed)) {
+                    generateCalculation(trimmed, cg);
                 }
             }
 
@@ -256,6 +271,81 @@ airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
 
 airlang_intg isAssignment(const airlang_strg line) {
     return strchr(line, ':') != NULL && !strstr(line, "PRINT");
+}
+
+airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
+    // For now, just emit a comment instruction
+    airlang_char var_name[64] = { 0 };
+    airlang_char operand1_str[64] = { 0 };
+    airlang_char operand2_str[64] = { 0 };
+
+    // Find '=' character
+    const char* eq_pos = strchr(line, '=');
+    if (!eq_pos) return;
+
+    // Extract variable name (left side)  Chcek 7 + 7 ; 
+    airlang_intg var_len = (airlang_intg)(eq_pos - line);
+
+
+    // Trim trailing whitespace from variable name
+    while (var_len > 0 && (line[var_len - 1] == ' ' || line[var_len - 1] == '\t')) var_len--;
+    strncpy(var_name, line, var_len);
+    var_name[var_len] = '\0';
+
+
+
+    // Pointer to right side (expression)
+    const char* rhs = eq_pos + 1;
+    // Skip leading whitespace
+    while (*rhs == ' ' || *rhs == '\t') rhs++;
+
+
+
+    // Parse first operand (number) until space or '+' PLUS_T
+    airlang_intg pos = 0;
+    while (rhs[pos] && rhs[pos] != ' ' && rhs[pos] != '\t' && rhs[pos] != '+') {
+        operand1_str[pos] = rhs[pos];
+        pos++;
+        if (pos >= 63) break;  // safety check
+    }
+    operand1_str[pos] = '\0';
+
+    // Skip spaces after first operand
+    while (rhs[pos] == ' ' || rhs[pos] == '\t') pos++;
+
+
+
+    // Next character must be '+'
+    if (rhs[pos] != '+') return;
+    pos++; // skip '+'
+
+    // Skip spaces after '+'
+    while (rhs[pos] == ' ' || rhs[pos] == '\t') pos++;
+
+    // Parse second operand (number) until space or end
+    airlang_intg pos2 = 0;
+    while (rhs[pos] && rhs[pos] != ' ' && rhs[pos] != '\t' && rhs[pos] != ';') {
+        operand2_str[pos2] = rhs[pos];
+        pos2++;
+        pos++;
+        if (pos2 >= 63) break;  // safety check
+    }
+    operand2_str[pos2] = '\0';
+
+    // Convert operands to double
+    double op1 = atof(operand1_str);
+    double op2 = atof(operand2_str);
+
+    // Emit instructions: LOAD_NUM op1, LOAD_NUM op2, ADD, STORE_VAR var_name
+    emitInstruction(cg, OP_LOAD_NUM, op1, "");
+    emitInstruction(cg, OP_LOAD_NUM, op2, "");
+    emitInstruction(cg, OP_ADD, 0, "");         // this fixed forr now just to check 7 + 7 
+    emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+
+}
+
+airlang_intg isCalculation(const airlang_strg line) {
+    return strchr(line, '=') != NULL && !strchr(line, ':');
 }
 
 airlang_void writeBinaryFile(const Generator* cg) {
