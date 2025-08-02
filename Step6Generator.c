@@ -43,6 +43,11 @@
 #include <string.h>
 #include <ctype.h>
 
+static double generator_dep_lat = 0.0;
+static double generator_dep_lon = 0.0;
+static double generator_arr_lat = 0.0;
+static double generator_arr_lon = 0.0;
+static int coords_initialized = 0;
 
 
 
@@ -178,6 +183,21 @@ airlang_void displayGeneratedCode(const Generator* cg) {
        /* case OP_ENTER_BLOCK:
             printf("ENTER_BLOCK\n");
             break;*/
+        case OP_PRINT_INTERPOLATED:
+            printf("PRINT_INTERPOLATED \"%s\"\n", inst->operand.str_operand);
+            break;
+        case OP_STORE_AIRCRAFT_ID:
+            printf("STORE_AIRCRAFT_ID %s\n", inst->operand.str_operand);
+            break;
+        case OP_STORE_COORDS:
+            printf("STORE_COORDS %s\n", inst->operand.str_operand);
+            break;
+        case OP_STORE_DATE:
+            printf("STORE_DATE %s\n", inst->operand.str_operand);
+            break;
+        case OP_CALC_DISTANCE:
+            printf("CALC_DISTANCE\n");
+            break;
         default:
             printf("UNKNOWN\n");
             break;
@@ -316,9 +336,14 @@ airlang_void generatePrint(const airlang_strg line, Generator* cg) {
         removeQuotes(print_content);
         // Remove quotes if present
       
-
-        emitInstruction(cg, OP_LOAD_STR, 0, print_content);
-        emitInstruction(cg, OP_PRINT, 0, "");
+        if (strchr(print_content, '+')) {
+            emitInstruction(cg, OP_PRINT_INTERPOLATED, 0, print_content);
+        }
+        else {
+            removeQuotes(print_content);
+            emitInstruction(cg, OP_LOAD_STR, 0, print_content);
+            emitInstruction(cg, OP_PRINT, 0, "");
+        }
     }
 }
 
@@ -332,115 +357,114 @@ airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
     airlang_char var_name[64];
     airlang_char value_str[256];
 
-    // Simple parsing: VarName: Value;
-    if (sscanf(line, "%63[^:]: %255[^;]", var_name, value_str) == 2) {
-        // Trim spaces
-        trimWhitespace(var_name);
-        trimWhitespace(value_str);
 
-       
-        // Check if value is numeric
-        airlang_doub num_val;
-        if (sscanf(value_str, "%lf", &num_val) == 1) {
-            // Numeric assignment
-            emitInstruction(cg, OP_LOAD_NUM, num_val, "");
-            //emitInstruction(cg, OP_STORE_VAR, 0, value_str);
-        }
-        else {
+    if (strchr(line, ':')) {
+        // Simple parsing: VarName: Value;
+        if (sscanf(line, "%63[^:]: %255[^;]", var_name, value_str) == 2) {
+            // Trim spaces
+            trimWhitespace(var_name);
+            trimWhitespace(value_str);
 
-            removeQuotes(value_str);
-            emitInstruction(cg, OP_LOAD_STR, 0, value_str);
-            // String assignment
-            // Remove quotes if present
-            //if (value_str[0] == '"') {
-              //  value_str++;
-               // airlang_intg len = (airlang_intg)strlen(trimmed_val);
-               // if (len > 0 && trimmed_val[len - 1] == '"') {
-                    //trimmed_val[len - 1] = '\0';
-               // }
+            if (is_aircraft_identifier(value_str)) {
+                emitInstruction(cg, OP_LOAD_STR, 0, value_str);
+                emitInstruction(cg, OP_STORE_AIRCRAFT_ID, 0, var_name);
             }
-           // emitInstruction(cg, OP_LOAD_STR, 0, trimmed_val);
-            //emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
-        emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+            else if (is_coordinate_format(value_str)) {
+                emitInstruction(cg, OP_LOAD_STR, 0, value_str);
+                emitInstruction(cg, OP_STORE_COORDS, 0, var_name);
+
+                printf("DEBUG: Parsing coordinates: %s for variable: %s\n", value_str, var_name);
+
+
+                // Parse and cache coordinates for later distance calculation:
+                airlang_doub lat, lon;
+                if (parse_coordinates(value_str, &lat, &lon)) {
+                    printf("DEBUG: Parsed lat=%.4f, lon=%.4f\n", lat, lon);
+                    if (strcmp(var_name, "DepartureCoords") == 0) {
+                        generator_dep_lat = lat;
+                        generator_dep_lon = lon;
+                        coords_initialized |= 1;
+                        printf("DEBUG: Set departure coordinates\n");
+                    }
+                    else if (strcmp(var_name, "ArrivalCoords") == 0) {
+                        generator_arr_lat = lat;
+                        generator_arr_lon = lon;
+                        coords_initialized |= 2;
+                    }
+                }
+            }
+            else if (is_date_format(value_str)) {
+                removeQuotes(value_str);
+                emitInstruction(cg, OP_LOAD_STR, 0, value_str);
+                emitInstruction(cg, OP_STORE_DATE, 0, var_name);
+            }
+            else {
+                // Check if value is numeric
+                airlang_doub num_val;
+                if (sscanf(value_str, "%lf", &num_val) == 1) {
+                    // Numeric assignment
+                    emitInstruction(cg, OP_LOAD_NUM, num_val, "");
+                    //emitInstruction(cg, OP_STORE_VAR, 0, value_str);
+                }
+                else {
+
+                    removeQuotes(value_str);
+                    emitInstruction(cg, OP_LOAD_STR, 0, value_str);
+                    // String assignment
+                    // Remove quotes if present
+                    //if (value_str[0] == '"') {
+                      //  value_str++;
+                       // airlang_intg len = (airlang_intg)strlen(trimmed_val);
+                       // if (len > 0 && trimmed_val[len - 1] == '"') {
+                            //trimmed_val[len - 1] = '\0';
+                       // }
+                }
+                // emitInstruction(cg, OP_LOAD_STR, 0, trimmed_val);
+                 //emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
+                emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+            }
         }
     }
+    else if (strchr(line, '=')) {
+        // Equals syntax : VarName = Expression;
+        airlang_char* eq_pos = strchr(line, '=');
+        airlang_intg name_len = (airlang_intg)(eq_pos - line);
 
+        strncpy(var_name, line, name_len);
+        var_name[name_len] = '\0';
+        trimWhitespace(var_name);
+
+        airlang_strg expr = eq_pos + 1;
+        while (isspace(*expr)) expr++;
+
+        // Remove semicolon
+        airlang_char clean_expr[256];
+        airlang_intg i = 0;
+        while (expr[i] && expr[i] != ';' && i < sizeof(clean_expr) - 1) {
+            clean_expr[i] = expr[i];
+            i++;
+        }
+        clean_expr[i] = '\0';
+
+        if (strstr(clean_expr, "AIRPATH")) {
+            emitInstruction(cg, OP_CALC_DISTANCE, 0, "");
+            emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+        }
+        else {
+            // Use Writer's expression evaluator
+            airlang_doub result = evaluate_expression_with_distance(clean_expr);
+            emitInstruction(cg, OP_LOAD_NUM, result, "");
+            emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+        }
+
+    }
+}
 
 
 airlang_intg isAssignment(const airlang_strg line) {
     return strchr(line, ':') != NULL && !strstr(line, "PRINT");
 }
 
-/*airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
-    // For now, just emit a comment instruction
-    airlang_char var_name[64] = { 0 };
-    airlang_char operand1_str[64] = { 0 };
-    airlang_char operand2_str[64] = { 0 };
-
-    // Find '=' character
-    const char* eq_pos = strchr(line, '=');
-    if (!eq_pos) return;
-
-    // Extract variable name (left side)  Chcek 7 + 7 ; 
-    airlang_intg var_len = (airlang_intg)(eq_pos - line);
-
-
-    // Trim trailing whitespace from variable name
-    while (var_len > 0 && (line[var_len - 1] == ' ' || line[var_len - 1] == '\t')) var_len--;
-    strncpy(var_name, line, var_len);
-    var_name[var_len] = '\0';
-
-
-
-    // Pointer to right side (expression)
-    const char* rhs = eq_pos + 1;
-    // Skip leading whitespace
-    while (*rhs == ' ' || *rhs == '\t') rhs++;
-
-
-
-    // Parse first operand (number) until space or '+' PLUS_T
-    airlang_intg pos = 0;
-    while (rhs[pos] && rhs[pos] != ' ' && rhs[pos] != '\t' && rhs[pos] != '+') {
-        operand1_str[pos] = rhs[pos];
-        pos++;
-        if (pos >= 63) break;  // safety check
-    }
-    operand1_str[pos] = '\0';
-
-    // Skip spaces after first operand
-    while (rhs[pos] == ' ' || rhs[pos] == '\t') pos++;
-
-
-
-    // Next character must be '+'
-    if (rhs[pos] != '+') return;
-    pos++; // skip '+'
-
-    // Skip spaces after '+'
-    while (rhs[pos] == ' ' || rhs[pos] == '\t') pos++;
-
-    // Parse second operand (number) until space or end
-    airlang_intg pos2 = 0;
-    while (rhs[pos] && rhs[pos] != ' ' && rhs[pos] != '\t' && rhs[pos] != ';') {
-        operand2_str[pos2] = rhs[pos];
-        pos2++;
-        pos++;
-        if (pos2 >= 63) break;  // safety check
-    }
-    operand2_str[pos2] = '\0';
-
-    // Convert operands to double
-    double op1 = atof(operand1_str);
-    double op2 = atof(operand2_str);
-
-    // Emit instructions: LOAD_NUM op1, LOAD_NUM op2, ADD, STORE_VAR var_name
-    emitInstruction(cg, OP_LOAD_NUM, op1, "");
-    emitInstruction(cg, OP_LOAD_NUM, op2, "");
-    emitInstruction(cg, ARTHOP_ADD, 0, "");         // this fixed forr now just to check 7 + 7 
-    emitInstruction(cg, OP_STORE_VAR, 0, var_name);
-
-}*/
 
 
 airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
@@ -449,24 +473,52 @@ airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
 
     // Split at '='
     char* eq_pos = strchr(line, '=');
-    if (!eq_pos) return;
+    if (eq_pos == NULL) return;
 
     // Get variable name
     strncpy(var_name, line, eq_pos - line);
+    var_name[eq_pos - line] = '\0';
       trimWhitespace(var_name);
 
     // Get expression
     strcpy(expr, eq_pos + 1);
     trimWhitespace(expr);
 
-    // Simple support for addition only (as per original)
-    airlang_doub op1, op2;
-    if (sscanf(expr, "%lf + %lf", &op1, &op2) == 2) {
-        emitInstruction(cg, OP_LOAD_NUM, op1, "");
-        emitInstruction(cg, OP_LOAD_NUM, op2, "");
-        emitInstruction(cg, ARTHOP_ADD, 0, "");
-        emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+    // Remove semicolon
+    airlang_char* semicolon = strchr(expr, ';');
+    if (semicolon) *semicolon = '\0';
+
+    // Handle different expression types
+    if (strstr(expr, "AIRPATH")) {
+
+        if ((coords_initialized & 3) == 3) { // Both departure and arrival set
+            // Use Writer's distance calculation
+            airlang_doub distance = calcLastLegDistance();
+           // printf("DEBUG: AIRPATH calculated distance: %.2f\n", distance);
+            // Use Writer's distance calculation
+            //airlang_doub distance = calcLastLegDistance();
+           // printf("DEBUG: %.2f,\n", distance);
+            emitInstruction(cg, OP_CALC_DISTANCE, distance, "");
+        }
+        else {
+            printf("ERROR: Coordinates not properly initialized for AIRPATH calculation\n");
+            printf("coords_initialized = %d (need 3 for both coords)\n", coords_initialized);
+            emitInstruction(cg, OP_LOAD_NUM, 0.0, ""); // Default to 0
+        }
     }
+
+    else if (strstr(expr, "+") || strstr(expr, "-") || strstr(expr, "*") || strstr(expr, "/")) {
+        // Use Writer's expression evaluator
+        airlang_doub result = evaluate_expression_with_distance(expr);
+        emitInstruction(cg, OP_LOAD_NUM, result, "");
+    }
+    else {
+        // Simple value assignment
+        airlang_doub value = atof(expr);
+        emitInstruction(cg, OP_LOAD_NUM, value, "");
+    }
+        emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+    
 }
 
 
