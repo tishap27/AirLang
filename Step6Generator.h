@@ -117,7 +117,9 @@ typedef enum {
 	OP_STORE_COORDS,
 	OP_STORE_DATE,
 	OP_CALC_DISTANCE,
-	
+
+	OP_CALC_HEADWIND,
+	OP_CALC_CROSSWIND,
 	OP_ENTER_BLOCK  // fallback generic opcode
 
 }OpCode;

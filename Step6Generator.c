@@ -198,6 +198,12 @@ airlang_void displayGeneratedCode(const Generator* cg) {
         case OP_CALC_DISTANCE:
             printf("CALC_DISTANCE\n");
             break;
+        case OP_CALC_HEADWIND:
+            printf("CALC_HEADWIND\n");
+            break;
+        case OP_CALC_CROSSWIND:
+            printf("CALC_CROSSWIND\n");
+            break;
         default:
             printf("UNKNOWN\n");
             break;
@@ -505,6 +511,12 @@ airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
             printf("coords_initialized = %d (need 3 for both coords)\n", coords_initialized);
             emitInstruction(cg, OP_LOAD_NUM, 0.0, ""); // Default to 0
         }
+    }
+    else if (strstr(expr, "HEADWIND()")) {
+        emitInstruction(cg, OP_CALC_HEADWIND, 0, "");
+    }
+    else if (strstr(expr, "CROSSWIND()")) {
+        emitInstruction(cg, OP_CALC_CROSSWIND, 0, "");
     }
 
     else if (strstr(expr, "+") || strstr(expr, "-") || strstr(expr, "*") || strstr(expr, "/")) {
