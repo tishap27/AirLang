@@ -204,6 +204,9 @@ airlang_void displayGeneratedCode(const Generator* cg) {
         case OP_CALC_CROSSWIND:
             printf("CALC_CROSSWIND\n");
             break;
+        case OP_CALC_EXPRESSION:
+            printf("CALC_EXPRESSION \"%s\"\n", inst->operand.str_operand);
+            break;
         default:
             printf("UNKNOWN\n");
             break;
@@ -518,6 +521,10 @@ airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
     else if (strstr(expr, "CROSSWIND()")) {
         emitInstruction(cg, OP_CALC_CROSSWIND, 0, "");
     }
+    else if (contains_variables(expr) && (strstr(expr, "+") || strstr(expr, "-") || strstr(expr, "*") || strstr(expr, "/"))) {
+      
+        emitInstruction(cg, OP_CALC_EXPRESSION, 0, expr);
+    }
 
     else if (strstr(expr, "+") || strstr(expr, "-") || strstr(expr, "*") || strstr(expr, "/")) {
         // Use Writer's expression evaluator
@@ -752,4 +759,37 @@ OpCode getBlockOpFromKeyword(airlang_intg keyword) {
         }
     }
     return OP_ENTER_BLOCK; // Generic fallback
+}
+
+airlang_intg contains_variables(const airlang_strg expr) {
+    airlang_char temp_expr[256];
+    strcpy_s(temp_expr, sizeof(temp_expr), expr);
+
+    // Remove spaces
+    airlang_char clean_expr[256] = { 0 };
+    airlang_intg i = 0, j = 0;
+    while (temp_expr[i]) {
+        if (!isspace(temp_expr[i])) {
+            clean_expr[j++] = temp_expr[i];
+        }
+        i++;
+    }
+    clean_expr[j] = '\0';
+
+    // Split by operators and check each token
+    airlang_char* context = NULL;
+    airlang_char* token = strtok_s(clean_expr, "+-*/()", &context);
+
+    while (token != NULL) {
+        // Skip if it's just a number or negative number
+        if (!(isdigit(token[0]) || (token[0] == '-' && isdigit(token[1])))) {
+            // Check if it's a variable name (starts with letter)
+            if (isalpha(token[0])) {
+                return 1; // Found a variable
+            }
+        }
+        token = strtok_s(NULL, "+-*/()", &context);
+    }
+
+    return 0; // No variables found
 }

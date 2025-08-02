@@ -120,6 +120,7 @@ typedef enum {
 
 	OP_CALC_HEADWIND,
 	OP_CALC_CROSSWIND,
+	OP_CALC_EXPRESSION,
 	OP_ENTER_BLOCK  // fallback generic opcode
 
 }OpCode;
@@ -250,4 +251,5 @@ OpCode getBlockOpFromKeyword(airlang_intg keyword);
  * Existing function that should already be declared
  */
 airlang_intg getKeywordCode(const airlang_strg word);
+airlang_intg contains_variables(const airlang_strg expr);
 #endif
