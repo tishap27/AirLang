@@ -207,6 +207,18 @@ airlang_void displayGeneratedCode(const Generator* cg) {
         case OP_CALC_EXPRESSION:
             printf("CALC_EXPRESSION \"%s\"\n", inst->operand.str_operand);
             break;
+        case OP_IF:
+            printf("IF\n");
+            break;
+        case OP_ELSE:
+            printf("ELSE\n");
+            break;
+        case OP_ENDIF:
+            printf("ENDIF\n");
+            break;
+        case OP_CONDITION:
+            printf("CONDITION \"%s\"\n", inst->operand.str_operand);
+            break;
         default:
             printf("UNKNOWN\n");
             break;
@@ -282,7 +294,15 @@ airlang_void parseAndGenerate(const airlang_strg content, Generator* cg) {
                         generateBlockEnd(line, cg);
                     }
                 }
-
+                else if (isIfStatement(line)) {
+                    generateIfStatement(line, cg);
+                }
+                else if (isElseStatement(line)) {
+                    generateElseStatement(cg);
+                }
+                else if (isEndIfStatement(line)) {
+                    generateEndIfStatement(cg);
+                }
 
                 // Generate code based on line type
                 else if (isAssignment(line)) {
@@ -792,4 +812,47 @@ airlang_intg contains_variables(const airlang_strg expr) {
     }
 
     return 0; // No variables found
+}
+
+
+airlang_intg isIfStatement(const airlang_strg line) {
+    return strstr(line, "IF ") != NULL && strstr(line, " THEN") != NULL;
+}
+
+airlang_intg isElseStatement(const airlang_strg line) {
+    airlang_char trimmed[1024];
+    strcpy(trimmed, line);
+    trimWhitespace(trimmed);
+    return strcmp(trimmed, "ELSE") == 0;
+}
+
+airlang_intg isEndIfStatement(const airlang_strg line) {
+    return strstr(line, "ENDIF") != NULL;
+}
+
+airlang_void generateIfStatement(const airlang_strg line, Generator* cg) {
+    // Extract condition between IF and THEN
+    airlang_char* if_pos = strstr(line, "IF ");
+    airlang_char* then_pos = strstr(line, " THEN");
+
+    if (if_pos && then_pos && if_pos < then_pos) {
+        if_pos += 3; // Skip "IF "
+        airlang_intg condition_len = (airlang_intg)(then_pos - if_pos);
+        airlang_char condition[256];
+        strncpy(condition, if_pos, condition_len);
+        condition[condition_len] = '\0';
+        trimWhitespace(condition);
+
+        // Just emit the condition - VM will handle evaluation
+        emitInstruction(cg, OP_CONDITION, 0, condition);
+        emitInstruction(cg, OP_IF, 0, "");
+    }
+}
+
+airlang_void generateElseStatement(Generator* cg) {
+    emitInstruction(cg, OP_ELSE, 0, "");
+}
+
+airlang_void generateEndIfStatement(Generator* cg) {
+    emitInstruction(cg, OP_ENDIF, 0, "");
 }

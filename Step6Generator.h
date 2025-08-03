@@ -121,6 +121,10 @@ typedef enum {
 	OP_CALC_HEADWIND,
 	OP_CALC_CROSSWIND,
 	OP_CALC_EXPRESSION,
+	OP_IF,                    // Start of IF block
+	OP_ELSE,                  // ELSE block  
+	OP_ENDIF,                 // End of IF block
+	OP_CONDITION,
 	OP_ENTER_BLOCK  // fallback generic opcode
 
 }OpCode;
@@ -252,4 +256,11 @@ OpCode getBlockOpFromKeyword(airlang_intg keyword);
  */
 airlang_intg getKeywordCode(const airlang_strg word);
 airlang_intg contains_variables(const airlang_strg expr);
+
+airlang_intg isIfStatement(const airlang_strg line);
+airlang_intg isElseStatement(const airlang_strg line);
+airlang_intg isEndIfStatement(const airlang_strg line);
+airlang_void generateIfStatement(const airlang_strg line, Generator* cg);
+airlang_void generateElseStatement(Generator* cg);
+airlang_void generateEndIfStatement(Generator* cg);
 #endif
