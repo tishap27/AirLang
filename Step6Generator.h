@@ -263,4 +263,6 @@ airlang_intg isEndIfStatement(const airlang_strg line);
 airlang_void generateIfStatement(const airlang_strg line, Generator* cg);
 airlang_void generateElseStatement(Generator* cg);
 airlang_void generateEndIfStatement(Generator* cg);
+airlang_void generateRequestStatement(const airlang_strg line, Generator* cg);
+static airlang_void removeDateQuotes(airlang_strg str);
 #endif

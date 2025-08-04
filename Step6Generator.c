@@ -253,13 +253,43 @@ airlang_void generateCode(const airlang_strg source_content, Generator* cg) {
 
 /* Helper to remove quotes from strings */
 static void removeQuotes(airlang_strg str) {
-    if (IS_QUOTE(str[0])) {
+    if (str == NULL || strlen == 0) {
+        return;
+    }
+    int len = (airlang_intg)strlen(str);
+    if (str[0] == '"') {
+        memmove(str, str + 1, len);
+        len--;
+    }
+    // Remove trailing quote
+    if (len > 0 && str[len - 1] == '"') {
+        str[len - 1] = '\0';
+    }
+
+    /*if (IS_QUOTE(str[0])) {
         memmove(str, str + 1, strlen(str));
         if (IS_QUOTE(str[strlen(str) - 1])) {
             str[strlen(str) - 1] = '\0';
         }
-    }
+    }*/
 }
+
+//specially for date "2025-08-03" not "'2025-08-03'"
+static airlang_void removeDateQuotes(airlang_strg str) {
+    if (str == NULL) return;
+
+    airlang_char* src = str;
+    airlang_char* dst = str;
+
+    while (*src) {
+        if (*src != '"' && *src != '\'') {
+            *dst++ = *src;
+        }
+        src++;
+    }
+    *dst = '\0';
+}
+
 airlang_void parseAndGenerate(const airlang_strg content, Generator* cg) {
     airlang_char line[1024];
     airlang_intg i = 0, line_start = 0;
@@ -279,43 +309,48 @@ airlang_void parseAndGenerate(const airlang_strg content, Generator* cg) {
             if (strlen(line) > 0 && line[0] != '^' && line[0] != '%') {
 
                 //Checking block 
+                if (strstr(line, "REQUEST") && strstr(line, "FROM")) {
+                    generateRequestStatement(line, cg);
+                }
+                else {
 
-                // Extract first word to check for keywords
-                airlang_char first_word[64];
-                sscanf(line, "%63s", first_word);
-                airlang_intg keyword = getKeywordCode(first_word);
+                    // Extract first word to check for keywords
+                    airlang_char first_word[64];
+                    if (sscanf(line, "%63s", first_word) == 1) {
+                        airlang_intg keyword = getKeywordCode(first_word);
 
-                // CHECK FOR BLOCK STRUCTURE USING KEYWORDS
-                if (isBlockKeyword(keyword)) {
-                    if (isBlockStart(line)) {
-                        generateBlockStart(line, cg);
+                        // CHECK FOR BLOCK STRUCTURE USING KEYWORDS
+                        if (isBlockKeyword(keyword)) {
+                            if (isBlockStart(line)) {
+                                generateBlockStart(line, cg);
+                            }
+                            else if (isBlockEnd(line)) {
+                                generateBlockEnd(line, cg);
+                            }
+                        }
+                        else if (isIfStatement(line)) {
+                            generateIfStatement(line, cg);
+                        }
+                        else if (isElseStatement(line)) {
+                            generateElseStatement(cg);
+                        }
+                        else if (isEndIfStatement(line)) {
+                            generateEndIfStatement(cg);
+                        }
+
+                        // Generate code based on line type
+                        else if (isAssignment(line)) {
+                            generateAssignment(line, cg);
+                        }
+                        else if (isPrintStatement(line)) {
+                            generatePrint(line, cg);
+                        }
+                        else if (isCalculation(line)) {
+                            generateCalculation(line, cg);
+                        }
                     }
-                    else if (isBlockEnd(line)) {
-                        generateBlockEnd(line, cg);
-                    }
-                }
-                else if (isIfStatement(line)) {
-                    generateIfStatement(line, cg);
-                }
-                else if (isElseStatement(line)) {
-                    generateElseStatement(cg);
-                }
-                else if (isEndIfStatement(line)) {
-                    generateEndIfStatement(cg);
-                }
-
-                // Generate code based on line type
-                else if (isAssignment(line)) {
-                    generateAssignment(line, cg);
-                }
-                else if (isPrintStatement(line)) {
-                    generatePrint(line, cg);
-                }
-                else if (isCalculation(line)) {
-                    generateCalculation(line, cg);
                 }
             }
-
             line_start = i + 1;
         }
         i++;
@@ -423,7 +458,7 @@ airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
                 }
             }
             else if (is_date_format(value_str)) {
-                removeQuotes(value_str);
+                removeDateQuotes(value_str);
                 emitInstruction(cg, OP_LOAD_STR, 0, value_str);
                 emitInstruction(cg, OP_STORE_DATE, 0, var_name);
             }
@@ -855,4 +890,30 @@ airlang_void generateElseStatement(Generator* cg) {
 
 airlang_void generateEndIfStatement(Generator* cg) {
     emitInstruction(cg, OP_ENDIF, 0, "");
+}
+
+/*REQUEST statements properly */
+airlang_void generateRequestStatement(const airlang_strg line, Generator* cg) {
+    airlang_char service_type[64];
+    airlang_char url[256];
+
+    // Parse: REQUEST METAR FROM "https://airlangMetar.fly"
+    if (sscanf(line, "REQUEST %63s FROM %255s", service_type, url) == 2) {
+        // Remove quotes and semicolon from URL
+        removeQuotes(url);
+
+        // Remove semicolon if present
+        int len = (airlang_intg)strlen(url);
+        if (len > 0 && url[len - 1] == ';') {
+            url[len - 1] = '\0';
+        }
+
+        // Generate proper instructions
+        emitInstruction(cg, OP_LOAD_STR, 0, url);
+
+        // Create proper variable name
+        airlang_char var_name[128];
+        snprintf(var_name, sizeof(var_name), "REQUEST_%s_FROM", service_type);
+        emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+    }
 }
