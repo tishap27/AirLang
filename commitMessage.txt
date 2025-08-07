@@ -1,9 +1,8 @@
-Add: AX7 - Basic Virtual Machine
+Update: standalone VM executable with build configurations
 
-- Update compilers.c and compilers.h to include main7Vm.c
-- Add bytecode loading with magic number validation
-- Implement stack-based execution engine
-- Support OP_LOAD_STR and OP_PRINT operations
-- Basic VM foundation for now only Print statements
-- Not yet standalone .exe 
+- Add BUILD_VM_ONLY conditional compilation in compilers.c
+- Created VM_Only build configuration in Visual Studio
+- Standalone AirLang.exe runs bytecode files without step parameters
+- Support direct execution: AirLang.exe file.air
+- Separate VM executable from full compiler suite
 

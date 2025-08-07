@@ -67,6 +67,8 @@
 * Algorithm: -
 *************************************************************
 */
+#ifndef BUILD_VM_ONLY
+
 
 airlang_intg main(int argc, char** argv) {
 	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); // to check memory leaks included in compilers.h
@@ -131,6 +133,41 @@ airlang_intg main(int argc, char** argv) {
 	}
 	return EXIT_SUCCESS;
 }
+
+
+#else
+// VM-ONLY MAIN FOR STANDALONE EXECUTABLE
+airlang_intg main(int argc, char** argv) {
+	printf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+		"\t=---------------------------------------=\n",
+		"\t|        AIRLANG VIRTUAL MACHINE       |\n",
+		"\t=---------------------------------------=\n",
+		"\t    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    \n",
+		"\t    @@                             @@    \n",
+		"\t    @@            __|__            @@    \n",
+		"\t    @@-------@--o--(_)--o--@-------@@    \n",
+		"\t    @@                             @@    \n",
+		"\t    @@        A I R L A N G        @@    \n",
+		"\t    @@                             @@    \n",
+		"\t    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    \n",
+		"\t                                         \n",
+		"\t[VIRTUAL MACHINE RUNTIME ................]\n",
+		"\t                                         \n"
+	);
+
+	if (argc != 2) {
+		printf("Usage: %s <bytecode_file>\n", argv[0]);
+		printf("Example: %s program.air\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+
+	const char* bytecode_file = argv[1];
+	airlang_intg result = runVirtualMachine(bytecode_file);
+
+	return result ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+#endif
+
 
 /*
 ***********************************************************
