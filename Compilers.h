@@ -168,6 +168,7 @@ enum PROGRAMS {
 	PGM_PSR = '4', // Parser:	15pt
 	PGM_WRT = '5', // Writer:	10pt
 	PGM_GEN = '6',  // Generator
+	PGM_VM  = '7',  // Virtual Machine
 };
 
 /*
@@ -182,6 +183,7 @@ airlang_intg main3Scanner(airlang_intg argc, airlang_strg* argv);
 airlang_intg main4Parser(airlang_intg argc, airlang_strg* argv);
 airlang_intg main5Writer(airlang_intg argc, airlang_strg* argv);
 airlang_intg main6Generator(airlang_intg argc, airlang_strg* argv);
+airlang_intg main7Vm(airlang_intg argc, airlang_strg* argv);
 
 
 airlang_void printLogo();

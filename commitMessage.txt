@@ -1,11 +1,9 @@
-Replaced hardcoded block keyword detection with lookup table approach now only requires updating the lookup arrays 
-instead of modifying multiple functions with long conditional chains.
+Add: AX7 - Basic Virtual Machine
 
-- Removed OR chains from isBlockKeyword(), isBlockStart(), isBlockEnd()
-- Added BLOCK_START_KEYWORDS[] and BLOCK_END_KEYWORDS[] arrays for clean lookups
-- Created BLOCK_MAPPINGS[] table that maps keywords to their instruction opcodes
-  (e.g., MAIN keyword -> OP_ENTER_MAIN instruction)
-- Added generic isInKeywordArray() helper to eliminate code duplication
-- Used extern declaration for keywordTable[] to avoid redeclaring parser data
-- Simplified block generation using centralized keyword arrays
+- Update compilers.c and compilers.h to include main7Vm.c
+- Add bytecode loading with magic number validation
+- Implement stack-based execution engine
+- Support OP_LOAD_STR and OP_PRINT operations
+- Basic VM foundation for now only Print statements
+- Not yet standalone .exe 
 

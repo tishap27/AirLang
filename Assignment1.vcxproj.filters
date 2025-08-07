@@ -57,6 +57,12 @@
     <ClCompile Include="Main6Generator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Step7Vm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main7Vm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compilers.h">
@@ -78,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Step6Generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Step7Vm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
