@@ -121,11 +121,25 @@ airlang_void executeVM(VirtualMachine* vm) {
         printf("PC:%d Executing: OpCode=%d ", vm->program_counter, current->opCode);
 
         switch (current->opCode) {
-       
+        case OP_LOAD_NUM:
+            printf("LOAD_NUM %.2f\n", current->operand.num_operand);
+            push(vm, createNumberValue(current->operand.num_operand));
+            break;
 
         case OP_LOAD_STR:
             printf("LOAD_STR \"%s\"\n", current->operand.str_operand);
             push(vm, createStringValue(current->operand.str_operand));
+            break;
+        
+        case OP_STORE_VAR:
+            printf("STORE_VAR %s\n", current->operand.str_operand);
+            if (vm->stack_pointer > 0) {
+                Value val = pop(vm);
+                storeVariable(vm, current->operand.str_operand, val);
+            }
+            else {
+                printf("Error: Stack underflow for STORE_VAR\n");
+            }
             break;
 
         
@@ -184,12 +198,69 @@ Value pop(VirtualMachine* vm) {
     return vm->stack[--vm->stack_pointer];
 }
 
+Value createNumberValue(airlang_doub num) {
+    Value val; 
+    val.type = VAL_NUMBER;
+    val.data.number = num; 
+    return val;
+}
+
+
+
 Value createStringValue(const airlang_strg str) {
     Value val;
     val.type = VAL_STRING;
     strncpy(val.data.string, str, MAX_STRING_LENGTH - 1);
     val.data.string[MAX_STRING_LENGTH - 1] = '\0';
     return val;
+}
+
+airlang_void storeVariable(VirtualMachine* vm , const airlang_strg name , Value value ) {
+   
+    //if variable exists
+
+    for (airlang_intg i = 0; i < vm->variable_count; i++) {
+        if (vm->variables[i].is_used && strcmp(vm->variables[i].name, name) == 0) {
+            //changing current variable to new 
+            vm->variables[i].value = value; 
+
+            printf("Updated variable is: %s", name); 
+            printValue(&value); 
+            printf("\n"); 
+            return; 
+
+        }
+    
+    }
+
+
+    if (vm->variable_count >= MAX_VARIABLES) {
+        printf("Error: Maximum variables exceeded\n");
+        return;
+    }
+
+    //now creating new variable
+
+    vm->variables[vm->variable_count].is_used = 1; 
+    strncpy(vm->variables[vm->variable_count].name, name, sizeof(vm->variables[vm->variable_count].name) - 1);
+    vm->variables[vm->variable_count].name[sizeof(vm->variables[vm->variable_count].name) - 1] = '\0';
+    vm->variables[vm->variable_count].value = value;
+
+    printf("Created variable '%s' = ", name);
+    printValue(&value);
+    printf("\n");
+
+    vm->variable_count++;
+
+}
+
+Value* getVariable(VirtualMachine* vm, const airlang_strg name) {
+    for (airlang_intg i = 0; i < vm->variable_count; i++) {
+        if (vm->variables[i].is_used && strcmp(vm->variables[i].name, name) == 0) {
+            return &vm->variables[i].value;
+        }
+    }
+    return NULL; // Variable not found
 }
 
 airlang_void printValue(const Value* value) {
@@ -200,8 +271,14 @@ airlang_void printValue(const Value* value) {
     case VAL_STRING:
         printf("%s", value->data.string);
         break;
+
+    default:
+        printf("UNKNOWN_VALUE_TYPE\n");
+        break;
     }
+
 }
+
 
 airlang_intg runVirtualMachine(const airlang_strg bytecode_file) {
     VirtualMachine vm;

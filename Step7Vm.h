@@ -105,7 +105,13 @@ airlang_void cleanupVM(VirtualMachine* vm);
 airlang_void push(VirtualMachine* vm, Value value);
 Value pop(VirtualMachine* vm);
 
+
+Value createNumberValue(airlang_doub num);
+
 Value createStringValue(const airlang_strg str);
+
+airlang_void storeVariable(VirtualMachine* vm, const airlang_strg name, Value value);
+Value* getVariable(VirtualMachine* vm, const airlang_strg name);
 airlang_void printValue(const Value* value);
 
 airlang_intg runVirtualMachine(const airlang_strg bytecode_file);
