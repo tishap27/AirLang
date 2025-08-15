@@ -43,6 +43,10 @@
 #include "Compilers.h"
 #endif
 
+#ifndef WRITER_H
+#include "Step5Writer.h"
+#endif // !WRITER_H
+
 #ifndef GENERATOR_H_
 #include "Step6Generator.h"
 #endif

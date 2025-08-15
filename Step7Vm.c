@@ -153,6 +153,51 @@ airlang_void executeVM(VirtualMachine* vm) {
                 printf("\n");
             }
             break;
+        
+        case OP_STORE_AIRCRAFT_ID:
+            if (vm->stack_pointer > 0) {
+                Value val = pop(vm); 
+                if (val.type == VAL_STRING) {
+                    if (is_aircraft_identifier(val.data.string)) {
+                        storeVariable(vm, current->operand.str_operand, val);
+                        printf("Valid aircraft ID stored: %s\n", val.data.string);
+                    }
+                    else {
+                        printf("Error: Invalid aircraft identifier format: %s\n", val.data.string);
+                        printf("Expected formats: AL123 (IATA) or C-GNBL (ICAO)\n");
+                    }
+                }
+                else {
+                    printf("Error: STORE_AIRCRAFT_ID requires string operand\n");
+                }
+
+            }
+            else {
+                printf("Error: Stack underflow for STORE_AIRCRAFT_ID\n");
+
+            }
+            break;
+
+
+        case OP_CALC_EXPRESSION:
+            if (vm->stack_pointer > 0) {
+                Value expr_val = pop(vm);
+                if (expr_val.type == VAL_STRING) {
+                    
+                    airlang_doub result = evaluate_expression(expr_val.data.string);
+                    push(vm, createNumberValue(result));
+                }
+                else {
+                    printf("Error: CALC_EXPRESSION requires string operand\n");
+                }
+            }
+            else {
+                printf("Error: Stack underflow for CALC_EXPRESSION\n");
+            }
+            break;
+      
+
+
         case OP_HALT:
             printf("HALT\n");
             vm->running = 0;
