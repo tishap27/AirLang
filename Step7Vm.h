@@ -128,4 +128,6 @@ airlang_void handle_write_vm(VirtualMachine* vm, const airlang_strg expression);
 airlang_void sync_variables(VirtualMachine* vm);
 airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condition);
 
+airlang_doub calcLastLegDistance_vm(VirtualMachine* vm);
+
 #endif

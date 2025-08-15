@@ -54,6 +54,11 @@ extern airlang_char output_buffer[MAX_EXPR_LEN * 10];
 // External functions from Step5Writer.c  
 extern airlang_intg find_variable(const airlang_strg name);
 extern airlang_void handle_write(airlang_strg expression);
+extern airlang_doub calculateAirpath(airlang_doub lat1, airlang_doub lon1, airlang_doub lat2, airlang_doub lon2);
+extern airlang_doub calcLastLegDistance();
+extern airlang_doub headwind(airlang_doub wind_dir, airlang_doub wind_speed, airlang_doub runway);
+extern airlang_doub crosswind(airlang_doub wind_dir, airlang_doub wind_speed, airlang_doub runway);
+extern airlang_doub evaluate_expression_with_distance(const airlang_strg expr);
 
 
 airlang_void initVM(VirtualMachine* vm) {
@@ -255,7 +260,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     Value expr_val = pop(vm);
                     if (expr_val.type == VAL_STRING) {
 
-                        airlang_doub result = evaluate_expression(expr_val.data.string);
+                        airlang_doub result = evaluate_expression_with_distance(expr_val.data.string);
                         push(vm, createNumberValue(result));
                     }
                     else {
@@ -301,13 +306,13 @@ airlang_void executeVM(VirtualMachine* vm) {
                 printf("CONDITION \"%s\"\n", current->operand.str_operand);
 
                 // DEBUG print VM variable values
-                printf("DEBUG: VM Variables - ");
+               /* printf("DEBUG: VM Variables - ");
                 for (airlang_intg i = 0; i < vm->variable_count; i++) {
                     if (vm->variables[i].is_used) {
                         printf("%s=%.0f ", vm->variables[i].name, vm->variables[i].value.data.number);
                     }
                 }
-                printf("\n");
+                printf("\n");*/
 
                 //sync_variables(vm);
                 vm->condition_result = evaluate_condition_vm(vm , current->operand.str_operand);
@@ -332,6 +337,71 @@ airlang_void executeVM(VirtualMachine* vm) {
                 vm->skip_execution = 0;
                 vm->condition_result = 0;
                 vm->in_if_block = 0;
+                break;
+
+            case OP_CALC_DISTANCE:
+                // Calculate great circle distance using your aviation functions
+                if (vm->stack_pointer >= 4) {
+                    Value lon2 = pop(vm);
+                    Value lat2 = pop(vm);
+                    Value lon1 = pop(vm);
+                    Value lat1 = pop(vm);
+
+                    if (lat1.type == VAL_NUMBER && lon1.type == VAL_NUMBER &&
+                        lat2.type == VAL_NUMBER && lon2.type == VAL_NUMBER) {
+                        airlang_doub distance = calculateAirpath(lat1.data.number, lon1.data.number,
+                            lat2.data.number, lon2.data.number);
+                        push(vm, createNumberValue(distance));
+                    }
+                    else {
+                        printf("Error: CALC_DISTANCE requires numeric coordinates\n");
+                    }
+                }
+                else {
+                    // Use your existing calcLastLegDistance function
+                    airlang_doub distance = calcLastLegDistance_vm(vm);
+                    push(vm, createNumberValue(distance));
+                }
+                break;
+
+            case OP_CALC_HEADWIND:
+                // Calculate headwind component
+                if (vm->stack_pointer >= 3) {
+                    Value runway = pop(vm);
+                    Value wind_speed = pop(vm);
+                    Value wind_dir = pop(vm);
+
+                    if (wind_dir.type == VAL_NUMBER && wind_speed.type == VAL_NUMBER && runway.type == VAL_NUMBER) {
+                        airlang_doub hw = headwind(wind_dir.data.number, wind_speed.data.number, runway.data.number);
+                        push(vm, createNumberValue(hw));
+                    }
+                    else {
+                        printf("Error: CALC_HEADWIND requires numeric values\n");
+                    }
+                }
+                else {
+                    printf("Error: Not enough operands for CALC_HEADWIND\n");
+                }
+                break;
+
+            case OP_CALC_CROSSWIND:
+                // Calculate crosswind component
+                if (vm->stack_pointer >= 3) {
+                    Value runway = pop(vm);
+                    Value wind_speed = pop(vm);
+                    Value wind_dir = pop(vm);
+
+                    if (wind_dir.type == VAL_NUMBER && wind_speed.type == VAL_NUMBER && runway.type == VAL_NUMBER) {
+                        airlang_doub cw = crosswind(wind_dir.data.number, wind_speed.data.number, runway.data.number);
+                        push(vm, createNumberValue(cw));
+                    }
+                    else {
+                        printf("Error: CALC_CROSSWIND requires numeric values\n");
+                    }
+                }
+                else {
+                    printf("Error: Not enough operands for CALC_CROSSWIND\n");
+                }
                 break;
 
             case OP_HALT:
@@ -403,7 +473,23 @@ airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condit
         printf("DEBUG: VM Comparing %.2f > %.2f = %s\n", leftVal, rightVal, (leftVal > rightVal) ? "TRUE" : "FALSE");
         return leftVal > rightVal;
     }
-
+    // DEBUG print VM variable values
+    printf("DEBUG: VM Variables - ");
+    for (airlang_intg i = 0; i < vm->variable_count; i++) {
+        if (vm->variables[i].is_used) {
+            printf("%s=", vm->variables[i].name);
+            if (vm->variables[i].value.type == VAL_NUMBER) {
+                printf("%.0f ", vm->variables[i].value.data.number);
+            }
+            else if (vm->variables[i].value.type == VAL_STRING) {
+                printf("\"%s\" ", vm->variables[i].value.data.string);
+            }
+            else {
+                printf("UNKNOWN ");
+            }
+        }
+    }
+    printf("\n");
     return 0;
 }
 
@@ -566,4 +652,35 @@ airlang_void sync_variables(VirtualMachine* vm) {
             var_count++;
         }
     }
+}
+
+airlang_doub calcLastLegDistance_vm(VirtualMachine* vm) {
+    // Find coordinate variables in VM variable table
+    airlang_intg coord_count = 0;
+    airlang_intg coord_indices[10];
+
+    for (airlang_intg i = 0; i < vm->variable_count; i++) {
+        if (vm->variables[i].is_used && vm->variables[i].value.type == VAL_STRING) {
+            if (is_coordinate_format(vm->variables[i].value.data.string)) {
+                coord_indices[coord_count] = i;
+                coord_count++;
+                if (coord_count >= 10) break;
+            }
+        }
+    }
+
+    if (coord_count < 2) return 0.0;
+
+    // Use last two coordinates
+    airlang_intg idx1 = coord_indices[coord_count - 2];
+    airlang_intg idx2 = coord_indices[coord_count - 1];
+
+    airlang_doub lat1, lon1, lat2, lon2;
+
+    if (parse_coordinates(vm->variables[idx1].value.data.string, &lat1, &lon1) &&
+        parse_coordinates(vm->variables[idx2].value.data.string, &lat2, &lon2)) {
+        return calculateAirpath(lat1, lon1, lat2, lon2);
+    }
+
+    return 0.0;
 }
