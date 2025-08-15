@@ -178,6 +178,51 @@ airlang_void executeVM(VirtualMachine* vm) {
             }
             break;
 
+        case OP_STORE_COORDS:
+            if (vm->stack_pointer > 0) {
+                Value val = pop(vm); 
+                if (val.type == VAL_STRING) {
+                    if (is_coordinate_format(val.data.string)) {
+                        storeVariable(vm, current->operand.str_operand, val);
+                        printf("Valid coordinates stored: %s\n", val.data.string);
+                    }
+                    else {
+                        printf("Error: Invalid coordinate format: %s\n", val.data.string);
+            
+                    }
+                }
+                else {
+                    printf("Error: STORE_COORDS requires string operand\n");
+                }
+            }
+            else {
+                printf("Error: Stack underflow for STORE_COORDS\n");
+            }
+            break;
+
+        case OP_STORE_DATE:
+            if (vm->stack_pointer > 0) {
+                Value val = pop(vm);
+                if (val.type == VAL_STRING) {
+                    
+                    if (is_date_format(val.data.string)) {
+                        storeVariable(vm, current->operand.str_operand, val);
+                        printf("Valid date stored: %s\n", val.data.string);
+                    }
+                    else {
+                        printf("Error: Invalid date format: %s\n", val.data.string);
+                        printf("Expected format: 'YYYY-MM-DD' (e.g., '2025-05-15')\n");
+                    }
+                }
+                else {
+                    printf("Error: STORE_DATE requires string operand\n");
+                }
+            }
+            else {
+                printf("Error: Stack underflow for STORE_DATE\n");
+            }
+            break;
+
 
         case OP_CALC_EXPRESSION:
             if (vm->stack_pointer > 0) {

@@ -458,7 +458,7 @@ airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
                 }
             }
             else if (is_date_format(value_str)) {
-                removeDateQuotes(value_str);
+                //removeDateQuotes(value_str);
                 emitInstruction(cg, OP_LOAD_STR, 0, value_str);
                 emitInstruction(cg, OP_STORE_DATE, 0, var_name);
             }
