@@ -160,7 +160,7 @@
     *		of the destination string for memory safety.
     ************************************************************
     */
-    void safe_concat(char* dest, size_t dest_size, const char* src) {
+    airlang_void safe_concat(char* dest, size_t dest_size, const char* src) {
         // Find current end of destination string
         size_t dest_len = strlen(dest);
 
@@ -539,7 +539,7 @@
      *		consistent parsing of AIRLANG statements and expressions.
      ************************************************************
      */
-    void trimWhitespace(char* str) {
+    airlang_void trimWhitespace(char* str) {
         if (!str || *str == '\0') return;
 
         char* start = str;

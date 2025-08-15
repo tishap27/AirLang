@@ -45,6 +45,7 @@
 #include "Compilers.h"
 #endif
 
+#include <stdlib.h>
 #ifndef WRITER_H_
 #define WRITER_H_
 
@@ -97,8 +98,8 @@ typedef struct {
 
 airlang_intg find_variable(const airlang_strg name);
 
-void trimWhitespace(char* str);
-void safe_concat(char* dest, size_t dest_size, const char* src);
+airlang_void trimWhitespace(char* str);
+airlang_void safe_concat(char* dest, size_t dest_size, const char* src);
 airlang_void assign_string_variable(const airlang_strg name, const airlang_strg value);
 const airlang_strg get_string_value(const airlang_strg name);
 
