@@ -95,6 +95,10 @@ typedef struct {
     airlang_intg variable_count;
 
     airlang_intg running;
+
+    airlang_intg condition_result;
+    airlang_intg in_if_block;
+    airlang_intg skip_execution;
 } VirtualMachine;
 
 
@@ -119,5 +123,6 @@ Value* getVariable(VirtualMachine* vm, const airlang_strg name);
 airlang_void printValue(const Value* value);
 
 airlang_intg runVirtualMachine(const airlang_strg bytecode_file);
+airlang_void handle_write_vm(VirtualMachine* vm, const airlang_strg expression);
 
 #endif

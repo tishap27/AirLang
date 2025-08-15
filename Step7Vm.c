@@ -60,6 +60,9 @@ airlang_void initVM(VirtualMachine* vm) {
         memset(vm->variables[i].name, 0, sizeof(vm->variables[i].name));
     }
 
+    vm->condition_result = 0;
+    vm->in_if_block = 0;
+    vm->skip_execution = 0;
     printf("Virtual Machine initialized.\n");
 }
 
@@ -120,147 +123,199 @@ airlang_void executeVM(VirtualMachine* vm) {
 
         printf("PC:%d Executing: OpCode=%d ", vm->program_counter, current->opCode);
 
-        switch (current->opCode) {
-        case OP_LOAD_NUM:
-            printf("LOAD_NUM %.2f\n", current->operand.num_operand);
-            push(vm, createNumberValue(current->operand.num_operand));
-            break;
 
-        case OP_LOAD_STR:
-            printf("LOAD_STR \"%s\"\n", current->operand.str_operand);
-            push(vm, createStringValue(current->operand.str_operand));
-            break;
-        
-        case OP_STORE_VAR:
-            printf("STORE_VAR %s\n", current->operand.str_operand);
-            if (vm->stack_pointer > 0) {
-                Value val = pop(vm);
-                storeVariable(vm, current->operand.str_operand, val);
-            }
-            else {
-                printf("Error: Stack underflow for STORE_VAR\n");
-            }
-            break;
-
-        
-
-        case OP_PRINT:
-            printf("PRINT\n");
-            if (vm->stack_pointer > 0) {
-                Value val = pop(vm);
-                printf("OUTPUT: ");
-                printValue(&val);
-                printf("\n");
-            }
-            break;
-        
-        case OP_STORE_AIRCRAFT_ID:
-            if (vm->stack_pointer > 0) {
-                Value val = pop(vm); 
-                if (val.type == VAL_STRING) {
-                    if (is_aircraft_identifier(val.data.string)) {
-                        storeVariable(vm, current->operand.str_operand, val);
-                        printf("Valid aircraft ID stored: %s\n", val.data.string);
-                    }
-                    else {
-                        printf("Error: Invalid aircraft identifier format: %s\n", val.data.string);
-                        printf("Expected formats: AL123 (IATA) or C-GNBL (ICAO)\n");
-                    }
-                }
-                else {
-                    printf("Error: STORE_AIRCRAFT_ID requires string operand\n");
-                }
-
-            }
-            else {
-                printf("Error: Stack underflow for STORE_AIRCRAFT_ID\n");
-
-            }
-            break;
-
-        case OP_STORE_COORDS:
-            if (vm->stack_pointer > 0) {
-                Value val = pop(vm); 
-                if (val.type == VAL_STRING) {
-                    if (is_coordinate_format(val.data.string)) {
-                        storeVariable(vm, current->operand.str_operand, val);
-                        printf("Valid coordinates stored: %s\n", val.data.string);
-                    }
-                    else {
-                        printf("Error: Invalid coordinate format: %s\n", val.data.string);
-            
-                    }
-                }
-                else {
-                    printf("Error: STORE_COORDS requires string operand\n");
-                }
-            }
-            else {
-                printf("Error: Stack underflow for STORE_COORDS\n");
-            }
-            break;
-
-        case OP_STORE_DATE:
-            if (vm->stack_pointer > 0) {
-                Value val = pop(vm);
-                if (val.type == VAL_STRING) {
-                    
-                    if (is_date_format(val.data.string)) {
-                        storeVariable(vm, current->operand.str_operand, val);
-                        printf("Valid date stored: %s\n", val.data.string);
-                    }
-                    else {
-                        printf("Error: Invalid date format: %s\n", val.data.string);
-                        printf("Expected format: 'YYYY-MM-DD' (e.g., '2025-05-15')\n");
-                    }
-                }
-                else {
-                    printf("Error: STORE_DATE requires string operand\n");
-                }
-            }
-            else {
-                printf("Error: Stack underflow for STORE_DATE\n");
-            }
-            break;
-
-
-        case OP_CALC_EXPRESSION:
-            if (vm->stack_pointer > 0) {
-                Value expr_val = pop(vm);
-                if (expr_val.type == VAL_STRING) {
-                    
-                    airlang_doub result = evaluate_expression(expr_val.data.string);
-                    push(vm, createNumberValue(result));
-                }
-                else {
-                    printf("Error: CALC_EXPRESSION requires string operand\n");
-                }
-            }
-            else {
-                printf("Error: Stack underflow for CALC_EXPRESSION\n");
-            }
-            break;
-      
-
-
-        case OP_HALT:
-            printf("HALT\n");
-            vm->running = 0;
-            break;
-
-        default:
-            printf("UNKNOWN_OP\n");
-            printf("Warning: Unknown opcode %d\n", current->opCode);
-            break;
+        if (vm->skip_execution &&
+            current->opCode != OP_ELSE &&
+            current->opCode != OP_ENDIF &&
+            current->opCode != OP_IF) {
+            printf("SKIPPED\n");
+            vm->program_counter++;
+            continue;
         }
+       
+            switch (current->opCode) {
+            case OP_LOAD_NUM:
+                printf("LOAD_NUM %.2f\n", current->operand.num_operand);
+                push(vm, createNumberValue(current->operand.num_operand));
+                break;
 
-        vm->program_counter++;
+            case OP_LOAD_STR:
+                printf("LOAD_STR \"%s\"\n", current->operand.str_operand);
+                push(vm, createStringValue(current->operand.str_operand));
+                break;
+
+            case OP_STORE_VAR:
+                printf("STORE_VAR %s\n", current->operand.str_operand);
+                if (vm->stack_pointer > 0) {
+                    Value val = pop(vm);
+                    storeVariable(vm, current->operand.str_operand, val);
+                }
+                else {
+                    printf("Error: Stack underflow for STORE_VAR\n");
+                }
+                break;
+
+
+
+            case OP_PRINT:
+                printf("PRINT\n");
+                if (vm->stack_pointer > 0) {
+                    Value val = pop(vm);
+                    printf("OUTPUT: ");
+                    printValue(&val);
+                    printf("\n");
+                }
+                break;
+
+            case OP_STORE_AIRCRAFT_ID:
+                if (vm->stack_pointer > 0) {
+                    Value val = pop(vm);
+                    if (val.type == VAL_STRING) {
+                        if (is_aircraft_identifier(val.data.string)) {
+                            storeVariable(vm, current->operand.str_operand, val);
+                            printf("Valid aircraft ID stored: %s\n", val.data.string);
+                        }
+                        else {
+                            printf("Error: Invalid aircraft identifier format: %s\n", val.data.string);
+                            printf("Expected formats: AL123 (IATA) or C-GNBL (ICAO)\n");
+                        }
+                    }
+                    else {
+                        printf("Error: STORE_AIRCRAFT_ID requires string operand\n");
+                    }
+
+                }
+                else {
+                    printf("Error: Stack underflow for STORE_AIRCRAFT_ID\n");
+
+                }
+                break;
+
+            case OP_STORE_COORDS:
+                if (vm->stack_pointer > 0) {
+                    Value val = pop(vm);
+                    if (val.type == VAL_STRING) {
+                        if (is_coordinate_format(val.data.string)) {
+                            storeVariable(vm, current->operand.str_operand, val);
+                            printf("Valid coordinates stored: %s\n", val.data.string);
+                        }
+                        else {
+                            printf("Error: Invalid coordinate format: %s\n", val.data.string);
+
+                        }
+                    }
+                    else {
+                        printf("Error: STORE_COORDS requires string operand\n");
+                    }
+                }
+                else {
+                    printf("Error: Stack underflow for STORE_COORDS\n");
+                }
+                break;
+
+            case OP_STORE_DATE:
+                if (vm->stack_pointer > 0) {
+                    Value val = pop(vm);
+                    if (val.type == VAL_STRING) {
+
+                        if (is_date_format(val.data.string)) {
+                            storeVariable(vm, current->operand.str_operand, val);
+                            printf("Valid date stored: %s\n", val.data.string);
+                        }
+                        else {
+                            printf("Error: Invalid date format: %s\n", val.data.string);
+                            printf("Expected format: 'YYYY-MM-DD' (e.g., '2025-05-15')\n");
+                        }
+                    }
+                    else {
+                        printf("Error: STORE_DATE requires string operand\n");
+                    }
+                }
+                else {
+                    printf("Error: Stack underflow for STORE_DATE\n");
+                }
+                break;
+
+
+            case OP_CALC_EXPRESSION:
+                if (vm->stack_pointer > 0) {
+                    Value expr_val = pop(vm);
+                    if (expr_val.type == VAL_STRING) {
+
+                        airlang_doub result = evaluate_expression(expr_val.data.string);
+                        push(vm, createNumberValue(result));
+                    }
+                    else {
+                        printf("Error: CALC_EXPRESSION requires string operand\n");
+                    }
+                }
+                else {
+                    printf("Error: Stack underflow for CALC_EXPRESSION\n");
+                }
+                break;
+
+            case OP_PRINT_INTERPOLATED:
+                printf("PRINT_INTERPOLATED \"%s\"\n", current->operand.str_operand);
+                // Fix: Use the operand directly, don't expect it on stack
+                handle_write_vm(vm, current->operand.str_operand);
+                break;
+
+            case OP_CONDITION:
+                printf("CONDITION \"%s\"\n", current->operand.str_operand);
+                if (vm->stack_pointer > 0) {
+                    Value cond_val = pop(vm);
+                    if (cond_val.type == VAL_STRING) {
+                        // Use your existing evaluate_condition function
+                        vm->condition_result = evaluate_condition(cond_val.data.string);
+                    }
+                }
+                else {
+                    // Store condition string for later evaluation
+                    vm->condition_result = evaluate_condition(current->operand.str_operand);
+                }
+                break;
+
+            case OP_IF:
+                vm->in_if_block = 1;
+                vm->skip_execution = !vm->condition_result;
+                break;
+
+            case OP_ELSE:
+                vm->skip_execution = vm->condition_result; // Flip the logic
+                break;
+
+            case OP_ENDIF:
+                vm->skip_execution = 0;
+                vm->condition_result = 0;
+                vm->in_if_block = 0;
+                break;
+
+            case OP_HALT:
+                printf("HALT\n");
+                vm->running = 0;
+                break;
+
+            default:
+                printf("UNKNOWN_OP\n");
+                printf("Warning: Unknown opcode %d\n", current->opCode);
+                break;
+            }
+
+            vm->program_counter++;
+        
     }
 
     printf("=== EXECUTION COMPLETED ===\n");
 }
 
-
+airlang_void handle_write_vm(VirtualMachine* vm, const airlang_strg expression) {
+    printf("DEBUG: Interpolating expression: %s\n", expression);
+    // Adapt your handle_write function to work with VM variables
+    // This will need to lookup variables from vm->variables instead of global variables array
+    airlang_char buffer[512] = { 0 };
+    // ... implement variable interpolation using vm->variables ...
+    printf("OUTPUT: %s\n", buffer);
+}
 // Clean up VM resources
 airlang_void cleanupVM(VirtualMachine * vm) {
     if (vm->instructions) {

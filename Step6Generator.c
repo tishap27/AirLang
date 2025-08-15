@@ -397,7 +397,7 @@ airlang_void generatePrint(const airlang_strg line, Generator* cg) {
         // Trim spaces
         trimWhitespace(print_content);
 
-        removeQuotes(print_content);
+      //  removeQuotes(print_content);
         // Remove quotes if present
       
         if (strchr(print_content, '+')) {
