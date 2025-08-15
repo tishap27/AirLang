@@ -130,4 +130,9 @@ airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condit
 
 airlang_doub calcLastLegDistance_vm(VirtualMachine* vm);
 
+airlang_void process_metar_in_vm(VirtualMachine* vm, const airlang_strg metar_string);
+airlang_void sync_variables_back(VirtualMachine* vm);
+airlang_void update_airport_context_from_metar(VirtualMachine* vm, const airlang_strg metar_string);
+airlang_void update_current_airport(VirtualMachine* vm, const airlang_strg var_name);
+
 #endif
