@@ -111,7 +111,8 @@ airlang_intg loadBytecode(VirtualMachine* vm, const airlang_strg filename) {
     }
 
     // Read instructions
-    if (fread(vm->instructions, sizeof(Instruction), vm->instruction_count, file) != vm->instruction_count) {
+    size_t bytes_to_read = vm->instruction_count * sizeof(Instruction);
+    if (fread(vm->instructions,1, bytes_to_read , file) != bytes_to_read) {
         printf("Error: Cannot read instructions\n");
         free(vm->instructions);
         fclose(file);
@@ -525,17 +526,20 @@ airlang_void printValue(const Value* value) {
 
 
 airlang_intg runVirtualMachine(const airlang_strg bytecode_file) {
-    VirtualMachine vm;
+    VirtualMachine* vm =  malloc(sizeof(VirtualMachine));
+    if (!vm) {
+        printf("Error: Cannot allocate memory for VirtualMachine\n");
+        return 0;
+    }
+    initVM(vm);
 
-    initVM(&vm);
-
-    if (!loadBytecode(&vm, bytecode_file)) {
+    if (!loadBytecode(vm, bytecode_file)) {
         printf("Failed to load bytecode file: %s\n", bytecode_file);
         return 0;
     }
 
-    executeVM(&vm);
-    cleanupVM(&vm);
+    executeVM(vm);
+    cleanupVM(vm);
 
     return 1;
 }
