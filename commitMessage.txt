@@ -1,8 +1,9 @@
-Update: standalone VM executable with build configurations
+Fix: VM print interpolation and IF/ELSE condition evaluation
 
-- Add BUILD_VM_ONLY conditional compilation in compilers.c
-- Created VM_Only build configuration in Visual Studio
-- Standalone AirLang.exe runs bytecode files without step parameters
-- Support direct execution: AirLang.exe file.air
-- Separate VM executable from full compiler suite
+- Add extern declarations for writer.c variables/functions
+- Fix variable sync between VM and global variables array  
+- Implement proper condition evaluation using VM variables
+- Fix IF/ELSE control flow with correct skip execution logic
+- Add debug output for condition evaluation
 
+Now correctly handles string interpolation and conditional execution.

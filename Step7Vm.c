@@ -46,6 +46,16 @@
 #include <ctype.h>
 
 
+extern Variable variables[MAX_VARS];
+extern airlang_intg var_count;
+extern airlang_intg initial_phase;
+extern airlang_char output_buffer[MAX_EXPR_LEN * 10];
+
+// External functions from Step5Writer.c  
+extern airlang_intg find_variable(const airlang_strg name);
+extern airlang_void handle_write(airlang_strg expression);
+
+
 airlang_void initVM(VirtualMachine* vm) {
     vm->instructions = NULL;
     vm->instruction_count = 0;
@@ -127,7 +137,9 @@ airlang_void executeVM(VirtualMachine* vm) {
         if (vm->skip_execution &&
             current->opCode != OP_ELSE &&
             current->opCode != OP_ENDIF &&
-            current->opCode != OP_IF) {
+            current->opCode != OP_IF &&
+            current->opCode != OP_CONDITION &&
+            current->opCode != OP_PRINT_INTERPOLATED) {
             printf("SKIPPED\n");
             vm->program_counter++;
             continue;
@@ -254,37 +266,68 @@ airlang_void executeVM(VirtualMachine* vm) {
                 }
                 break;
 
+
             case OP_PRINT_INTERPOLATED:
-                printf("PRINT_INTERPOLATED \"%s\"\n", current->operand.str_operand);
-                // Fix: Use the operand directly, don't expect it on stack
-                handle_write_vm(vm, current->operand.str_operand);
+                printf("PRINT_INTERPOLATED %s\n", current->operand.str_operand);
+                if (strlen(current->operand.str_operand) > 0) {
+                    sync_variables(vm); 
+
+                    printf("OUTPUT: ");
+
+                    // Format for handle_write
+                    airlang_char formatted_expr[MAX_EXPR_LEN];
+                    airlang_strg expr = current->operand.str_operand;
+
+                    // Removing outer quotes if present
+                    if (expr[0] == '"' && expr[strlen(expr) - 1] == '"') {
+                        airlang_char temp[MAX_EXPR_LEN];
+                        strncpy(temp, expr + 1, strlen(expr) - 2);
+                        temp[strlen(expr) - 2] = '\0';
+                        snprintf(formatted_expr, sizeof(formatted_expr), "PRINT {%s}", temp);
+                    }
+                    else {
+                        snprintf(formatted_expr, sizeof(formatted_expr), "PRINT {%s}", expr);
+                    }
+
+                    // Set initial_phase to 0 so handle_write prints directly
+                    initial_phase = 0;
+                    handle_write(formatted_expr);
+                    initial_phase = 1; // Reset for safety
+                }
                 break;
 
             case OP_CONDITION:
                 printf("CONDITION \"%s\"\n", current->operand.str_operand);
-                if (vm->stack_pointer > 0) {
-                    Value cond_val = pop(vm);
-                    if (cond_val.type == VAL_STRING) {
-                        // Use your existing evaluate_condition function
-                        vm->condition_result = evaluate_condition(cond_val.data.string);
+
+                // DEBUG print VM variable values
+                printf("DEBUG: VM Variables - ");
+                for (airlang_intg i = 0; i < vm->variable_count; i++) {
+                    if (vm->variables[i].is_used) {
+                        printf("%s=%.0f ", vm->variables[i].name, vm->variables[i].value.data.number);
                     }
                 }
-                else {
-                    // Store condition string for later evaluation
-                    vm->condition_result = evaluate_condition(current->operand.str_operand);
-                }
+                printf("\n");
+
+                //sync_variables(vm);
+                vm->condition_result = evaluate_condition_vm(vm , current->operand.str_operand);
+                printf("DEBUG: Condition result = %d\n", vm->condition_result); 
                 break;
 
             case OP_IF:
+                printf("IF (condition=%d)\n", vm->condition_result);
                 vm->in_if_block = 1;
-                vm->skip_execution = !vm->condition_result;
+                vm->skip_execution = (vm->condition_result == 0 );
                 break;
 
             case OP_ELSE:
-                vm->skip_execution = vm->condition_result; // Flip the logic
+                printf("ELSE\n");
+                if (vm->in_if_block) {
+                    vm->skip_execution = (vm->condition_result != 0);
+                }
                 break;
 
             case OP_ENDIF:
+                printf("ENDIF\n");
                 vm->skip_execution = 0;
                 vm->condition_result = 0;
                 vm->in_if_block = 0;
@@ -308,13 +351,69 @@ airlang_void executeVM(VirtualMachine* vm) {
     printf("=== EXECUTION COMPLETED ===\n");
 }
 
+
+airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condition) {
+    airlang_char tempCond[256];
+    strcpy_s(tempCond, sizeof(tempCond), condition);
+
+    // Remove spaces
+    airlang_char cleanCond[256] = { 0 };
+    airlang_intg i = 0, j = 0;
+    while (tempCond[i]) {
+        if (!isspace(tempCond[i])) {
+            cleanCond[j++] = tempCond[i];
+        }
+        i++;
+    }
+    cleanCond[j] = '\0';
+
+    // Find comparison operator
+    airlang_char* operatorPos = NULL;
+    if ((operatorPos = strstr(cleanCond, ">")) != NULL) {
+        // Split left and right
+        *operatorPos = '\0';
+        airlang_char* leftOperand = cleanCond;
+        airlang_char* rightOperand = operatorPos + 1;
+
+        // Get left value from VM variables
+        airlang_doub leftVal = 0.0;
+        if (isdigit(leftOperand[0])) {
+            leftVal = atof(leftOperand);
+        }
+        else {
+            Value* var = getVariable(vm, leftOperand);
+            if (var && var->type == VAL_NUMBER) {
+                leftVal = var->data.number;
+            }
+        }
+
+        // Get right value from VM variables  
+        airlang_doub rightVal = 0.0;
+        if (isdigit(rightOperand[0])) {
+            rightVal = atof(rightOperand);
+        }
+        else {
+            Value* var = getVariable(vm, rightOperand);
+            if (var && var->type == VAL_NUMBER) {
+                rightVal = var->data.number;
+            }
+        }
+
+        printf("DEBUG: VM Comparing %.2f > %.2f = %s\n", leftVal, rightVal, (leftVal > rightVal) ? "TRUE" : "FALSE");
+        return leftVal > rightVal;
+    }
+
+    return 0;
+}
+
+
+
+
 airlang_void handle_write_vm(VirtualMachine* vm, const airlang_strg expression) {
-    printf("DEBUG: Interpolating expression: %s\n", expression);
-    // Adapt your handle_write function to work with VM variables
-    // This will need to lookup variables from vm->variables instead of global variables array
-    airlang_char buffer[512] = { 0 };
-    // ... implement variable interpolation using vm->variables ...
-    printf("OUTPUT: %s\n", buffer);
+    sync_variables(vm);
+    airlang_char formatted[512];
+    sprintf_s(formatted, sizeof(formatted), "PRINT {%s}", expression);
+    handle_write(formatted);
 }
 // Clean up VM resources
 airlang_void cleanupVM(VirtualMachine * vm) {
@@ -439,4 +538,28 @@ airlang_intg runVirtualMachine(const airlang_strg bytecode_file) {
     cleanupVM(&vm);
 
     return 1;
+}
+
+// Copy VM variables to writer globals
+airlang_void sync_variables(VirtualMachine* vm) {
+    var_count = 0;
+
+    // Copy VM variables to global variables array
+    for (airlang_intg i = 0; i < vm->variable_count && var_count < MAX_VARS; i++) {
+        if (vm->variables[i].is_used) {
+            strncpy(variables[var_count].name, vm->variables[i].name, sizeof(variables[var_count].name) - 1);
+            variables[var_count].name[sizeof(variables[var_count].name) - 1] = '\0';
+
+            if (vm->variables[i].value.type == VAL_NUMBER) {
+                variables[var_count].type = NUMERIC;
+                variables[var_count].value.num_value = vm->variables[i].value.data.number;
+            }
+            else if (vm->variables[i].value.type == VAL_STRING) {
+                variables[var_count].type = STRING;
+                strncpy(variables[var_count].value.str_value, vm->variables[i].value.data.string, sizeof(variables[var_count].value.str_value) - 1);
+                variables[var_count].value.str_value[sizeof(variables[var_count].value.str_value) - 1] = '\0';
+            }
+            var_count++;
+        }
+    }
 }
