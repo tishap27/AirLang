@@ -291,33 +291,56 @@ airlang_void executeVM(VirtualMachine* vm) {
             case OP_PRINT_INTERPOLATED:
                 printf("PRINT_INTERPOLATED %s\n", current->operand.str_operand);
                 if (strlen(current->operand.str_operand) > 0) {
-                    sync_variables(vm); 
-                    sync_variables_back(vm);
+                    sync_variables(vm);
 
                     printf("OUTPUT: ");
 
-                    // Format for handle_write
                     airlang_char formatted_expr[MAX_EXPR_LEN];
                     airlang_strg expr = current->operand.str_operand;
 
-                    // Removing outer quotes if present
-                    if (expr[0] == '"' && expr[strlen(expr) - 1] == '"') {
+                    printf("DEBUG: Analyzing expression: '%s'\n", expr);
+
+                    // Count quotes to understand the structure
+                    airlang_intg quote_count = 0;
+                    airlang_intg has_plus = 0;
+                    for (airlang_intg i = 0; i < (airlang_intg)strlen(expr); i++) {
+                        if (expr[i] == '"') quote_count++;
+                        if (expr[i] == '+') has_plus = 1;
+                    }
+
+                    printf("DEBUG: Found %d quotes, has_plus=%d\n", quote_count, has_plus);
+
+                    if (has_plus && quote_count > 2) {
+                        // Complex expression with multiple parts - DON'T remove outer quotes ""something" + value + "something""
+                        snprintf(formatted_expr, sizeof(formatted_expr), "PRINT {%s}", expr);
+                        printf("DEBUG: Complex expression, keeping all quotes\n");
+                    }
+                    else if (expr[0] == '"' && expr[strlen(expr) - 1] == '"' && quote_count == 2) {
+                        // Simple expression with just outer quotes - remove them
                         airlang_char temp[MAX_EXPR_LEN];
                         strncpy(temp, expr + 1, strlen(expr) - 2);
                         temp[strlen(expr) - 2] = '\0';
                         snprintf(formatted_expr, sizeof(formatted_expr), "PRINT {%s}", temp);
+                        printf("DEBUG: Simple expression, removed outer quotes\n");
                     }
                     else {
+                        // No modification needed
                         snprintf(formatted_expr, sizeof(formatted_expr), "PRINT {%s}", expr);
+                        printf("DEBUG: No quote modification needed\n");
                     }
 
-                    // Set initial_phase to 0 so handle_write prints directly
+                    printf("DEBUG: Final formatted: '%s'\n", formatted_expr);
+
+                    airlang_intg saved_phase = initial_phase;
                     initial_phase = 0;
+
                     handle_write(formatted_expr);
-                    initial_phase = 1; // Reset for safety
+
+                    initial_phase = saved_phase;
+                    printf("\n");
+                    sync_variables_back(vm);
                 }
                 break;
-
             case OP_CONDITION:
                 printf("CONDITION \"%s\"\n", current->operand.str_operand);
 
