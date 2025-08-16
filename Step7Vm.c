@@ -542,6 +542,80 @@ airlang_void executeVM(VirtualMachine* vm) {
                 }
                 break;
 
+            case OP_ENTER_MAIN:
+                printf("ENTER_MAIN\n");
+                break;
+            case OP_EXIT_MAIN:
+                printf("EXIT_MAIN\n");
+                break;
+            case OP_ENTER_BRIEFING:
+                printf("ENTER_BRIEFING\n");
+                break;
+            case OP_EXIT_BRIEFING:
+                printf("EXIT_BRIEFING\n");
+                break;
+            case OP_ENTER_WEATHER:
+                printf("ENTER_WEATHER\n");
+                break;
+            case OP_EXIT_WEATHER:
+                printf("EXIT_WEATHER\n");
+                break;
+            case OP_ENTER_LOADSHEET:
+                printf("ENTER_LOADSHEET\n");
+                break;
+            case OP_EXIT_LOADSHEET:
+                printf("EXIT_LOADSHEET\n");
+                break;
+            case OP_ENTER_DISPATCH:
+                printf("ENTER_DISPATCH\n");
+                break;
+            case OP_EXIT_DISPATCH:
+                printf("EXIT_DISPATCH\n");
+                break;
+
+            case OP_ENTER_AIRCRAFT:
+                printf("ENTER_AIRCRAFT\n");
+                break;
+            case OP_ENTER_FLIGHT:
+                printf("ENTER_FLIGHT\n");
+                break;
+            case OP_ENTER_ROUTE:
+                printf("ENTER_ROUTE\n");
+                break;
+            case OP_ENTER_RECEIVEDDATA:
+                printf("ENTER_RECEIVEDDATA\n");
+                break;
+            case OP_EXIT_RECEIVEDDATA:
+                printf("EXIT_RECEIVEDDATA\n");
+                break;
+            case OP_ENTER_RUNWAYDATA:
+                printf("ENTER_RUNWAYDATA\n");
+                break;
+            case OP_EXIT_RUNWAYDATA:
+                printf("EXIT_RUNWAYDATA\n");
+                break;
+            case OP_ENTER_WINDANALYSIS:
+                printf("ENTER_WINDANALYSIS\n");
+                break;
+            case OP_EXIT_WINDANALYSIS:
+                printf("EXIT_WINDANALYSIS\n");
+                break;
+            case OP_ENTER_SAFETYALERT:
+                printf("ENTER_SAFETYALERT\n");
+                break;
+            case OP_EXIT_SAFETYALERT:
+                printf("EXIT_SAFETYALERT\n");
+                break;
+            case OP_ENTER_REPORT:
+                printf("ENTER_REPORT\n");
+                break;
+            case OP_EXIT_REPORT:
+                printf("EXIT_REPORT\n");
+                break;
+
+
+
+
             case OP_HALT:
                 printf("HALT\n");
                 vm->running = 0;
