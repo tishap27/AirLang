@@ -34,6 +34,8 @@ AirLang is a domain-specific language designed for flight dispatchers and aviati
 \- Aircraft Data - Support for IATA/ICAO identifiers and specifications
 
 \- Flight Mathematics - Fuel burn, flight time, and performance calculations
+\- Bytecode Compilation - Generates optimized bytecode for execution
+\- Virtual Machine - Custom VM executes compiled flight programs
 
 
 
@@ -43,9 +45,9 @@ AirLang is a domain-specific language designed for flight dispatchers and aviati
 
 
 
-Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Output
+Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Step6 → Step7 → Output
 
-&nbsp;             Coder   Reader  Scanner  Parser  Writer
+&nbsp;       Coder   Reader  Scanner  Parser  Writer  Generator  VM
 
 
 
@@ -64,6 +66,10 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Output
 4\. Parser: Applying BNF grammar rules to build a syntax tree.
 
 5\. Writer: Generating dispatch reports and final output.
+
+6\. Generator: Converting syntax tree to bytecode instructions.
+
+7\. Virtual Machine: Executing Bytecode with aviation-specific operations. 
 
 
 
@@ -256,6 +262,11 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Output
 &nbsp;	Aviation unit conversions
 
 
+###### Compilation Process
+
+Source to Bytecode AirLang source files (.air) → Bytecode files (.air) Optimized instruction set for aviation operations Magic number validation for bytecode integrity
+Virtual Machine Execution Stack-based VM with 237+ instruction types, Real-time METAR parsing and weather calculations, Built-in headwind/crosswind computation, Variable storage with type checking
+Conditional branching and safety alerts
 
 ###### 
 
@@ -304,6 +315,18 @@ AirLang provides clear error messages for common issues:
 &nbsp;	- Weather condition warnings
 
 &nbsp;	- Performance limit notifications
+
+* *Runtime Errors*
+
+
+
+&nbsp;	- Stack overflow/underflow protection
+
+&nbsp;	- Bytecode validation failures
+
+&nbsp;	- VM execution error recovery
+
+
 
 
 
