@@ -572,9 +572,11 @@ airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
     }
     else if (strstr(expr, "HEADWIND()")) {
         emitInstruction(cg, OP_CALC_HEADWIND, 0, "");
+       // return;
     }
     else if (strstr(expr, "CROSSWIND()")) {
         emitInstruction(cg, OP_CALC_CROSSWIND, 0, "");
+      //  return;
     }
     else if (contains_variables(expr) && (strstr(expr, "+") || strstr(expr, "-") || strstr(expr, "*") || strstr(expr, "/"))) {
       

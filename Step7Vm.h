@@ -135,4 +135,6 @@ airlang_void sync_variables_back(VirtualMachine* vm);
 airlang_void update_airport_context_from_metar(VirtualMachine* vm, const airlang_strg metar_string);
 airlang_void update_current_airport(VirtualMachine* vm, const airlang_strg var_name);
 
+airlang_void extract_airport_from_variable_name(const airlang_strg var_name, airlang_char* airport_out);
+
 #endif

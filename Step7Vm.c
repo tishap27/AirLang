@@ -405,21 +405,40 @@ airlang_void executeVM(VirtualMachine* vm) {
 
             case OP_CALC_HEADWIND:
                 printf("CALC_HEADWIND\n");
-                if (strlen(current_airport) > 0) {
-                    // Look for wind variables with current airport prefix
+                airlang_char target_airport[16] ;
+                airlang_intg found_airport ;
+
+                // Look at the next instruction to see what variable we're storing to
+                if (vm->program_counter + 1 < vm->instruction_count) {
+                    Instruction* next_instr = &vm->instructions[vm->program_counter + 1];
+                    if (next_instr->opCode == OP_STORE_VAR) {
+                        // Extract airport code from variable name like "CYOW" or "CYYZ" 
+                        strncpy(target_airport, next_instr->operand.str_operand, sizeof(target_airport) - 1);
+                        target_airport[sizeof(target_airport) - 1] = '\0';
+                        found_airport = 1;
+                        printf("DEBUG: Target airport from next instruction: %s\n", target_airport);
+                    }
+                }
+
+                // If we couldn't get airport from next instruction, try current_airport
+                if (!found_airport && strlen(current_airport) > 0) {
+                    strncpy(target_airport, current_airport, sizeof(target_airport) - 1);
+                    found_airport = 1;
+                    printf("DEBUG: Using current airport: %s\n", target_airport);
+                }
+
+                if (found_airport) {
+                    // Look for wind variables with target airport prefix
                     airlang_char wind_dir_var[32], wind_speed_var[32], runway_var[32];
-                    snprintf(wind_dir_var, sizeof(wind_dir_var), "%s_WIND_DIR", current_airport);
-                    snprintf(wind_speed_var, sizeof(wind_speed_var), "%s_WIND_SPEED", current_airport);
-                    snprintf(runway_var, sizeof(runway_var), "%s_RUNWAY", current_airport);
+                    snprintf(wind_dir_var, sizeof(wind_dir_var), "%s_WIND_DIR", target_airport);
+                    snprintf(wind_speed_var, sizeof(wind_speed_var), "%s_WIND_SPEED", target_airport);
+                    snprintf(runway_var, sizeof(runway_var), "%s_RUNWAY", target_airport);
 
                     printf("DEBUG: Looking for variables: %s, %s, %s\n", wind_dir_var, wind_speed_var, runway_var);
 
                     Value* wind_dir_val = getVariable(vm, wind_dir_var);
                     Value* wind_speed_val = getVariable(vm, wind_speed_var);
                     Value* runway_val = getVariable(vm, runway_var);
-
-                    printf("DEBUG: Found wind_dir=%p, wind_speed=%p, runway=%p\n",
-                        wind_dir_val, wind_speed_val, runway_val);
 
                     if (wind_dir_val && wind_speed_val && runway_val &&
                         wind_dir_val->type == VAL_NUMBER && wind_speed_val->type == VAL_NUMBER &&
@@ -431,26 +450,22 @@ airlang_void executeVM(VirtualMachine* vm) {
                         airlang_doub hw = headwind(wind_dir_val->data.number, wind_speed_val->data.number,
                             runway_val->data.number);
                         push(vm, createNumberValue(hw));
-                        printf("Calculated headwind: %.2f kt\n", hw);
+                        printf("Calculated headwind for %s: %.2f kt\n", target_airport, hw);
 
-                        //  storing the headwind result in a specific variable
+                        // Store the headwind result in a specific variable
                         airlang_char headwind_var[32];
-                        snprintf(headwind_var, sizeof(headwind_var), "%s_HEADWIND", current_airport);
+                        snprintf(headwind_var, sizeof(headwind_var), "%s_HEADWIND", target_airport);
                         Value headwind_value = createNumberValue(hw);
                         storeVariable(vm, headwind_var, headwind_value);
                         printf("Stored headwind in variable: %s = %.2f\n", headwind_var, hw);
                     }
                     else {
-                        printf("Error: Missing wind or runway data for headwind calculation\n");
-                        printf("DEBUG: Variables found - wind_dir: %s, wind_speed: %s, runway: %s\n",
-                            wind_dir_val ? "YES" : "NO",
-                            wind_speed_val ? "YES" : "NO",
-                            runway_val ? "YES" : "NO");
+                        printf("Error: Missing wind or runway data for headwind calculation for %s\n", target_airport);
                         push(vm, createNumberValue(0.0));
                     }
                 }
                 else if (vm->stack_pointer >= 3) {
-                    
+                    // Fallback to stack-based calculation
                     Value runway = pop(vm);
                     Value wind_speed = pop(vm);
                     Value wind_dir = pop(vm);
@@ -466,7 +481,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     }
                 }
                 else {
-                    printf("Error: Not enough operands for CALC_HEADWIND and no airport context\n");
+                    printf("Error: Cannot determine airport context for CALC_HEADWIND\n");
                     push(vm, createNumberValue(0.0));
                 }
                 break;
@@ -475,22 +490,40 @@ airlang_void executeVM(VirtualMachine* vm) {
             case OP_CALC_CROSSWIND:
                 printf("CALC_CROSSWIND\n");
 
-                // Try to find wind variables from current airport context first
-                if (strlen(current_airport) > 0) {
-                    // Look for wind variables with current airport prefix
+              //  airlang_char target_airport[16] = { 0 };
+              //  airlang_intg found_airport = 0;
+
+                // Look at the next instruction to see what variable we're storing to
+                if (vm->program_counter + 1 < vm->instruction_count) {
+                    Instruction* next_instr = &vm->instructions[vm->program_counter + 1];
+                    if (next_instr->opCode == OP_STORE_VAR) {
+                        // Extract airport code from variable name like "CYOW" or "CYYZ" 
+                        strncpy(target_airport, next_instr->operand.str_operand, sizeof(target_airport) - 1);
+                        target_airport[sizeof(target_airport) - 1] = '\0';
+                        found_airport = 1;
+                        printf("DEBUG: Target airport from next instruction: %s\n", target_airport);
+                    }
+                }
+
+                // If we couldn't get airport from next instruction, try current_airport
+                if (!found_airport && strlen(current_airport) > 0) {
+                    strncpy(target_airport, current_airport, sizeof(target_airport) - 1);
+                    found_airport = 1;
+                    printf("DEBUG: Using current airport: %s\n", target_airport);
+                }
+
+                if (found_airport) {
+                    // Look for wind variables with target airport prefix
                     airlang_char wind_dir_var[32], wind_speed_var[32], runway_var[32];
-                    snprintf(wind_dir_var, sizeof(wind_dir_var), "%s_WIND_DIR", current_airport);
-                    snprintf(wind_speed_var, sizeof(wind_speed_var), "%s_WIND_SPEED", current_airport);
-                    snprintf(runway_var, sizeof(runway_var), "%s_RUNWAY", current_airport);
+                    snprintf(wind_dir_var, sizeof(wind_dir_var), "%s_WIND_DIR", target_airport);
+                    snprintf(wind_speed_var, sizeof(wind_speed_var), "%s_WIND_SPEED", target_airport);
+                    snprintf(runway_var, sizeof(runway_var), "%s_RUNWAY", target_airport);
 
                     printf("DEBUG: Looking for variables: %s, %s, %s\n", wind_dir_var, wind_speed_var, runway_var);
 
                     Value* wind_dir_val = getVariable(vm, wind_dir_var);
                     Value* wind_speed_val = getVariable(vm, wind_speed_var);
                     Value* runway_val = getVariable(vm, runway_var);
-
-                    printf("DEBUG: Found wind_dir=%p, wind_speed=%p, runway=%p\n",
-                        wind_dir_val, wind_speed_val, runway_val);
 
                     if (wind_dir_val && wind_speed_val && runway_val &&
                         wind_dir_val->type == VAL_NUMBER && wind_speed_val->type == VAL_NUMBER &&
@@ -502,26 +535,22 @@ airlang_void executeVM(VirtualMachine* vm) {
                         airlang_doub cw = crosswind(wind_dir_val->data.number, wind_speed_val->data.number,
                             runway_val->data.number);
                         push(vm, createNumberValue(cw));
-                        printf("Calculated crosswind: %.2f kt\n", cw);
+                        printf("Calculated crosswind for %s: %.2f kt\n", target_airport, cw);
 
-                        
+                        // Store the crosswind result in a specific variable
                         airlang_char crosswind_var[32];
-                        snprintf(crosswind_var, sizeof(crosswind_var), "%s_CROSSWIND", current_airport);
+                        snprintf(crosswind_var, sizeof(crosswind_var), "%s_CROSSWIND", target_airport);
                         Value crosswind_value = createNumberValue(cw);
                         storeVariable(vm, crosswind_var, crosswind_value);
                         printf("Stored crosswind in variable: %s = %.2f\n", crosswind_var, cw);
                     }
                     else {
-                        printf("Error: Missing wind or runway data for crosswind calculation\n");
-                        printf("DEBUG: Variables found - wind_dir: %s, wind_speed: %s, runway: %s\n",
-                            wind_dir_val ? "YES" : "NO",
-                            wind_speed_val ? "YES" : "NO",
-                            runway_val ? "YES" : "NO");
+                        printf("Error: Missing wind or runway data for crosswind calculation for %s\n", target_airport);
                         push(vm, createNumberValue(0.0));
                     }
                 }
                 else if (vm->stack_pointer >= 3) {
-                    
+                    // Fallback to stack-based calculation
                     Value runway = pop(vm);
                     Value wind_speed = pop(vm);
                     Value wind_dir = pop(vm);
@@ -537,7 +566,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     }
                 }
                 else {
-                    printf("Error: Not enough operands for CALC_CROSSWIND and no airport context\n");
+                    printf("Error: Cannot determine airport context for CALC_CROSSWIND\n");
                     push(vm, createNumberValue(0.0));
                 }
                 break;
@@ -968,15 +997,15 @@ airlang_void sync_variables_back(VirtualMachine* vm) {
 //function to extract airport from variable assignments
 airlang_void update_current_airport(VirtualMachine* vm, const airlang_strg var_name) {
     // Look for pattern like "CYOW_RUNWAY" to extract "CYOW"
-    if (strstr(var_name, "_RUNWAY") != NULL) {
-        airlang_intg len = (airlang_intg)(strstr(var_name, "_RUNWAY") - var_name);
-        if (len > 0 && len < sizeof(current_airport) - 1) {
-            strncpy(current_airport, var_name, len);
-            current_airport[len] = '\0';
+
+    airlang_char extracted_airport[16] = { 0 };
+    if (strlen(extracted_airport) > 0) {
+        strncpy(current_airport, extracted_airport, sizeof(current_airport) - 1);
+        current_airport[sizeof(current_airport) - 1] = '\0';
             printf("Updated current airport context: %s\n", current_airport);
         }
     }
-}
+
 
 
 airlang_void update_airport_context_from_metar(VirtualMachine* vm, const airlang_strg metar_string) {
@@ -993,5 +1022,29 @@ airlang_void update_airport_context_from_metar(VirtualMachine* vm, const airlang
         }
         current_airport[i] = '\0';
         printf("DEBUG: Set current airport from METAR: %s\n", current_airport);
+    }
+}
+
+airlang_void extract_airport_from_variable_name(const airlang_strg var_name, airlang_char* airport_out) {
+    // Clearing output buffer
+    airport_out[0] = '\0';
+
+    // Look for pattern like "CYOW_RUNWAY", "CYYZ_WIND_DIR", etc.
+    airlang_char* underscore_pos = strchr(var_name, '_');
+    if (underscore_pos != NULL) {
+        airlang_intg len = (airlang_intg)(underscore_pos - var_name);
+        if (len > 0 && len < 16) {
+            strncpy(airport_out, var_name, len);
+            airport_out[len] = '\0';
+            printf("DEBUG: Extracted airport '%s' from variable '%s'\n", airport_out, var_name);
+        }
+    }
+    else {
+        // If no underscore, the whole name might be the airport code
+        if (strlen(var_name) >= 3 && strlen(var_name) <= 5) {
+            strncpy(airport_out, var_name, 15);
+            airport_out[15] = '\0';
+            printf("DEBUG: Using variable name '%s' as airport code\n", airport_out);
+        }
     }
 }
