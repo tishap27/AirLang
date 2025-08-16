@@ -264,11 +264,17 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Step6 → Step
 
 ###### Compilation Process
 
-Source to Bytecode
- &nbsp; AirLang source files (.air) → Bytecode files (.air) Optimized instruction set for aviation operations Magic number validation for bytecode integrity
- &nbsp; Virtual Machine Execution
- &nbsp; Stack-based VM with 237+ instruction types, Real-time METAR parsing and weather calculations, Built-in headwind/crosswind computation, Variable storage with type checking
-Conditional branching and safety alerts
+* *Source to Bytecode* 
+\- AirLang source files (.air) → Bytecode files (.air)
+\- Optimized instruction set for aviation operations
+\- Magic number validation for bytecode integrity
+
+* *Virtual Machine Execution*
+\- Stack-based VM with 237+ instruction types
+\- Real-time METAR parsing and weather calculations
+\- Built-in headwind/crosswind computation
+\- Variable storage with type checking
+\-Conditional branching and safety alerts
 
 ###### 
 
