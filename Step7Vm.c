@@ -139,7 +139,7 @@ airlang_void executeVM(VirtualMachine* vm) {
     while (vm->running && vm->program_counter < vm->instruction_count) {
         Instruction* current = &vm->instructions[vm->program_counter];
 
-        printf("PC:%d Executing: OpCode=%d ", vm->program_counter, current->opCode);
+        //printf("PC:%d Executing: OpCode=%d ", vm->program_counter, current->opCode);
 
 
         if (vm->skip_execution &&
@@ -147,24 +147,24 @@ airlang_void executeVM(VirtualMachine* vm) {
             current->opCode != OP_ENDIF &&
             current->opCode != OP_IF &&
             current->opCode != OP_CONDITION) {
-            printf("SKIPPED\n");
+           // printf("SKIPPED\n");
             vm->program_counter++;
             continue;
         }
        
             switch (current->opCode) {
             case OP_LOAD_NUM:
-                printf("LOAD_NUM %.2f\n", current->operand.num_operand);
+              //  printf("LOAD_NUM %.2f\n", current->operand.num_operand);
                 push(vm, createNumberValue(current->operand.num_operand));
                 break;
 
             case OP_LOAD_STR:
-                printf("LOAD_STR \"%s\"\n", current->operand.str_operand);
+               // printf("LOAD_STR \"%s\"\n", current->operand.str_operand);
                 push(vm, createStringValue(current->operand.str_operand));
                 break;
 
             case OP_STORE_VAR:
-                printf("STORE_VAR %s\n", current->operand.str_operand);
+               // printf("STORE_VAR %s\n", current->operand.str_operand);
                 if (vm->stack_pointer > 0) {
                     Value val = pop(vm);
                     storeVariable(vm, current->operand.str_operand, val);
@@ -186,7 +186,7 @@ airlang_void executeVM(VirtualMachine* vm) {
 
 
             case OP_PRINT:
-                printf("PRINT\n");
+             //   printf("PRINT\n");
                 if (vm->stack_pointer > 0) {
                     Value val = pop(vm);
                     printf("OUTPUT: ");
@@ -201,7 +201,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     if (val.type == VAL_STRING) {
                         if (is_aircraft_identifier(val.data.string)) {
                             storeVariable(vm, current->operand.str_operand, val);
-                            printf("Valid aircraft ID stored: %s\n", val.data.string);
+                            //printf("Valid aircraft ID stored: %s\n", val.data.string);
                         }
                         else {
                             printf("Error: Invalid aircraft identifier format: %s\n", val.data.string);
@@ -225,7 +225,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     if (val.type == VAL_STRING) {
                         if (is_coordinate_format(val.data.string)) {
                             storeVariable(vm, current->operand.str_operand, val);
-                            printf("Valid coordinates stored: %s\n", val.data.string);
+                            //printf("Valid coordinates stored: %s\n", val.data.string);
                         }
                         else {
                             printf("Error: Invalid coordinate format: %s\n", val.data.string);
@@ -248,7 +248,7 @@ airlang_void executeVM(VirtualMachine* vm) {
 
                         if (is_date_format(val.data.string)) {
                             storeVariable(vm, current->operand.str_operand, val);
-                            printf("Valid date stored: %s\n", val.data.string);
+                           // printf("Valid date stored: %s\n", val.data.string);
                         }
                         else {
                             printf("Error: Invalid date format: %s\n", val.data.string);
@@ -266,7 +266,7 @@ airlang_void executeVM(VirtualMachine* vm) {
 
 
             case OP_CALC_EXPRESSION:
-                printf("CALC_EXPRESSION \"%s\"\n", current->operand.str_operand);
+             //   printf("CALC_EXPRESSION \"%s\"\n", current->operand.str_operand);
 
                 // The expression is in the instruction operand, NOT on the stack
                 if (strlen(current->operand.str_operand) > 0) {
@@ -277,7 +277,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                         airlang_doub result = evaluate_expression_with_distance(current->operand.str_operand);
                         push(vm, createNumberValue(result));
 
-                        printf("Expression '%s' evaluated to %.2f\n", current->operand.str_operand, result);
+                        //printf("Expression '%s' evaluated to %.2f\n", current->operand.str_operand, result);
                 }
                 else {
                         printf("Error: CALC_EXPRESSION requires string operand\n");
@@ -288,7 +288,7 @@ airlang_void executeVM(VirtualMachine* vm) {
 
 
             case OP_PRINT_INTERPOLATED:
-                printf("PRINT_INTERPOLATED %s\n", current->operand.str_operand);
+                //printf("PRINT_INTERPOLATED %s\n", current->operand.str_operand);
                 if (strlen(current->operand.str_operand) > 0) {
                     sync_variables(vm);
 
@@ -297,7 +297,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     airlang_char formatted_expr[MAX_EXPR_LEN];
                     airlang_strg expr = current->operand.str_operand;
 
-                    printf("DEBUG: Analyzing expression: '%s'\n", expr);
+                   // printf("DEBUG: Analyzing expression: '%s'\n", expr);
 
                     // Count quotes to understand the structure
                     airlang_intg quote_count = 0;
@@ -307,12 +307,12 @@ airlang_void executeVM(VirtualMachine* vm) {
                         if (expr[i] == '+') has_plus = 1;
                     }
 
-                    printf("DEBUG: Found %d quotes, has_plus=%d\n", quote_count, has_plus);
+                    //printf("DEBUG: Found %d quotes, has_plus=%d\n", quote_count, has_plus);
 
                     if (has_plus && quote_count > 2) {
                         // Complex expression with multiple parts - DON'T remove outer quotes ""something" + value + "something""
                         snprintf(formatted_expr, sizeof(formatted_expr), "PRINT {%s}", expr);
-                        printf("DEBUG: Complex expression, keeping all quotes\n");
+                     //   printf("DEBUG: Complex expression, keeping all quotes\n");
                     }
                     else if (expr[0] == '"' && expr[strlen(expr) - 1] == '"' && quote_count == 2) {
                         // Simple expression with just outer quotes - remove them
@@ -320,15 +320,15 @@ airlang_void executeVM(VirtualMachine* vm) {
                         strncpy(temp, expr + 1, strlen(expr) - 2);
                         temp[strlen(expr) - 2] = '\0';
                         snprintf(formatted_expr, sizeof(formatted_expr), "PRINT {%s}", temp);
-                        printf("DEBUG: Simple expression, removed outer quotes\n");
+                      //  printf("DEBUG: Simple expression, removed outer quotes\n");
                     }
                     else {
                         // No modification needed
                         snprintf(formatted_expr, sizeof(formatted_expr), "PRINT {%s}", expr);
-                        printf("DEBUG: No quote modification needed\n");
+                       // printf("DEBUG: No quote modification needed\n");
                     }
 
-                    printf("DEBUG: Final formatted: '%s'\n", formatted_expr);
+                    //printf("DEBUG: Final formatted: '%s'\n", formatted_expr);
 
                     airlang_intg saved_phase = initial_phase;
                     initial_phase = 0;
@@ -341,7 +341,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                 }
                 break;
             case OP_CONDITION:
-                printf("CONDITION \"%s\"\n", current->operand.str_operand);
+              //  printf("CONDITION \"%s\"\n", current->operand.str_operand);
 
                 // DEBUG print VM variable values
                /* printf("DEBUG: VM Variables - ");
@@ -354,24 +354,24 @@ airlang_void executeVM(VirtualMachine* vm) {
 
                 //sync_variables(vm);
                 vm->condition_result = evaluate_condition_vm(vm , current->operand.str_operand);
-                printf("DEBUG: Condition result = %d\n", vm->condition_result); 
+                //printf("DEBUG: Condition result = %d\n", vm->condition_result); 
                 break;
 
             case OP_IF:
-                printf("IF (condition=%d)\n", vm->condition_result);
+              //  printf("IF (condition=%d)\n", vm->condition_result);
                 vm->in_if_block = 1;
                 vm->skip_execution = (vm->condition_result == 0 );
                 break;
 
             case OP_ELSE:
-                printf("ELSE\n");
+               // printf("ELSE\n");
                 if (vm->in_if_block) {
                     vm->skip_execution = (vm->condition_result != 0);
                 }
                 break;
 
             case OP_ENDIF:
-                printf("ENDIF\n");
+                //printf("ENDIF\n");
                 vm->skip_execution = 0;
                 vm->condition_result = 0;
                 vm->in_if_block = 0;
@@ -403,7 +403,8 @@ airlang_void executeVM(VirtualMachine* vm) {
                 break;
 
             case OP_CALC_HEADWIND:
-                printf("CALC_HEADWIND\n"); {
+               // printf("CALC_HEADWIND\n"); 
+               {
                     airlang_char target_airport[16] = { 0 };
                     airlang_intg found_airport = 0;
 
@@ -415,7 +416,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                             strncpy(target_airport, next_instr->operand.str_operand, sizeof(target_airport) - 1);
                             target_airport[sizeof(target_airport) - 1] = '\0';
                             found_airport = 1;
-                            printf("DEBUG: Target airport from next instruction: %s\n", target_airport);
+                           // printf("DEBUG: Target airport from next instruction: %s\n", target_airport);
                         }
                     }
 
@@ -423,7 +424,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     if (!found_airport && strlen(current_airport) > 0) {
                         strncpy(target_airport, current_airport, sizeof(target_airport) - 1);
                         found_airport = 1;
-                        printf("DEBUG: Using current airport: %s\n", target_airport);
+                      //  printf("DEBUG: Using current airport: %s\n", target_airport);
                     }
 
                     if (found_airport) {
@@ -433,7 +434,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                         snprintf(wind_speed_var, sizeof(wind_speed_var), "%s_WIND_SPEED", target_airport);
                         snprintf(runway_var, sizeof(runway_var), "%s_RUNWAY", target_airport);
 
-                        printf("DEBUG: Looking for variables: %s, %s, %s\n", wind_dir_var, wind_speed_var, runway_var);
+                      //  printf("DEBUG: Looking for variables: %s, %s, %s\n", wind_dir_var, wind_speed_var, runway_var);
 
                         Value* wind_dir_val = getVariable(vm, wind_dir_var);
                         Value* wind_speed_val = getVariable(vm, wind_speed_var);
@@ -443,8 +444,8 @@ airlang_void executeVM(VirtualMachine* vm) {
                             wind_dir_val->type == VAL_NUMBER && wind_speed_val->type == VAL_NUMBER &&
                             runway_val->type == VAL_NUMBER) {
 
-                            printf("DEBUG: Using values - wind_dir=%.0f, wind_speed=%.0f, runway=%.0f\n",
-                                wind_dir_val->data.number, wind_speed_val->data.number, runway_val->data.number);
+                            //printf("DEBUG: Using values - wind_dir=%.0f, wind_speed=%.0f, runway=%.0f\n",
+                             //   wind_dir_val->data.number, wind_speed_val->data.number, runway_val->data.number);
 
                             airlang_doub hw = headwind(wind_dir_val->data.number, wind_speed_val->data.number,
                                 runway_val->data.number);
@@ -472,7 +473,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                         if (wind_dir.type == VAL_NUMBER && wind_speed.type == VAL_NUMBER && runway.type == VAL_NUMBER) {
                             airlang_doub hw = headwind(wind_dir.data.number, wind_speed.data.number, runway.data.number);
                             push(vm, createNumberValue(hw));
-                            printf("Calculated headwind (stack-based): %.2f kt\n", hw);
+                           // printf("Calculated headwind (stack-based): %.2f kt\n", hw);
                         }
                         else {
                             printf("Error: CALC_HEADWIND requires numeric values\n");
@@ -488,7 +489,8 @@ airlang_void executeVM(VirtualMachine* vm) {
                
 
             case OP_CALC_CROSSWIND:
-                printf("CALC_CROSSWIND\n"); {
+                //printf("CALC_CROSSWIND\n"); 
+                {
 
                     airlang_char target_airport[16] = { 0 };
                     airlang_intg found_airport = 0;
@@ -501,7 +503,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                             strncpy(target_airport, next_instr->operand.str_operand, sizeof(target_airport) - 1);
                             target_airport[sizeof(target_airport) - 1] = '\0';
                             found_airport = 1;
-                            printf("DEBUG: Target airport from next instruction: %s\n", target_airport);
+                           // printf("DEBUG: Target airport from next instruction: %s\n", target_airport);
                         }
                     }
 
@@ -509,7 +511,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     if (!found_airport && strlen(current_airport) > 0) {
                         strncpy(target_airport, current_airport, sizeof(target_airport) - 1);
                         found_airport = 1;
-                        printf("DEBUG: Using current airport: %s\n", target_airport);
+                        //printf("DEBUG: Using current airport: %s\n", target_airport);
                     }
 
                     if (found_airport) {
@@ -519,7 +521,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                         snprintf(wind_speed_var, sizeof(wind_speed_var), "%s_WIND_SPEED", target_airport);
                         snprintf(runway_var, sizeof(runway_var), "%s_RUNWAY", target_airport);
 
-                        printf("DEBUG: Looking for variables: %s, %s, %s\n", wind_dir_var, wind_speed_var, runway_var);
+                      //  printf("DEBUG: Looking for variables: %s, %s, %s\n", wind_dir_var, wind_speed_var, runway_var);
 
                         Value* wind_dir_val = getVariable(vm, wind_dir_var);
                         Value* wind_speed_val = getVariable(vm, wind_speed_var);
@@ -529,13 +531,13 @@ airlang_void executeVM(VirtualMachine* vm) {
                             wind_dir_val->type == VAL_NUMBER && wind_speed_val->type == VAL_NUMBER &&
                             runway_val->type == VAL_NUMBER) {
 
-                            printf("DEBUG: Using values - wind_dir=%.0f, wind_speed=%.0f, runway=%.0f\n",
-                                wind_dir_val->data.number, wind_speed_val->data.number, runway_val->data.number);
+                         //   printf("DEBUG: Using values - wind_dir=%.0f, wind_speed=%.0f, runway=%.0f\n",
+                           //     wind_dir_val->data.number, wind_speed_val->data.number, runway_val->data.number);
 
                             airlang_doub cw = crosswind(wind_dir_val->data.number, wind_speed_val->data.number,
                                 runway_val->data.number);
                             push(vm, createNumberValue(cw));
-                            printf("Calculated crosswind for %s: %.2f kt\n", target_airport, cw);
+                          //  printf("Calculated crosswind for %s: %.2f kt\n", target_airport, cw);
 
                             // Store the crosswind result in a specific variable
                             airlang_char crosswind_var[32];
@@ -558,7 +560,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                         if (wind_dir.type == VAL_NUMBER && wind_speed.type == VAL_NUMBER && runway.type == VAL_NUMBER) {
                             airlang_doub cw = crosswind(wind_dir.data.number, wind_speed.data.number, runway.data.number);
                             push(vm, createNumberValue(cw));
-                            printf("Calculated crosswind (stack-based): %.2f kt\n", cw);
+                           // printf("Calculated crosswind (stack-based): %.2f kt\n", cw);
                         }
                         else {
                             printf("Error: CALC_CROSSWIND requires numeric values\n");
@@ -573,74 +575,74 @@ airlang_void executeVM(VirtualMachine* vm) {
                 break;
 
             case OP_ENTER_MAIN:
-                printf("ENTER_MAIN\n");
+               // printf("ENTER_MAIN\n");
                 break;
             case OP_EXIT_MAIN:
-                printf("EXIT_MAIN\n");
+               // printf("EXIT_MAIN\n");
                 break;
             case OP_ENTER_BRIEFING:
-                printf("ENTER_BRIEFING\n");
+               // printf("ENTER_BRIEFING\n");
                 break;
             case OP_EXIT_BRIEFING:
-                printf("EXIT_BRIEFING\n");
+               // printf("EXIT_BRIEFING\n");
                 break;
             case OP_ENTER_WEATHER:
-                printf("ENTER_WEATHER\n");
+              //  printf("ENTER_WEATHER\n");
                 break;
             case OP_EXIT_WEATHER:
-                printf("EXIT_WEATHER\n");
+               // printf("EXIT_WEATHER\n");
                 break;
             case OP_ENTER_LOADSHEET:
-                printf("ENTER_LOADSHEET\n");
+               // printf("ENTER_LOADSHEET\n");
                 break;
             case OP_EXIT_LOADSHEET:
-                printf("EXIT_LOADSHEET\n");
+               // printf("EXIT_LOADSHEET\n");
                 break;
             case OP_ENTER_DISPATCH:
-                printf("ENTER_DISPATCH\n");
+               // printf("ENTER_DISPATCH\n");
                 break;
             case OP_EXIT_DISPATCH:
-                printf("EXIT_DISPATCH\n");
+               // printf("EXIT_DISPATCH\n");
                 break;
 
             case OP_ENTER_AIRCRAFT:
-                printf("ENTER_AIRCRAFT\n");
+               // printf("ENTER_AIRCRAFT\n");
                 break;
             case OP_ENTER_FLIGHT:
-                printf("ENTER_FLIGHT\n");
+               // printf("ENTER_FLIGHT\n");
                 break;
             case OP_ENTER_ROUTE:
-                printf("ENTER_ROUTE\n");
+               // printf("ENTER_ROUTE\n");
                 break;
             case OP_ENTER_RECEIVEDDATA:
-                printf("ENTER_RECEIVEDDATA\n");
+              //  printf("ENTER_RECEIVEDDATA\n");
                 break;
             case OP_EXIT_RECEIVEDDATA:
-                printf("EXIT_RECEIVEDDATA\n");
+               // printf("EXIT_RECEIVEDDATA\n");
                 break;
             case OP_ENTER_RUNWAYDATA:
-                printf("ENTER_RUNWAYDATA\n");
+               // printf("ENTER_RUNWAYDATA\n");
                 break;
             case OP_EXIT_RUNWAYDATA:
-                printf("EXIT_RUNWAYDATA\n");
+               // printf("EXIT_RUNWAYDATA\n");
                 break;
             case OP_ENTER_WINDANALYSIS:
-                printf("ENTER_WINDANALYSIS\n");
+              //  printf("ENTER_WINDANALYSIS\n");
                 break;
             case OP_EXIT_WINDANALYSIS:
-                printf("EXIT_WINDANALYSIS\n");
+               // printf("EXIT_WINDANALYSIS\n");
                 break;
             case OP_ENTER_SAFETYALERT:
-                printf("ENTER_SAFETYALERT\n");
+               // printf("ENTER_SAFETYALERT\n");
                 break;
             case OP_EXIT_SAFETYALERT:
-                printf("EXIT_SAFETYALERT\n");
+                //printf("EXIT_SAFETYALERT\n");
                 break;
             case OP_ENTER_REPORT:
-                printf("ENTER_REPORT\n");
+                //printf("ENTER_REPORT\n");
                 break;
             case OP_EXIT_REPORT:
-                printf("EXIT_REPORT\n");
+              //  printf("EXIT_REPORT\n");
                 break;
 
 
@@ -712,11 +714,11 @@ airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condit
             }
         }
 
-        printf("DEBUG: VM Comparing %.2f > %.2f = %s\n", leftVal, rightVal, (leftVal > rightVal) ? "TRUE" : "FALSE");
+        // printf("DEBUG: VM Comparing %.2f > %.2f = %s\n", leftVal, rightVal, (leftVal > rightVal) ? "TRUE" : "FALSE");
         return leftVal > rightVal;
     }
     // DEBUG print VM variable values
-    printf("DEBUG: VM Variables - ");
+   // printf("DEBUG: VM Variables - ");
     for (airlang_intg i = 0; i < vm->variable_count; i++) {
         if (vm->variables[i].is_used) {
             printf("%s=", vm->variables[i].name);
@@ -797,7 +799,7 @@ airlang_void storeVariable(VirtualMachine* vm , const airlang_strg name , Value 
             //changing current variable to new 
             vm->variables[i].value = value; 
 
-            printf("Updated variable '%s' = ", name); 
+         //   printf("Updated variable '%s' = ", name); 
             printValue(&value); 
             printf("\n"); 
             return; 
@@ -1024,7 +1026,7 @@ airlang_void update_airport_context_from_metar(VirtualMachine* vm, const airlang
             current_airport[i++] = *metar_pos++;
         }
         current_airport[i] = '\0';
-        printf("DEBUG: Set current airport from METAR: %s\n", current_airport);
+       // printf("DEBUG: Set current airport from METAR: %s\n", current_airport);
     }
 }
 
@@ -1047,7 +1049,7 @@ airlang_void extract_airport_from_variable_name(const airlang_strg var_name, air
         if (strlen(var_name) >= 3 && strlen(var_name) <= 5) {
             strncpy(airport_out, var_name, 15);
             airport_out[15] = '\0';
-            printf("DEBUG: Using variable name '%s' as airport code\n", airport_out);
+           // printf("DEBUG: Using variable name '%s' as airport code\n", airport_out);
         }
     }
 }
