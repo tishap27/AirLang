@@ -63,6 +63,18 @@ extern airlang_doub crosswind(airlang_doub wind_dir, airlang_doub wind_speed, ai
 extern airlang_doub evaluate_expression_with_distance(const airlang_strg expr);
 
 
+
+
+/*
+ ************************************************************
+ * Virtual Machine Initialization
+ *      Initializes all VM components to default states including
+ *      instruction memory, stack, program counter, and variable
+ *      storage. Prepares VM for bytecode loading and execution.
+ * Purpose:
+ *      Sets up clean VM state for program execution
+ ************************************************************
+ */
 airlang_void initVM(VirtualMachine* vm) {
     vm->instructions = NULL;
     vm->instruction_count = 0;
@@ -83,6 +95,17 @@ airlang_void initVM(VirtualMachine* vm) {
     printf("Virtual Machine initialized.\n");
 }
 
+
+/*
+ ************************************************************
+ * Bytecode File Loader
+ *      Reads and validates bytecode files with magic number verification.
+ *      Allocates instruction memory and loads complete instruction set
+ *      into VM memory space for execution.
+ * Purpose:
+ *      Loads compiled bytecode programs into VM for execution
+ ************************************************************
+ */
 airlang_intg loadBytecode(VirtualMachine* vm, const airlang_strg filename) {
     FILE* file = fopen(filename, "rb");
     if (!file) {
@@ -132,7 +155,16 @@ airlang_intg loadBytecode(VirtualMachine* vm, const airlang_strg filename) {
 }
 
 
-
+/*
+ ************************************************************
+ * Virtual Machine Execution Engine
+ *      Main execution loop that processes bytecode instructions sequentially.
+ *      Handles all opcodes including arithmetic, control flow, I/O operations,
+ *      and aviation-specific calculations with proper stack management.
+ * Purpose:
+ *      Executes loaded bytecode programs instruction by instruction
+ ************************************************************
+ */
 airlang_void executeVM(VirtualMachine* vm) {
     printf("\n=== EXECUTING AIRLANG BYTECODE ===\n");
 
@@ -450,14 +482,14 @@ airlang_void executeVM(VirtualMachine* vm) {
                             airlang_doub hw = headwind(wind_dir_val->data.number, wind_speed_val->data.number,
                                 runway_val->data.number);
                             push(vm, createNumberValue(hw));
-                            printf("Calculated headwind for %s: %.2f kt\n", target_airport, hw);
+                           // printf("Calculated headwind for %s: %.2f kt\n", target_airport, hw);
 
                             // Store the headwind result in a specific variable
                             airlang_char headwind_var[32];
                             snprintf(headwind_var, sizeof(headwind_var), "%s_HEADWIND", target_airport);
                             Value headwind_value = createNumberValue(hw);
                             storeVariable(vm, headwind_var, headwind_value);
-                            printf("Stored headwind in variable: %s = %.2f\n", headwind_var, hw);
+                          //  printf("Stored headwind in variable: %s = %.2f\n", headwind_var, hw);
                         }
                         else {
                             printf("Error: Missing wind or runway data for headwind calculation for %s\n", target_airport);
@@ -544,7 +576,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                             snprintf(crosswind_var, sizeof(crosswind_var), "%s_CROSSWIND", target_airport);
                             Value crosswind_value = createNumberValue(cw);
                             storeVariable(vm, crosswind_var, crosswind_value);
-                            printf("Stored crosswind in variable: %s = %.2f\n", crosswind_var, cw);
+                           // printf("Stored crosswind in variable: %s = %.2f\n", crosswind_var, cw);
                         }
                         else {
                             printf("Error: Missing wind or runway data for crosswind calculation for %s\n", target_airport);
@@ -667,6 +699,17 @@ airlang_void executeVM(VirtualMachine* vm) {
 }
 
 
+
+/*
+ ************************************************************
+ * Conditional Expression Evaluator
+ *      Parses and evaluates conditional expressions for control flow.
+ *      Supports comparison operators and variable resolution from
+ *      VM variable storage with type checking.
+ * Purpose:
+ *      Enables if/else control structures in bytecode execution
+ ************************************************************
+ */
 airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condition) {
     airlang_char tempCond[256];
     strcpy_s(tempCond, sizeof(tempCond), condition);
@@ -739,14 +782,33 @@ airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condit
 
 
 
-
+/*
+ ************************************************************
+ * Interpolated Output Handler
+ *      Processes complex output expressions with variable interpolation.
+ *      Synchronizes VM variables with external writer system for
+ *      formatted string output generation.
+ * Purpose:
+ *      Handles dynamic string output with embedded variables
+ ************************************************************
+ */
 airlang_void handle_write_vm(VirtualMachine* vm, const airlang_strg expression) {
     sync_variables(vm);
     airlang_char formatted[512];
     sprintf_s(formatted, sizeof(formatted), "PRINT {%s}", expression);
     handle_write(formatted);
 }
-// Clean up VM resources
+
+
+/*
+************************************************************
+*Virtual Machine Resource Cleanup
+* Deallocates all dynamic memory used by VM including
+* instruction storage and resets VM to clean state.
+* Purpose:
+*Prevents memory leaks and cleans up VM resources
+************************************************************
+*/
 airlang_void cleanupVM(VirtualMachine * vm) {
     if (vm->instructions) {
         free(vm->instructions);
@@ -755,7 +817,17 @@ airlang_void cleanupVM(VirtualMachine * vm) {
     printf("Virtual Machine cleaned up.\n");
 }
 
-// Stack operations
+
+/*
+ ************************************************************
+ * Stack Push Operation
+ *      Adds values to VM execution stack with overflow protection.
+ *      Maintains stack pointer integrity and validates stack bounds
+ *      before performing push operations.
+ * Purpose:
+ *      Provides safe stack storage for intermediate values
+ ************************************************************
+ */
 airlang_void push(VirtualMachine* vm, Value value) {
     if (vm->stack_pointer >= MAX_STACK_SIZE) {
         printf("Error: Stack overflow\n");
@@ -764,6 +836,17 @@ airlang_void push(VirtualMachine* vm, Value value) {
     vm->stack[vm->stack_pointer++] = value;
 }
 
+
+/*
+ ************************************************************
+ * Stack Pop Operation
+ *      Removes and returns values from VM execution stack with
+ *      underflow protection. Maintains stack pointer consistency
+ *      and provides error handling for empty stack conditions.
+ * Purpose:
+ *      Retrieves stored values from stack for processing
+ ************************************************************
+ */
 Value pop(VirtualMachine* vm) {
     if (vm->stack_pointer <= 0) {
         printf("Error: Stack underflow\n");
@@ -773,6 +856,17 @@ Value pop(VirtualMachine* vm) {
     return vm->stack[--vm->stack_pointer];
 }
 
+
+/*
+ ************************************************************
+ * Numeric Value Constructor
+ *      Creates properly formatted Value structures for numeric data.
+ *      Sets appropriate type flags and initializes data union
+ *      for floating-point number storage.
+ * Purpose:
+ *      Standardizes numeric value creation for VM operations
+ ************************************************************
+ */
 Value createNumberValue(airlang_doub num) {
     Value val; 
     val.type = VAL_NUMBER;
@@ -782,6 +876,16 @@ Value createNumberValue(airlang_doub num) {
 
 
 
+/*
+ ************************************************************
+ * String Value Constructor
+ *      Creates properly formatted Value structures for string data.
+ *      Handles string length validation and null termination
+ *      with boundary checking for safe storage.
+ * Purpose:
+ *      Standardizes string value creation for VM operations
+ ************************************************************
+ */
 Value createStringValue(const airlang_strg str) {
     Value val;
     val.type = VAL_STRING;
@@ -790,6 +894,17 @@ Value createStringValue(const airlang_strg str) {
     return val;
 }
 
+
+/*
+ ************************************************************
+ * Variable Storage Manager
+ *      Stores or updates variables in VM variable table with
+ *      duplicate checking. Handles both new variable creation
+ *      and existing variable updates with type preservation.
+ * Purpose:
+ *      Manages VM variable storage and retrieval operations
+ ************************************************************
+ */
 airlang_void storeVariable(VirtualMachine* vm , const airlang_strg name , Value value ) {
    
     //if variable exists
@@ -821,7 +936,7 @@ airlang_void storeVariable(VirtualMachine* vm , const airlang_strg name , Value 
     vm->variables[vm->variable_count].name[sizeof(vm->variables[vm->variable_count].name) - 1] = '\0';
     vm->variables[vm->variable_count].value = value;
 
-    printf("Created variable '%s' = ", name);
+   // printf("Created variable '%s' = ", name);
     printValue(&value);
     printf("\n");
 
@@ -829,6 +944,16 @@ airlang_void storeVariable(VirtualMachine* vm , const airlang_strg name , Value 
 
 }
 
+/*
+ ************************************************************
+ * Variable Retrieval System
+ *      Searches VM variable table by name and returns pointer
+ *      to stored value. Provides null return for non-existent
+ *      variables with linear search implementation.
+ * Purpose:
+ *      Enables variable lookup for expression evaluation
+ ************************************************************
+ */
 Value* getVariable(VirtualMachine* vm, const airlang_strg name) {
     for (airlang_intg i = 0; i < vm->variable_count; i++) {
         if (vm->variables[i].is_used && strcmp(vm->variables[i].name, name) == 0) {
@@ -838,6 +963,17 @@ Value* getVariable(VirtualMachine* vm, const airlang_strg name) {
     return NULL; // Variable not found
 }
 
+
+/*
+ ************************************************************
+ * Value Display Formatter
+ *      Formats and displays Value structures based on type.
+ *      Handles numeric and string value presentation with
+ *      appropriate formatting for different data types.
+ * Purpose:
+ *      Provides consistent value output formatting
+ ************************************************************
+ */
 airlang_void printValue(const Value* value) {
     switch (value->type) {
     case VAL_NUMBER:
@@ -855,6 +991,17 @@ airlang_void printValue(const Value* value) {
 }
 
 
+
+/*
+ ************************************************************
+ * Virtual Machine Entry Point
+ *      High-level interface for VM execution including initialization,
+ *      bytecode loading, execution, and cleanup. Provides complete
+ *      VM lifecycle management in single function call.
+ * Purpose:
+ *      Simplifies VM usage with complete execution workflow
+ ************************************************************
+ */
 airlang_intg runVirtualMachine(const airlang_strg bytecode_file) {
     VirtualMachine* vm =  malloc(sizeof(VirtualMachine));
     if (!vm) {
@@ -874,7 +1021,17 @@ airlang_intg runVirtualMachine(const airlang_strg bytecode_file) {
     return 1;
 }
 
-// Copy VM variables to writer globals
+
+/*
+ ************************************************************
+ * Variable Synchronization System
+ *      Copies VM variables to external writer system globals
+ *      for expression evaluation. Handles type conversion between
+ *      VM Value structures and external variable formats.
+ * Purpose:
+ *      Enables VM variable access in external expression evaluator
+ ************************************************************
+ */
 airlang_void sync_variables(VirtualMachine* vm) {
     var_count = 0;
 
@@ -898,6 +1055,16 @@ airlang_void sync_variables(VirtualMachine* vm) {
     }
 }
 
+/*
+ ************************************************************
+ * Last Leg Distance Calculator
+ *      Computes distance between final two coordinate points
+ *      stored in VM variables. Uses aviation distance calculation
+ *      with coordinate parsing and validation.
+ * Purpose:
+ *      Calculates final segment distance for flight planning
+ ************************************************************
+ */
 airlang_doub calcLastLegDistance_vm(VirtualMachine* vm) {
     // Find coordinate variables in VM variable table
     airlang_intg coord_count = 0;
@@ -929,7 +1096,16 @@ airlang_doub calcLastLegDistance_vm(VirtualMachine* vm) {
     return 0.0;
 }
 
-
+/*
+ ************************************************************
+ * METAR Processing Engine
+ *      Parses METAR weather strings to extract airport codes and
+ *      weather data. Integrates with external METAR parser and
+ *      synchronizes results back to VM variable storage.
+ * Purpose:
+ *      Processes aviation weather reports for flight planning
+ ************************************************************
+ */
 airlang_void process_metar_in_vm(VirtualMachine* vm, const airlang_strg metar_string) {
     // Extract airport code from METAR string
     airlang_char station_id[16] = { 0 };
@@ -953,12 +1129,22 @@ airlang_void process_metar_in_vm(VirtualMachine* vm, const airlang_strg metar_st
             parseMetar(metar_string, station_id);  
             sync_variables_back(vm);  // Sync global vars back to VM
 
-            printf("METAR parsed for station: %s\n", station_id);
+          //  printf("METAR parsed for station: %s\n", station_id);
         }
     }
 }
 
-// function to sync global variables back to VM
+
+/*
+ ************************************************************
+ * Reverse Variable Synchronization
+ *      Copies external global variables back to VM variable storage
+ *      after external processing. Maintains variable consistency
+ *      between VM and external systems.
+ * Purpose:
+ *      Updates VM variables after external expression evaluation
+ ************************************************************
+ */
 airlang_void sync_variables_back(VirtualMachine* vm) {
     // Copy global variables back to VM variables
     for (airlang_intg i = 0; i < var_count; i++) {
@@ -996,8 +1182,16 @@ airlang_void sync_variables_back(VirtualMachine* vm) {
 
 
 
-
-//function to extract airport from variable assignments
+/*
+ ************************************************************
+ * Airport Context Updater
+ *      Extracts airport codes from variable names and updates
+ *      current airport context for aviation calculations. Supports
+ *      pattern matching for airport-prefixed variables.
+ * Purpose:
+ *      Maintains current airport context for weather calculations
+ ************************************************************
+ */
 airlang_void update_current_airport(VirtualMachine* vm, const airlang_strg var_name) {
     // Look for pattern like "CYOW_RUNWAY" to extract "CYOW"
 
@@ -1007,12 +1201,22 @@ airlang_void update_current_airport(VirtualMachine* vm, const airlang_strg var_n
     if (strlen(extracted_airport) > 0) {
         strncpy(current_airport, extracted_airport, sizeof(current_airport) - 1);
         current_airport[sizeof(current_airport) - 1] = '\0';
-            printf("Updated current airport context: %s\n", current_airport);
+            //printf("Updated current airport context: %s\n", current_airport);
         }
     }
 
 
 
+/*
+ ************************************************************
+ * METAR Airport Context Extractor
+ *      Parses METAR strings to extract airport identifiers and
+ *      updates global airport context. Handles METAR format
+ *      parsing with whitespace and format validation.
+ * Purpose:
+ *      Sets airport context from METAR weather reports
+ ************************************************************
+ */
 airlang_void update_airport_context_from_metar(VirtualMachine* vm, const airlang_strg metar_string) {
     airlang_char* metar_pos = strstr(metar_string, "METAR");
     if (metar_pos != NULL) {
@@ -1030,6 +1234,17 @@ airlang_void update_airport_context_from_metar(VirtualMachine* vm, const airlang
     }
 }
 
+
+/*
+ ************************************************************
+ * Airport Code Pattern Matcher
+ *      Extracts airport codes from variable naming patterns.
+ *      Supports underscore-delimited formats and validates
+ *      airport code length and format requirements.
+ * Purpose:
+ *      Identifies airport codes from variable naming conventions
+ ************************************************************
+ */
 airlang_void extract_airport_from_variable_name(const airlang_strg var_name, airlang_char* airport_out) {
     // Clearing output buffer
     airport_out[0] = '\0';
@@ -1041,7 +1256,7 @@ airlang_void extract_airport_from_variable_name(const airlang_strg var_name, air
         if (len > 0 && len < 16) {
             strncpy(airport_out, var_name, len);
             airport_out[len] = '\0';
-            printf("DEBUG: Extracted airport '%s' from variable '%s'\n", airport_out, var_name);
+           // printf("DEBUG: Extracted airport '%s' from variable '%s'\n", airport_out, var_name);
         }
     }
     else {
