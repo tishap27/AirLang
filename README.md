@@ -8,7 +8,9 @@
 @@                             @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ```
+Author: Tisha Patel
 
+Contact: [tishaapatel08@gmail.com]
 
 
 ###### Overview 
@@ -340,9 +342,6 @@ AirLang provides clear error messages for common issues:
 
 
 
-
-FINALLY!!  
-Tisha
 
 
 
