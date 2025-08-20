@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirLang - Aviation Domain-Specific Language</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0066cc;
+            --dark-blue: #003d7a;
+            --light-blue: #e6f2ff;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-600: #475569;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background-color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-blue);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #cbd5e1 50%, #94a3b8 100%);
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23cbd5e1" stroke-width="0.5" opacity="0.3"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.4;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: var(--gray-700);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            margin-bottom: 2.5rem;
+            line-height: 1.8;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+            border: 2px solid var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background: var(--dark-blue);
+            border-color: var(--dark-blue);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light-blue);
+        }
+
+        .hero-visual {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 102, 204, 0.15);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--dark-blue));
+        }
+
+        .code-preview {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--gray-800);
+        }
+
+        /* Section Base */
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--dark-blue));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 12px 40px rgba(0, 102, 204, 0.15);
+            border-color: var(--primary-blue);
+            transform: translateY(-4px);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--light-blue), #bfdbfe);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.6rem;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-description {
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* Architecture */
+        .architecture {
+            background: var(--gray-50);
+        }
+
+        .compiler-pipeline {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0.5rem;
+            margin: 3rem 0;
+            position: relative;
+        }
+
+        .compiler-pipeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--dark-blue));
+            z-index: 0;
+        }
+
+        .pipeline-step {
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            z-index: 1;
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.08);
+        }
+
+        .pipeline-step:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15);
+        }
+
+        .pipeline-step:not(:last-child)::after {
+            content: '→';
+            position: absolute;
+            right: -0.375rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-blue);
+            font-size: 1.4rem;
+            font-weight: bold;
+            background: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+        }
+
+        .step-number {
+            font-size: 0.875rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        /* Code Examples */
+        .examples-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+
+        .tab-button {
+            padding: 1rem 0;
+            background: none;
+            border: none;
+            color: var(--gray-600);
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .code-block {
+            background: var(--gray-900);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+
+        .code-header {
+            background: var(--gray-800);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-700);
+            color: var(--gray-200);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .code-content {
+            padding: 1.5rem;
+        }
+
+        .code-content pre {
+            margin: 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #e6f2ff;
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        /* Academic Info */
+        .academic-section {
+            background: var(--light-blue);
+            text-align: center;
+        }
+
+        .academic-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--gray-900);
+            color: white;
+            padding: 3rem 0 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .footer-section a {
+            color: var(--gray-200);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--gray-200);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .compiler-pipeline {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1rem;
+            }
+            
+            .pipeline-step:nth-child(4n):not(:last-child)::after {
+                content: '↓';
+                right: 50%;
+                top: 100%;
+                transform: translateX(50%);
+            }
+            
+            .pipeline-step:not(:nth-child(4n)):not(:last-child)::after {
+                content: '→';
+                right: -0.5rem;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+
+            .compiler-pipeline {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .compiler-pipeline::before {
+                display: none;
+            }
+
+            .pipeline-step:nth-child(2n):not(:last-child)::after {
+                content: '↓';
+                right: 50%;
+                top: 100%;
+                transform: translateX(50%);
+            }
+            
+            .pipeline-step:not(:nth-child(2n)):not(:last-child)::after {
+                content: '→';
+                right: -0.5rem;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .compiler-pipeline {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline-step:not(:last-child)::after {
+                content: '↓';
+                right: 50%;
+                top: 100%;
+                transform: translateX(50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <a href="#" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                </svg>
+                AirLang
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="#academic">Research</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>AirLang</h1>
+                    <p class="hero-subtitle">Domain-Specific Language for Aviation Flight Planning</p>
+                    <p class="hero-description">
+                        A specialized programming language designed for aviation professionals, featuring 
+                        natural syntax for flight operations, built-in aviation calculations, and 
+                        comprehensive safety validation.
+                    </p>
+                    <div class="cta-group">
+                        <a href="#examples" class="btn btn-primary">View Examples</a>
+                        <a href="https://github.com/yourusername/airlang" class="btn btn-secondary">GitHub Repository</a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="code-preview">
+<pre><span style="color: #6a737d;">// Flight Planning in AirLang</span>
+<span style="color: #d73a49;">MAIN</span> {
+  <span style="color: #d73a49;">BRIEFING</span> {
+    <span style="color: #d73a49;">AIRCRAFT</span> { Registration: <span style="color: #032f62;">C-GNBL</span>; }
+    <span style="color: #d73a49;">FLIGHT</span> { Number: <span style="color: #032f62;">AC180</span>; }
+    <span style="color: #d73a49;">ROUTE</span> { 
+      Departure: <span style="color: #005cc5;">45.3225</span>, <span style="color: #005cc5;">-75.6692</span>;
+      Arrival: <span style="color: #005cc5;">43.6777</span>, <span style="color: #005cc5;">-79.6248</span>;
+    }
+  } <span style="color: #d73a49;">ENDBRIEFING</span>;
+  
+  <span style="color: #d73a49;">LOADSHEET</span> {
+    Distance = <span style="color: #6f42c1;">AIRPATH</span>;
+    <span style="color: #d73a49;">PRINT</span> { <span style="color: #032f62;">"Flight Distance: "</span> + Distance };
+  } <span style="color: #d73a49;">ENDLOADSHEET</span>;
+} <span style="color: #d73a49;">ENDMAIN</span>;</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Built for Aviation Professionals</h2>
+                <p class="section-subtitle">
+                    AirLang provides domain-specific abstractions that make flight planning 
+                    code more readable, maintainable, and safer.
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">✈️</div>
+                    <h3 class="feature-title">Aviation-Specific Types</h3>
+                    <p class="feature-description">
+                        Native support for aircraft identifiers (C-GNBL), flight numbers (AC180), 
+                        coordinates, and weather data with automatic validation.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧮</div>
+                    <h3 class="feature-title">Built-in Calculations</h3>
+                    <p class="feature-description">
+                        Great circle distance (AIRPATH), wind components, fuel calculations, 
+                        and weight & balance computations integrated into the language.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">Safety Validation</h3>
+                    <p class="feature-description">
+                        Compile-time checking of weight limits, fuel capacity, and regulatory 
+                        constraints to prevent unsafe flight configurations.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌤️</div>
+                    <h3 class="feature-title">Weather Integration</h3>
+                    <p class="feature-description">
+                        Native METAR parsing and weather data integration for automated 
+                        dispatch decisions and condition monitoring.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3 class="feature-title">Structured Workflow</h3>
+                    <p class="feature-description">
+                        Block-structured syntax that mirrors standard aviation documentation 
+                        practices and operational procedures.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Optimized Compiler</h3>
+                    <p class="feature-description">
+                        Complete 5-phase compiler implementation with aviation-specific 
+                        optimizations and comprehensive error handling.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="section architecture">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Compiler Architecture</h2>
+                <p class="section-subtitle">
+                    Traditional compiler design enhanced with aviation-specific features
+                </p>
+            </div>
+            <div class="compiler-pipeline">
+                <div class="pipeline-step">
+                    <div class="step-number">Step 1</div>
+                    <div class="step-title">Coder</div>
+                    <div class="step-description">Input handling & source file management</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">Step 2</div>
+                    <div class="step-title">Reader</div>
+                    <div class="step-description">Buffer management & character stream processing</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">Step 3</div>
+                    <div class="step-title">Scanner</div>
+                    <div class="step-description">Lexical analysis with aviation-specific tokenization</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">Step 4</div>
+                    <div class="step-title">Parser</div>
+                    <div class="step-description">Recursive descent parsing with domain validation</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">Step 5</div>
+                    <div class="step-title">Writer</div>
+                    <div class="step-description">Semantic analysis & safety constraint validation</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">Step 6</div>
+                    <div class="step-title">Generator</div>
+                    <div class="step-description">Bytecode generation optimized for aviation calculations</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">Step 7</div>
+                    <div class="step-title">Virtual Machine</div>
+                    <div class="step-description">Stack-based execution with aviation-specific opcodes</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">Output</div>
+                    <div class="step-title">Results</div>
+                    <div class="step-description">Execution results </div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">15+</div>
+                    <div class="stat-label">Aviation Data Types</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">40+</div>
+                    <div class="stat-label">Language Keywords</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Built-in Functions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">5000+</div>
+                    <div class="stat-label">Lines of Compiler Code</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Examples Section -->
+    <section id="examples" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Code Examples</h2>
+                <p class="section-subtitle">
+                    See how AirLang simplifies common aviation programming tasks
+                </p>
+            </div>
+            
+            <div class="examples-tabs">
+                <button class="tab-button active" onclick="showTab('flight-planning')">Flight Planning</button>
+                <button class="tab-button" onclick="showTab('weight-balance')">Weight & Balance</button>
+                <button class="tab-button" onclick="showTab('weather-analysis')">Weather Analysis</button>
+            </div>
+
+            <div id="flight-planning" class="tab-content active">
+                <div class="code-block">
+                    <div class="code-header">flight_plan.air</div>
+                    <div class="code-content">
+                        <pre><code>REQUEST METAR FROM "https://airlangMetar.fly";
+
+MAIN {
+    BRIEFING {
+        AIRCRAFT { 
+            Registration: C-GNBL;
+            Type: "B737-800";
+            MaxTakeoffWeight: 79000;
+        }
+        FLIGHT { 
+            Number: AC180; 
+            Date: '2025-05-15';
+            DepartureTime: "14:30Z";
+        }
+        ROUTE { 
+            Departure: 45.3225, -75.6692;  // CYOW Ottawa
+            Arrival: 43.6777, -79.6248;    // CYYZ Toronto
+        }
+    } ENDBRIEFING;
+    
+    LOADSHEET {
+        Distance = AIRPATH;
+        CruiseSpeed = 450;
+        FlightTime = Distance / CruiseSpeed;
+        
+        PRINT { "Flight Distance: " + Distance + " nm" };
+        PRINT { "Estimated Flight Time: " + FlightTime + " hours" };
+    } ENDLOADSHEET;
+} ENDMAIN;</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div id="weight-balance" class="tab-content">
+                <div class="code-block">
+                    <div class="code-header">weight_balance.air</div>
+                    <div class="code-content">
+                        <pre><code>MAIN {
+    LOADSHEET {
+        EmptyWeight = 41000;
+        PassengerCount = 180;
+        CargoWeight = 8500;
+        FuelWeight = 12000;
+        MaxTakeoffWeight = 79000;
+        
+        PayloadWeight = PassengerCount * 185 + CargoWeight;
+        TotalWeight = EmptyWeight + PayloadWeight + FuelWeight;
+        
+        IF TotalWeight > MaxTakeoffWeight THEN
+            PRINT { "WARNING: Aircraft exceeds MTOW" };
+            PRINT { "Excess weight: " + (TotalWeight - MaxTakeoffWeight) };
+        ELSE
+            PRINT { "Weight check: PASSED" };
+            PRINT { "Total weight: " + TotalWeight + " lbs" };
+        ENDIF;
+        
+        // Center of Gravity calculations
+        MomentArm = 12.5;
+        CenterOfGravity = (EmptyWeight * 11.8 + PayloadWeight * MomentArm) / TotalWeight;
+        
+        IF CenterOfGravity > 13.2 THEN
+            PRINT { "WARNING: CG out of limits" };
+        ENDIF;
+    } ENDLOADSHEET;
+} ENDMAIN;</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div id="weather-analysis" class="tab-content">
+                <div class="code-block">
+                    <div class="code-header">weather_check.air</div>
+                    <div class="code-content">
+                        <pre><code>MAIN {
+    WEATHER {
+        RECEIVEDDATA {
+            METAR: "CYOW 151400Z 24015G25KT 10SM FEW030 SCT100 M02/M08 A3012";
+        } ENDRECEIVEDDATA;
+        
+        WINDANALYSIS {
+            WIND() WITHCONFIG {
+                CYOW = HEADWIND();
+                CYOW = CROSSWIND();
+            };
+        } ENDWINDANALYSIS;
+        
+        SAFETYALERT {
+            Visibility = 10.0;
+            WindSpeed = 25;
+            
+            IF Visibility < 3.0 THEN
+                PRINT { "DISPATCH HOLD: Low visibility" };
+            ELSE
+                IF WindSpeed > 35 THEN
+                    PRINT { "CAUTION: High winds" };
+                ELSE
+                    PRINT { "Weather: SUITABLE for dispatch" };
+                ENDIF;
+            ENDIF;
+        } ENDSAFETYALERT;
+    } ENDWEATHER;
+    
+    DISPATCH {
+        REPORT {
+            PRINT { "Flight dispatched with weather conditions acceptable" };
+            PRINT { "Wind components calculated and within limits" };
+        } ENDREPORT;
+    } ENDDISPATCH;
+} ENDMAIN;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Academic Section -->
+    <section id="academic" class="section academic-section">
+        <div class="container">
+            <div class="academic-badge">
+                🎓 Academic Research Project
+            </div>
+            <h2 class="section-title">Research Publication</h2>
+            <p class="section-subtitle">
+                This project was developed as part of the CST8152 Compilers course at Algonquin College, 
+                demonstrating practical application of compiler construction techniques to domain-specific 
+                language development.
+            </p>
+            <div style="margin-top: 2rem;">
+                <a href="#" class="btn btn-primary">Read Full Paper</a>
+                <a href="https://github.com/yourusername/airlang/tree/main/docs" class="btn btn-secondary">Technical Documentation</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Project</h3>
+                    <a href="https://github.com/yourusername/airlang">Source Code</a>
+                    <a href="https://github.com/yourusername/airlang/releases">Downloads</a>
+                    <a href="https://github.com/yourusername/airlang/wiki">Documentation</a>
+                    <a href="https://github.com/yourusername/airlang/tree/main/examples">Examples</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Development</h3>
+                    <a href="https://github.com/yourusername/airlang/issues">Issues</a>
+                    <a href="https://github.com/yourusername/airlang/blob/main/CONTRIBUTING.md">Contributing</a>
+                    <a href="https://github.com/yourusername/airlang/blob/main/LICENSE">License</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Research</h3>
+                    <p>Developed by Tisha Patel as part of CST8152 Compilers coursework at Algonquin College, Summer 2025.</p>
+                    <p style="margin-top: 1rem;">Exploring domain-specific language design for safety-critical aviation applications.</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AirLang Project. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const headerOffset = 80;
+                    const elementPosition = target.getBoundingClientPosition().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Apply fade-in animation to cards
+        document.addEventListener('DOMContentLoaded', () => {
+            const animatedElements = document.querySelectorAll('.feature-card, .pipeline-step, .stat-card');
+            animatedElements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(el);
+            });
+        });
+
+        // Mobile menu toggle (if needed)
+        function toggleMobileMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('mobile-open');
+        }
+    </script>
+
+    <style>
+        /* Additional mobile styles */
+        @media (max-width: 768px) {
+            .nav-links.mobile-open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border-top: 1px solid var(--gray-200);
+                padding: 1rem;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        /* Code syntax highlighting improvements */
+        .code-content .token.keyword {
+            color: #ff7b72;
+        }
+        .code-content .token.string {
+            color: #a5d6ff;
+        }
+        .code-content .token.number {
+            color: #79c0ff;
+        }
+        .code-content .token.comment {
+            color: #8b949e;
+        }
+        .code-content .token.function {
+            color: #d2a8ff;
+        }
+    </style>
+</body>
+</html>
