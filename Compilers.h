@@ -65,6 +65,7 @@
 #define PI 3.1415926
 #define DEG_TO_RAD (PI/180.0)
 
+
 /*
 ------------------------------------------------------------
 Data types definitions
@@ -159,6 +160,7 @@ Programs:
 4: Parser - invokes Main4Parser code
 5: Writer - invokes Main5Writer code
 6: Generator - invokes Main6Generator code
+7: VM   -   invokes Main7Vm code 
 ------------------------------------------------------------
 */
 enum PROGRAMS {
@@ -177,6 +179,8 @@ Main functions signatures
 (Code will be updated during next assignments)
 ------------------------------------------------------------
 */
+
+extern airlang_intg runVirtualMachine(const airlang_strg bytecode_file);
 airlang_intg main1Coder	(airlang_intg argc, airlang_strg* argv);
 airlang_intg main2Reader(airlang_intg argc, airlang_strg* argv);
 airlang_intg main3Scanner(airlang_intg argc, airlang_strg* argv);

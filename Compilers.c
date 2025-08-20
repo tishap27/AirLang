@@ -168,8 +168,8 @@ airlang_intg main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	const char* input_file = argv[1];
-	airlang_intg len = strlen(input_file);
+	airlang_char* input_file = argv[1];
+	airlang_intg len = (airlang_intg)strlen(input_file);
 	airlang_intg result;
 	airlang_char encrypted_file[256];
 	airlang_char bytecode_file[256];
@@ -188,7 +188,7 @@ airlang_intg main(int argc, char** argv) {
 		printf("Generating bytecode...\n\n");
 
 		// Calling Step 6 Generator to create bytecode
-		char* gen_argv[3];
+		airlang_char* gen_argv[3];
 		gen_argv[0] = argv[0];
 		gen_argv[1] = "6";              // passing step6 by default
 		gen_argv[2] = (char*)input_file;
@@ -200,7 +200,7 @@ airlang_intg main(int argc, char** argv) {
 		}
 
 		// Create bytecode filename ( replacing .enc with .air)
-		const char* last_dot = strrchr(input_file, '.');
+		const airlang_char* last_dot = strrchr(input_file, '.');
 		if (last_dot) {
 			size_t base_len = last_dot - input_file;
 			strncpy_s(bytecode_file, sizeof(bytecode_file), input_file, base_len);
@@ -221,12 +221,12 @@ airlang_intg main(int argc, char** argv) {
 
 			// Step 1: Encrypt the source file
 		// Create encrypted filename (replace extension with .enc)
-			const char* last_dot = strrchr(input_file, '.');
-			const char* last_slash = strrchr(input_file, '/');
-			const char* last_backslash = strrchr(input_file, '\\');
+			const airlang_char* last_dot = strrchr(input_file, '.');
+			const airlang_char* last_slash = strrchr(input_file, '/');
+			const airlang_char* last_backslash = strrchr(input_file, '\\');
 
 			// Find filename start (handle paths)
-			const char* filename_start = input_file;
+			const airlang_char* filename_start = input_file;
 			if (last_slash && last_slash > filename_start) filename_start = last_slash + 1;
 			if (last_backslash && last_backslash > filename_start) filename_start = last_backslash + 1;
 
@@ -247,7 +247,7 @@ airlang_intg main(int argc, char** argv) {
 			printf("Encrypting: %s -> %s\n", input_file, encrypted_file);
 
 			// Call Step 1 Coder (encryption)
-			char* coder_argv[5];
+			airlang_char* coder_argv[5];
 			coder_argv[0] = argv[0];
 			coder_argv[1] = "1";
 			coder_argv[2] = "1";  // Encryption mode (1 = encrypt, 0 = decrypt)
