@@ -65,7 +65,21 @@ airlang_void processFileGeneration(const airlang_strg source, const airlang_strg
     // Initialize code generator
     Generator* cg = malloc(sizeof(Generator));
     airlang_char output_filename[256];
-    snprintf(output_filename, sizeof(output_filename), "%s.air", source);  // so will become file.txt.air; weird filename- will change later
+   // snprintf(output_filename, sizeof(output_filename), "%s.air", source);  // so will become file.txt.air; weird filename- will change later
+
+    // Replace extension with .air instead of appending
+    const char* last_dot = strrchr(source, '.');
+    if (last_dot) {
+        size_t base_len = last_dot - source;
+        strncpy_s(output_filename, sizeof(output_filename), source, base_len);
+        output_filename[base_len] = '\0';
+        strcat_s(output_filename, sizeof(output_filename), ".air");
+    }
+    else {
+        // No extension found, just append .air
+        strcpy_s(output_filename, sizeof(output_filename), source);
+        strcat_s(output_filename, sizeof(output_filename), ".air");
+    }
 
     initGenerator(cg, output_filename);
 

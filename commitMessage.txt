@@ -1,9 +1,7 @@
-Fix: VM print interpolation and IF/ELSE condition evaluation
+Update: VM-only executable now handles both .txt and .enc files to generate a bytecode file 
 
-- Add extern declarations for writer.c variables/functions
-- Fix variable sync between VM and global variables array  
-- Implement proper condition evaluation using VM variables
-- Fix IF/ELSE control flow with correct skip execution logic
-- Add debug output for condition evaluation
+- if it is .txt, first calls step1Coder and encrypts the file into .enc proceeds onto automatically triggering step6Generator and eventually step7VM
 
-Now correctly handles string interpolation and conditional execution.
+- if it is .enc (already encrypted) simply triggers step6Generator and step7Vm
+
+Minor Fix(Step6Generator): bytecode generated files now save as .air files replacing any extension( e.g .txt or .enc -> .air)  
