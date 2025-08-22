@@ -62,9 +62,9 @@
 #define RTE_CODE 1  /* Value for run-time error */
 
 /* TO_DO: Define the number of tokens */
-#define NUM_TOKENS 30
+#define NUM_TOKENS 31
 
-/* TO_DO: Define Token codes - Create your token classes */
+/* Define Token codes - Create your token classes */
 enum TOKENS {
 	ERR_T,		/*  0: Error token */
 	MNID_T,		/*  1: Method name identifier token (start: &) */
@@ -92,6 +92,7 @@ enum TOKENS {
 	//Arithmetic Op
 	PLUS_T,
 	MINUS_T,
+	UNARY_MINUS_T,
 	MULTI_T,
 	DIV_T,
 	GT_T,
@@ -103,7 +104,7 @@ enum TOKENS {
 	BOOL_T
 };
 
-/* TO_DO: Define the list of keywords */
+/* Define the list of keywords */
 static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	"ERR_T",
 	"MNID_T",
@@ -131,6 +132,7 @@ static airlang_strg tokenStrTable[NUM_TOKENS] = {
 	//Arithmetic Op
 	"PLUS_T",
 	"MINUS_T",
+	"UNARY_MINUS_T",
 	"MULTI_T",
 	"DIV_T",
 	"GT_T",
@@ -172,7 +174,7 @@ typedef union TokenAttribute {
 	//airlang_intg binaryValue; 
 } TokenAttribute;
 
-/* TO_DO: Should be used if no symbol table is implemented */
+/* Should be used if no symbol table is implemented */
 typedef struct idAttibutes {
 	airlang_byte flags;			/* Flags information */
 	union {
@@ -196,7 +198,7 @@ typedef struct scannerData {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* TO_DO: Define lexeme FIXED classes */
+/* Define lexeme FIXED classes */
 /* EOF definitions */
 #define EOS_CHR '\0'	// CH00
 #define EOF_CHR 0xFF	// CH01
@@ -236,16 +238,16 @@ typedef struct scannerData {
  *  LPR_T, RPR_T, LBR_T, RBR_T, EOS_T, SEOF_T and special chars used for tokenis include _, & and ' */
 
 
-/* TO_DO: Error states and illegal state */
+/* Error states and illegal state */
 #define ESNR	8		/* Error state with no retract */
 #define ESWR	9		/* Error state with retract */
 #define FS		20		/* Illegal state */
 
- /* TO_DO: State transition table definition */
+ /* State transition table definition */
 #define NUM_STATES		20
 #define CHAR_CLASSES	14
 
-/* TO_DO: Transition table - type of states defined in separate table */
+/* Transition table - type of states defined in separate table */
 static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 /*    [A-z],[0-9],    _,    (,   \", SEOF,    %,  other,    ) ,    .  ,      ;  ,      -   ,     ^^	  ,	  \'
 	   L(0), D(1), U(2), LP(3), Q(4), E(5), C(6),  O(7), RP(8), DOT(9), SEMI(10), MINUS(11), SLCOM(12), SQ(13)*/
@@ -259,8 +261,8 @@ static airlang_intg transitionTable[NUM_STATES][CHAR_CLASSES] = {
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},	// S7: ASNR (COM)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},	// S8: ASNR (ES)
 	{    FS,   FS,   FS,   FS,   FS,   FS,	 FS,    FS ,   FS ,    FS ,      FS ,       FS ,       FS ,   FS},  // S9: ASWR (ER)
-	{    16,   10, ESWR, ESWR, ESWR, ESWR, ESWR,  ESWR , ESWR ,    12 ,    ESWR ,     ESWR ,     ESWR , ESWR},  // S10: ASWR (IL) - New state for integers
-	{    ESWR,   ESWR,   ESWR,   ESWR,   3,    ESWR,   ESWR,     ESWR,    2 ,    ESWR ,      ESWR ,       ESWR ,       ESWR ,   ESWR},  // S11: NOAS - On ')' go to S2 (MVID)
+	{    16,   10, ESWR, ESWR, ESWR, ESWR, ESWR,   ESWR, ESWR ,    12 ,    ESWR ,     ESWR ,     ESWR , ESWR},  // S10: ASWR (IL) - New state for integers
+	{  ESWR, ESWR, ESWR, ESWR,    3, ESWR, ESWR,   ESWR,    2 ,   ESWR,    ESWR ,     ESWR ,     ESWR , ESWR},  // S11: NOAS - On ')' go to S2 (MVID)
 	{  ESNR,   10, ESNR, ESNR, ESNR, ESNR, ESNR,   ESNR,  ESNR,   ESNR,    ESNR ,      ESNR,     ESNR , ESNR},  // S12: NOAS - Decimal point state
 	{    17,   13, ESWR, ESWR, ESWR, ESWR, ESWR,   ESWR,  ESWR,   ESWR,    ESWR ,     ESWR ,     ESWR , ESWR},  // S13: FSNR (FL) - Float state
 	{    14,   14,   14,   14,   14, ESWR,   14,     14,    14,     14,       14,        14,       14 ,   15},  // S14: Date literal state
@@ -376,7 +378,7 @@ Language keywords
 */
 
 /* TO_DO: Define the number of Keywords from the language */
-#define KWT_SIZE 37
+#define KWT_SIZE 50
 
 /* TO_DO: Define the list of keywords */
 static airlang_strg keywordTable[KWT_SIZE] = {
@@ -416,10 +418,24 @@ static airlang_strg keywordTable[KWT_SIZE] = {
 	"WINDANALYSIS",			/* KW33 */
 	"ENDWINDANALYSIS",		/* KW34 */
 	"SAFETYALERT",			/* KW35 */
-	"ENDSAFETYALERT"		/* KW36 */
+	"ENDSAFETYALERT",		/* KW36 */
+
+	"LOAD_AIRCRAFT",		/* KW37 */
+	"LOAD_PILOT",			/* KW38 */
+	"LOAD_PASSENGER",		/* KW39 */
+	"LOAD_FUEL_FULL",		/* KW40 */
+	"LOAD_FUEL_TABS",		/* KW41 */
+	"LOAD_BAGGAGE",			/* KW42 */
+	"WB_CHECK",				/* KW43 */
+	"TOTALWEIGHT",			/* KW44 */
+	"WEIGHTBAL",			/* KW45 */
+	"VALIDATEWB",			/* KW46 */
+	"CESSNA172",			/* KW47 */
+	"PA28",					/* KW48 */
+	"C150"					/* KW49 */
 };
 
-/* NEW SECTION: About indentation */
+
 
 /*
  * Scanner attributes to be used (ex: including: intendation data

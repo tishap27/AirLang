@@ -34,7 +34,7 @@
 ************************************************************
 */
 
-/* TO_DO: Adjust the function header */
+/* Adjust the function header */
 
  /* The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
   * to suppress the warnings about using "unsafe" functions like fopen()
@@ -70,7 +70,7 @@
 
 /*
 ----------------------------------------------------------------
-TO_DO: Global vars definitions
+ Global vars definitions
 ----------------------------------------------------------------
 */
 
@@ -96,10 +96,10 @@ static BufferPointer sourceBuffer;			/* Pointer to input source buffer */
  *		This function initializes the scanner using defensive programming.
  ***********************************************************
  */
- /* TO_DO: Follow the standard and adjust datatypes */
+ /* Follow the standard and adjust datatypes */
 
 airlang_intg startScanner(BufferPointer psc_buf) {
-	/* TO_DO: Start histogram */
+	/*  Start histogram */
 	airlang_intg i = 0;
 	for (i=0; i<NUM_TOKENS;i++)
 		scData.scanHistogram[i] = 0;
@@ -125,7 +125,7 @@ airlang_intg startScanner(BufferPointer psc_buf) {
 
 Token tokenizer(airlang_void) {
 
-	/* TO_DO: Follow the standard and adjust datatypes */
+	/* Follow the standard and adjust datatypes */
 
 	Token currentToken = { 0 }; /* token to return after pattern recognition. Set all structure members to 0 */
 	airlang_char c;			/* input symbol */
@@ -147,7 +147,7 @@ Token tokenizer(airlang_void) {
 	while (1) { /* endless loop broken by token returns it will generate a warning */
 		c = readerGetChar(sourceBuffer);
 
-		// TO_DO: Defensive programming
+		//  Defensive programming
 		if (c < 0 || c >= NCHAR)
 			return currentToken;
 
@@ -195,6 +195,32 @@ Token tokenizer(airlang_void) {
 			currentToken.code =MINUS_T;
 			scData.scanHistogram[currentToken.code]++;
 			return currentToken;*/
+		case MINUS_CHR:
+		{
+			// Look ahead to determine context
+			airlang_char next_c = readerGetChar(sourceBuffer);
+
+			if (isdigit(next_c)) {
+				// It's a negative number, let number parsing handle it
+				readerRetract(sourceBuffer);
+				// Fall through to default case for number processing
+				goto default_processing;
+			}
+			else if (isalpha(next_c)) {
+				// It's unary minus before identifier: -TOTAL_WT
+				readerRetract(sourceBuffer);
+				currentToken.code = UNARY_MINUS_T;
+				scData.scanHistogram[currentToken.code]++;
+				return currentToken;
+			}
+			else {
+				// It's binary minus: regular subtraction
+				readerRetract(sourceBuffer);
+				currentToken.code = MINUS_T;
+				scData.scanHistogram[currentToken.code]++;
+				return currentToken;
+			}
+		}
 		case MULT_CHR:
 			currentToken.code = MULTI_T;
 			scData.scanHistogram[currentToken.code]++;
@@ -342,8 +368,8 @@ Token tokenizer(airlang_void) {
 			-----------------------------------------------------------------------
 		*/
 
-		/* TO_DO: Adjust / check the logic for your language */
-
+		/* Adjust / check the logic for your language */
+		default_processing:
 		default: // general case
 
 			//if flight Id
@@ -633,7 +659,7 @@ Token tokenizer(airlang_void) {
 	or #undef DEBUG is used - see the top of the file.
  ***********************************************************
  */
- /* TO_DO: Just change the datatypes */
+ /* Just change the datatypes */
 
 airlang_intg nextState(airlang_intg state, airlang_char c) {
 	airlang_intg col;
@@ -734,7 +760,7 @@ airlang_intg nextClass(airlang_char c) {
  *		Function responsible to identify COM (comments).
  ***********************************************************
  */
- /* TO_DO: Adjust the function for IL */
+ /*  Adjust the function for IL */
 
 Token funcCMT(airlang_strg lexeme) {
 	Token currentToken = { 0 };
@@ -760,7 +786,7 @@ Token funcCMT(airlang_strg lexeme) {
   *   additional three dots (...) should be put in the output.
   ***********************************************************
   */
-  /* TO_DO: Adjust the function for IL */
+  /* Adjust the function for IL */
 
 //just check if int or float forget everything else
 Token funcIL(airlang_strg lexeme) {
@@ -1073,7 +1099,7 @@ airlang_void printToken(Token t) {
 	case FLIGHT_ID_T:
 		printf("FLIGHT_ID_T\t\t%s\n", t.attribute.flightId);
 		break;
-	case INT_T:  // Added case for integer literals
+	case INT_T:  
 		printf("INT_T\t\t%d\n", t.attribute.intValue);
 		break;
 	case DATE_T:
@@ -1112,9 +1138,12 @@ airlang_void printToken(Token t) {
 	case PLUS_T:
 		printf("PLUS_T\n");
 		break;
-	/*case MINUS_T:
+	case MINUS_T:
 		printf("MINUS_T\n");
-		break;*/
+		break;
+	case UNARY_MINUS_T:
+		printf("UNARY_MINUS_T\n");
+		break;
 	case MULTI_T:
 		printf("MULTI_T\n");
 		break;
