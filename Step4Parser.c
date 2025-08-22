@@ -35,7 +35,7 @@
 ************************************************************
 */
 
-/* TO_DO: Adjust the function header */
+/*  Adjust the function header */
 
 #ifndef COMPILERS_H_
 #include "Compilers.h"
@@ -49,6 +49,9 @@
 #include "Step4Parser.h"
 #endif
 
+
+static airlang_strg currentAircraftType[32] = { 0 };
+
 /* Parser data */
 extern ParserData psData; /* BNF statistics */
 
@@ -59,7 +62,7 @@ extern ParserData psData; /* BNF statistics */
  * Process Parser
  ***********************************************************
  */
-/* TO_DO: This is the function to start the parser - check your program definition */
+/* This is the function to start the parser - check your program definition */
 
 airlang_void startParser() {
 	/* TO_DO: Initialize Parser data */
@@ -82,7 +85,7 @@ airlang_void startParser() {
  * Match Token
  ***********************************************************
  */
-/* TO_DO: This is the main code for match - check your definition */
+/* This is the main code for match - check your definition */
 airlang_void matchToken(airlang_intg tokenCode, airlang_intg tokenAttribute) {
 	airlang_intg matchFlag = 1;
 
@@ -116,7 +119,7 @@ airlang_void matchToken(airlang_intg tokenCode, airlang_intg tokenAttribute) {
  * Syncronize Error Handler
  ***********************************************************
  */
-/* TO_DO: This is the function to handler error - adjust basically datatypes */
+/* This is the function to handler error - adjust basically datatypes */
 airlang_void syncErrorHandler(airlang_intg syncTokenCode) {
 	printError();
 	syntaxErrorNumber++;
@@ -186,6 +189,9 @@ airlang_void printError() {
 		break;
 	case MINUS_T:
 		printf("MINUS_T:\n");
+		break;
+	case UNARY_MINUS_T:
+		printf("UNARY_MINUS_T:\n");
 		break;
 	case FLOAT_T:
 		printf("FLOAT_T:\n");
@@ -1256,7 +1262,7 @@ airlang_void optwithConfigBlock() {
 airlang_void optionalConfigList() {
 	psData.parsHistogram[BNF_optConfigList]++;
 
-	if (lookahead.code == ID_T) {
+	if (lookahead.code == ID_T ) {
 		configAssignment();
 
 		while (lookahead.code == ID_T) {
@@ -1418,6 +1424,11 @@ airlang_void performanceBlock() {
 		if (lookahead.code == ID_T) {
 			performanceContent();
 		}
+		else if (lookahead.code == MNID_T) {
+				// Handle method calls like WIND()
+				methodCall();
+		}
+			
 		else if (lookahead.code == CMT_T) {
 			comment();
 		}
@@ -1467,10 +1478,38 @@ airlang_void performanceContent() {
 		printError();
 	}
 
-	if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_AIRPATH) {
+	/*if (lookahead.code == KW_T && lookahead.attribute.codeType == KW_AIRPATH) {
 		matchToken(KW_T, KW_AIRPATH);  // Handle AIRPATH keyword
 		printf("%s: AIRPATH keyword parsed\n", STR_LANGNAME);
-	}
+	}*/
+	if (lookahead.code == KW_T) {
+		switch (lookahead.attribute.codeType) {
+		case KW_AIRPATH:
+			matchToken(KW_T, KW_AIRPATH);
+			printf("%s: AIRPATH keyword parsed\n", STR_LANGNAME);
+			break;
+		case KW_TOTALWEIGHT:
+			matchToken(KW_T, KW_TOTALWEIGHT);
+			printf("%s: TOTALWEIGHT keyword parsed\n", STR_LANGNAME);
+			break;
+		case KW_WEIGHTBAL:
+			matchToken(KW_T, KW_WEIGHTBAL);
+			printf("%s: WEIGHTBAL keyword parsed\n", STR_LANGNAME);
+			break;
+		case KW_VALIDATEWB:
+			matchToken(KW_T, KW_VALIDATEWB);
+			printf("%s: VALIDATEWB keyword parsed\n", STR_LANGNAME);
+			break;
+		/*case KW_CENTEROFGRAVITY:
+			printf("Calculated Center of Gravity: %.2f inches\n", calculateCenterOfGravity());
+			matchToken(KW_T, KW_CENTEROFGRAVITY);
+			break;*/
+		default:
+			expression();
+			break;
+		}
+		}
+
 	else {
 		// Parse right-hand expression
 		expression();
@@ -1492,11 +1531,11 @@ airlang_void expression() {
 	//printf("DEBUG: Parsing expression\n");
 	psData.parsHistogram[BNF_expression]++;
 	term();
-	while (lookahead.code == PLUS_T ) {
+	while (lookahead.code == PLUS_T || lookahead.code == MINUS_T) {
 		printf("AirLang: Operator + parsed\n");
-		//printf("Operator: %c\n", lookahead.code == PLUS_T ? '+' : '-');
-		matchToken(PLUS_T, NO_ATTR);
-		// matchToken(lookahead.code, NO_ATTR);
+		printf("Operator: %c\n", lookahead.code == PLUS_T ? '+' : '-');
+		//matchToken(PLUS_T, NO_ATTR);
+		matchToken(lookahead.code, NO_ATTR);
 		term();
 	}
 }
@@ -1544,7 +1583,7 @@ airlang_void factor() {
 	case LPR_T:  // Handling (-70.07) expressions
 		matchToken(LPR_T, NO_ATTR);
 		//matchToken(INT_T, NO_ATTR);
-		if (lookahead.code == INT_T || lookahead.code == FLOAT_T) {
+		if (lookahead.code == INT_T || lookahead.code == FLOAT_T ||lookahead.code == MINUS_T ||lookahead.code ==UNARY_MINUS_T|| lookahead.code == ID_T) {
 			//printf("%d\n",lookahead.code == INT_T ? INT_T : FLOAT_T);
 			matchToken(lookahead.code, NO_ATTR);
 		}
@@ -1555,11 +1594,29 @@ airlang_void factor() {
 		matchToken(RPR_T, NO_ATTR);  //  closing
 		break;
 	case KW_T:  
-		if (lookahead.attribute.codeType == KW_AIRPATH) {
+		switch (lookahead.attribute.codeType) {
+		case KW_AIRPATH:
 			matchToken(KW_T, KW_AIRPATH);
 			printf("%s: AIRPATH keyword in expression\n", STR_LANGNAME);
-		}
-		else {
+			break;
+		case KW_TOTALWEIGHT:
+			matchToken(KW_T, KW_TOTALWEIGHT);
+			printf("%s: TOTALWEIGHT keyword in expression\n", STR_LANGNAME);
+			break;
+		case KW_WEIGHTBAL:
+			matchToken(KW_T, KW_WEIGHTBAL);
+			printf("%s: WEIGHTBAL keyword in expression\n", STR_LANGNAME);
+			break;
+		case KW_VALIDATEWB:
+			matchToken(KW_T, KW_VALIDATEWB);
+			printf("%s: VALIDATEWB keyword in expression\n", STR_LANGNAME);
+			//validateWeightBalance();
+			break;
+		/*case KW_CENTEROFGRAVITY:
+			matchToken(KW_T, KW_CENTEROFGRAVITY);
+			printf("Center of Gravity: %.2f inches\n", calculateCenterOfGravity());
+			break;*/
+		default:
 			printf("Error: Unexpected keyword in expression\n");
 			printError();
 		}

@@ -119,10 +119,25 @@ enum KEYWORDS {
 	KW_WINDANALYSIS,	/* KW33 */
 	KW_ENDWINDANALYSIS,	/* KW34 */
 	KW_SAFETYALERT,		/* KW35 */
-	KW_ENDSAFETYALERT	/* KW36 */
+	KW_ENDSAFETYALERT,	/* KW36 */
+
+	KW_LOAD_AIRCRAFT,		/* KW37 */
+	KW_LOAD_PILOT,			/* KW38 */
+	KW_LOAD_PASSENGER,		/* KW39 */
+	KW_LOAD_FUEL_FULL,		/* KW40 */
+	KW_LOAD_FUEL_TABS,		/* KW41 */
+	KW_LOAD_BAGGAGE,		/* KW42 */
+	KW_WB_CHECK,			/* KW43 */
+	KW_TOTALWEIGHT,			/* KW44 */
+	KW_WEIGHTBAL,			/* KW45 */
+	KW_VALIDATEWB,			/* KW46 */
+	KW_CESSNA172,			/* KW47 */
+	KW_PA28,				/* KW48 */
+	KW_C150					/* KW49 */
+	 
 };
 
-/* TO_DO: Define the number of BNF rules */
+/*Define the number of BNF rules */
 #define NUM_BNF_RULES 37
 
 /* Parser */
@@ -229,7 +244,8 @@ static airlang_strg BNFStrTable[NUM_BNF_RULES] = {
 
 };
 
-/* TO_DO: Place ALL non-terminal function declarations */
+
+/*  Place ALL non-terminal function declarations */
 //airlang_void codeSession();
 airlang_void comment();
 //airlang_void dataSession();
@@ -291,8 +307,5 @@ airlang_void receivedDataAssignment();
 airlang_void runwayDataBlock();
 airlang_void windAnalysisBlock();
 airlang_void safetyAlertBlock();
-
-
-
 
 #endif
