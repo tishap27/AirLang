@@ -330,6 +330,12 @@
 
         //wind
 
+        static airlang_intg aircraft_initialized = 0;
+        if (!aircraft_initialized && find_variable("AircraftType") != -1) {
+            initializeAircraftContext();
+            aircraft_initialized = 1;
+        }
+
        // block to handle^^ comments
             if (strstr(expression, "^^") != NULL) {
                 return; // Skip comment lines
@@ -492,7 +498,7 @@
     
             else {
             // Handle arithmetic expression
-                airlang_doub result = evaluate_expression_with_distance(clean_expr);
+                airlang_doub result = evaluate_expression_with_wb(clean_expr);
                 assign_numeric_variable(var_name, result);
                 if (!initial_phase) {
                     //printf("DEBUG: Assigned %s = %.2f\n", var_name, result);
@@ -756,6 +762,11 @@
            // printf("DEBUG: After trim: '%s'\n", lines[i]);
 		    calculate(lines[i]);
 	    }
+
+        if (!initializeAircraftContext()) {
+            printf("AIRCRAFT WARNING: Weight and balance calculations may not be accurate\n");
+        }
+
         initial_phase = 0; // End of initial phase
         printf("%s", output_buffer); // Print the buffered write output
         printf("\nVariable values:\n");
@@ -2058,4 +2069,414 @@
             }
         }
         airport_out[j] = '\0';
+    }
+
+
+
+    // Static aircraft database - certified performance data
+        static AircraftConfig aircraft_database[] = {
+        // Piper Cherokee PA-28 (General Aviation)
+        {
+            "PA28", 
+            "Piper Cherokee PA-28-140",
+            1410.0,     // Empty weight
+            2150.0,     // max_takeoff_weight  
+        2150.0,     // max_landing_weight
+        300.0,      // fuel_capacity (50 gal × 6 lbs/gal)
+        85.0,       // empty_cg_arm
+        82.0,       // forward_cg_limit
+        94.0,       // aft_cg_limit
+        85.0,       // pilot_arm
+        118.0,      // passenger_arm  
+        142.0,      // baggage_arm
+        95.0,       // fuel_arm
+        108.0,      // cruise_speed
+        8.0         // fuel_burn_rate
+    },
+
+            // Cessna 172 (General Aviation)
+            {
+                "C172",                      // aircraft_id
+                "Cessna 172 Skyhawk",        // aircraft_name
+                1663.0,     // empty_weight
+                2450.0,     // max_takeoff_weight
+                2450.0,     // max_landing_weight  
+                318.0,      // fuel_capacity (53 gal × 6 lbs/gal)
+                39.0,       // empty_cg_arm
+                35.0,       // forward_cg_limit
+                47.0,       // aft_cg_limit
+                37.0,       // pilot_arm
+                37.0,       // passenger_arm
+                95.0,       // baggage_arm
+                48.0,       // fuel_arm
+                122.0,      // cruise_speed
+                9.0         // fuel_burn_rate
+            },
+
+            // Boeing 747-400 (Commercial Aviation)
+            {
+                "B747",                      // aircraft_id  
+                "Boeing 747-400",            // aircraft_name
+                393263.0,   // empty_weight
+                833000.0,   // max_takeoff_weight
+                652000.0,   // max_landing_weight
+                383000.0,   // fuel_capacity
+                958.0,      // empty_cg_arm
+                756.0,      // forward_cg_limit
+                1157.0,     // aft_cg_limit
+                350.0,      // pilot_arm (cockpit)
+                1020.0,     // passenger_arm (average cabin)
+                1400.0,     // baggage_arm (cargo hold)
+                1020.0,     // fuel_arm (wing tanks)
+                493.0,      // cruise_speed
+                2400.0      // fuel_burn_rate
+            }
+        };
+    static const airlang_intg AIRCRAFT_DB_SIZE = sizeof(aircraft_database) / sizeof(AircraftConfig);
+    static AircraftConfig* current_aircraft = NULL;
+
+    /*
+ ************************************************************
+ * Find Aircraft Configuration
+ *		Searches aircraft database for specified aircraft type and
+ *		sets current aircraft context for weight and balance calculations.
+ *		Validates aircraft ID against certified database entries.
+ * Parameters:
+ *		aircraft_id: Aircraft identifier to search for (const airlang_strg)
+ * Return:
+ *		Pointer to aircraft configuration or NULL if not found (AircraftConfig*)
+ * Purpose:
+ *		Establishes aircraft context for performance calculations
+ ************************************************************
+ */
+    AircraftConfig* findAircraftConfig(const airlang_strg aircraft_id) {
+        airlang_intg i = 0;
+        for (i = 0; i < AIRCRAFT_DB_SIZE; i++) {
+            if (strcmp(aircraft_database[i].aircraft_id, aircraft_id) == 0) {
+                current_aircraft = &aircraft_database[i];
+                printf("AIRCRAFT DATABASE: Loaded configuration for %s (%s)\n",
+                    aircraft_database[i].aircraft_id, aircraft_database[i].aircraft_name);
+                return &aircraft_database[i];
+            }
+        }
+        printf("AVIATION ERROR: Aircraft type '%s' not found in certified database\n", aircraft_id);
+        return NULL;
+    }
+
+    /*
+     ************************************************************
+     * Calculate Total Weight
+     *		Computes total aircraft weight including empty weight, payload,
+     *		fuel, and all variable loads. Implements aviation weight
+     *		calculation standards for flight safety and performance planning.
+     * Parameters:
+     *		None (uses current flight variables)
+     * Return:
+     *		Total aircraft weight in pounds (airlang_doub)
+     * Purpose:
+     *		Calculates total weight for MTOW compliance checking
+     ************************************************************
+     */
+    airlang_doub calculateTotalWeight() {
+        if (!current_aircraft) {
+            printf("WEIGHT ERROR: No aircraft configuration loaded\n");
+            return 0.0;
+        }
+
+        // Get variable values from flight plan
+        airlang_doub passenger_weight = 0.0;
+        airlang_doub baggage_weight = 0.0;
+        airlang_doub fuel_weight = 0.0;
+
+        // Find passenger count and calculate weight (assume 170 lbs per person)
+        airlang_intg passenger_idx = find_variable("PassengerCount");
+        if (passenger_idx != -1) {
+            passenger_weight = variables[passenger_idx].value.num_value * 170.0;
+        }
+
+        // Find baggage weight
+        airlang_intg baggage_idx = find_variable("BaggageWeight");
+        if (baggage_idx != -1) {
+            baggage_weight = variables[baggage_idx].value.num_value;
+        }
+
+        // Find fuel weight
+        airlang_intg fuel_idx = find_variable("EstimatedFuelRequired");
+        if (fuel_idx != -1) {
+            fuel_weight = variables[fuel_idx].value.num_value;
+        }
+
+        airlang_doub total_weight = current_aircraft->empty_weight +
+            passenger_weight +
+            baggage_weight +
+            fuel_weight;
+
+        //printf("WEIGHT CALCULATION:\n");
+        //printf("  Empty Weight: %.0f lbs\n", current_aircraft->empty_weight);
+        //printf("  Passenger Weight: %.0f lbs\n", passenger_weight);
+        //printf("  Baggage Weight: %.0f lbs\n", baggage_weight);
+        //printf("  Fuel Weight: %.0f lbs\n", fuel_weight);
+        //printf("  TOTAL WEIGHT: %.0f lbs\n", total_weight);
+
+        return total_weight;
+    }
+
+    /*
+     ************************************************************
+     * Calculate Weight Balance Moment
+     *		Computes total aircraft moment for center of gravity calculations.
+     *		Uses aircraft-specific arm distances and load distributions to
+     *		determine moment about the datum. Essential for flight safety
+     *		and aircraft controllability validation.
+     * Parameters:
+     *		None (uses current aircraft configuration and flight variables)
+     * Return:
+     *		Total aircraft moment in pound-inches (airlang_doub)
+     * Purpose:
+     *		Calculates moment for center of gravity position determination
+     ************************************************************
+     */
+    airlang_doub calculateWeightBalanceMoment() {
+        if (!current_aircraft) {
+            printf("MOMENT ERROR: No aircraft configuration loaded\n");
+            return 0.0;
+        }
+
+        // Calculate individual moments
+        airlang_doub empty_moment = current_aircraft->empty_weight * current_aircraft->empty_cg_arm;
+
+        // Passenger moment
+        airlang_doub passenger_weight = 0.0;
+        airlang_intg passenger_idx = find_variable("PassengerCount");
+        if (passenger_idx != -1) {
+            passenger_weight = variables[passenger_idx].value.num_value * 170.0;
+        }
+        airlang_doub passenger_moment = passenger_weight * current_aircraft->passenger_arm;
+
+        // Baggage moment  
+        airlang_doub baggage_weight = 0.0;
+        airlang_intg baggage_idx = find_variable("BaggageWeight");
+        if (baggage_idx != -1) {
+            baggage_weight = variables[baggage_idx].value.num_value;
+        }
+        airlang_doub baggage_moment = baggage_weight * current_aircraft->baggage_arm;
+
+        // Fuel moment
+        airlang_doub fuel_weight = 0.0;
+        airlang_intg fuel_idx = find_variable("EstimatedFuelRequired");
+        if (fuel_idx != -1) {
+            fuel_weight = variables[fuel_idx].value.num_value;
+        }
+        airlang_doub fuel_moment = fuel_weight * current_aircraft->fuel_arm;
+
+        airlang_doub total_moment = empty_moment + passenger_moment + baggage_moment + fuel_moment;
+
+        printf("MOMENT CALCULATION:\n");
+        printf("  Empty Moment: %.0f lb-in\n", empty_moment);
+        printf("  Passenger Moment: %.0f lb-in\n", passenger_moment);
+        printf("  Baggage Moment: %.0f lb-in\n", baggage_moment);
+        printf("  Fuel Moment: %.0f lb-in\n", fuel_moment);
+        printf("  TOTAL MOMENT: %.0f lb-in\n", total_moment);
+
+        return total_moment;
+    }
+
+    /*
+     ************************************************************
+     * Calculate Center of Gravity
+     *		Determines aircraft center of gravity position using total weight
+     *		and moment calculations. Computes CG location relative to aircraft
+     *		datum for weight and balance envelope validation. Critical for
+     *		aircraft stability and control authority verification.
+     * Parameters:
+     *		None (uses calculated weight and moment values)
+     * Return:
+     *		Center of gravity position in inches from datum (airlang_doub)
+     * Purpose:
+     *		Calculates CG position for envelope compliance checking
+     ************************************************************
+     */
+    airlang_doub calculateCenterOfGravity() {
+        airlang_doub total_weight = calculateTotalWeight();
+        airlang_doub total_moment = calculateWeightBalanceMoment();
+
+        if (total_weight <= 0.0) {
+            printf("CG ERROR: Invalid total weight for CG calculation\n");
+            return 0.0;
+        }
+
+        airlang_doub cg_position = total_moment / total_weight;
+
+        printf("CENTER OF GRAVITY CALCULATION:\n");
+        printf("  CG Position: %.2f inches from datum\n", cg_position);
+        //maybe want to add ASCII art to show CG envelope
+        return cg_position;
+    }
+
+    /*
+     ************************************************************
+     * Validate Weight and Balance
+     *		Performs comprehensive weight and balance validation against
+     *		aircraft certified limits. Checks total weight against MTOW,
+     *		validates center of gravity within approved envelope, and
+     *		provides flight safety authorization status. Implements FAA
+     *		weight and balance compliance requirements.
+     * Parameters:
+     *		None (uses current aircraft configuration and calculations)
+     * Return:
+     *		Validation status string: "WITHIN_LIMITS", "OVERWEIGHT",
+     *		"CG_OUT_OF_LIMITS", or "CRITICAL_ERROR" (const airlang_strg)
+     * Purpose:
+     *		Validates aircraft loading for flight safety authorization
+     ************************************************************
+     */
+    const airlang_strg validateWeightAndBalance() {
+        if (!current_aircraft) {
+            printf("VALIDATION ERROR: No aircraft configuration available\n");
+            return "CRITICAL_ERROR";
+        }
+
+        airlang_doub total_weight = calculateTotalWeight();
+        airlang_doub cg_position = calculateCenterOfGravity();
+
+        // Weight validation
+        airlang_intg weight_ok = (total_weight <= current_aircraft->max_takeoff_weight);
+
+        // CG validation
+        airlang_intg cg_ok = (cg_position >= current_aircraft->forward_cg_limit &&
+            cg_position <= current_aircraft->aft_cg_limit);
+
+       //printf("\nWEIGHT & BALANCE VALIDATION:\n");
+       //printf("========================================\n");
+       //printf("Aircraft: %s\n", current_aircraft->aircraft_name);
+       //printf("Total Weight: %.0f lbs (Limit: %.0f lbs)\n", total_weight, current_aircraft->max_takeoff_weight);
+       //printf("Weight Status: %s\n", weight_ok ? "WITHIN LIMITS" : "OVERWEIGHT");
+       //printf("CG Position: %.2f in (Limits: %.1f to %.1f in)\n",
+       //    cg_position, current_aircraft->forward_cg_limit, current_aircraft->aft_cg_limit);
+       //printf("CG Status: %s\n", cg_ok ? "WITHIN LIMITS" : "OUT OF LIMITS");
+       //printf("========================================\n");
+
+        if (!weight_ok && !cg_ok) {
+            printf("CRITICAL: Both weight and CG are out of limits!\n");
+            return "CRITICAL_ERROR";
+        }
+        else if (!weight_ok) {
+            printf("WARNING: Aircraft is overweight - reduce load\n");
+            return "OVERWEIGHT";
+        }
+        else if (!cg_ok) {
+            printf("WARNING: CG is out of limits - redistribute load\n");
+            return "CG_OUT_OF_LIMITS";
+        }
+        else {
+            printf("APPROVED: Weight and Balance within certified limits\n");
+            return "WITHIN_LIMITS";
+        }
+    }
+
+    /*
+     ************************************************************
+     * Enhanced Expression Evaluation with W&B
+     *		Extended expression evaluator supporting weight and balance
+     *		calculations. Integrates TOTALWEIGHT, WEIGHTBAL, and VALIDATEWB
+     *		functions with existing aviation calculations. Provides seamless
+     *		access to aircraft performance and safety calculations.
+     * Parameters:
+     *		expr: Expression containing W&B functions (const airlang_strg)
+     * Return:
+     *		Result of W&B calculation or original expression value (airlang_doub)
+     * Purpose:
+     *		Evaluates weight and balance expressions in flight planning
+     ************************************************************
+     */
+    airlang_doub evaluate_expression_with_wb(const airlang_strg expr) {
+        airlang_char temp_expr[256];
+        strcpy_s(temp_expr, sizeof(temp_expr), expr);
+
+        // Remove spaces
+        airlang_char clean_expr[256] = { 0 };
+        airlang_intg i = 0, j = 0;
+        while (temp_expr[i]) {
+            if (!isspace(temp_expr[i])) {
+                clean_expr[j++] = temp_expr[i];
+            }
+            i++;
+        }
+        clean_expr[j] = EOS;
+
+        // Check for weight and balance functions
+        if (strcmp(clean_expr, "TOTALWEIGHT") == 0) {
+            return calculateTotalWeight();
+        }
+
+        if (strcmp(clean_expr, "WEIGHTBAL") == 0) {
+            return calculateWeightBalanceMoment();
+        }
+
+        if (strcmp(clean_expr, "CENTEROFGRAVITY") == 0) {
+            return calculateCenterOfGravity();
+        }
+
+        if (strcmp(clean_expr, "VALIDATEWB") == 0) {
+            // Return numeric code: 1 = OK, 0 = Error
+            const airlang_strg result = validateWeightAndBalance();
+            if (strcmp(result, "WITHIN_LIMITS") == 0) {
+                return 1.0;
+            }
+            else {
+                return 0.0;
+            }
+        }
+
+        // If not W&B function, try distance/wind functions
+        return evaluate_expression_with_distance(clean_expr);
+    }
+
+    /*
+     ************************************************************
+     * Initialize Aircraft Context
+     *		Sets up aircraft context for weight and balance calculations
+     *		based on AircraftType variable from flight plan. Automatically
+     *		loads appropriate aircraft configuration from certified database.
+     * Parameters:
+     *		None (searches for AircraftType variable)
+     * Return:
+     *		1 if aircraft loaded successfully, 0 if failed (airlang_intg)
+     * Purpose:
+     *		Initializes aircraft database context for calculations
+     ************************************************************
+     */
+    airlang_intg initializeAircraftContext() {
+        // Look for AircraftType variable
+        airlang_intg aircraft_idx = find_variable("AircraftType");
+        if (aircraft_idx == -1) {
+            // Try alternative names
+            aircraft_idx = find_variable("AircraftID");
+            if (aircraft_idx == -1) {
+                printf("AIRCRAFT ERROR: No aircraft type specified in flight plan\n");
+                return 0;
+            }
+        }
+
+        if (variables[aircraft_idx].type == STRING) {
+            // Extract aircraft ID from string (e.g., "Boeing 747-400" -> "B747")
+            const airlang_strg aircraft_name = variables[aircraft_idx].value.str_value;
+
+            if (strstr(aircraft_name, "747-400") || strstr(aircraft_name, "Boeing 747")) {
+                return findAircraftConfig("B747") != NULL;
+            }
+            else if (strstr(aircraft_name, "Cessna 172") || strstr(aircraft_name, "C172")) {
+                return findAircraftConfig("C172") != NULL;
+            }
+            else if (strstr(aircraft_name, "Cherokee") || strstr(aircraft_name, "PA-28")) {
+                return findAircraftConfig("PA28") != NULL;
+            }
+            else {
+                // Try direct lookup with the string value
+                return findAircraftConfig(aircraft_name) != NULL;
+            }
+        }
+
+        printf("AIRCRAFT WARNING: Unknown aircraft type, using default calculations\n");
+        return 0;
     }

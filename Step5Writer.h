@@ -151,6 +151,36 @@ airlang_doub crosswind(airlang_doub windDirection, airlang_doub windSpeed, airla
 
 airlang_void extract_airport_from_assignment(const airlang_strg expression, airlang_char* airport_out);
 
+
+// Aircraft configuration structure:  stuff that remains static most of the time depending on aircraft type
+typedef struct AircraftConfig {
+    airlang_char aircraft_id[16];
+    airlang_char aircraft_name[64];
+    airlang_doub empty_weight;
+    airlang_doub max_takeoff_weight;
+    airlang_doub max_landing_weight;
+    airlang_doub fuel_capacity;
+    airlang_doub empty_cg_arm;
+    airlang_doub forward_cg_limit;
+    airlang_doub aft_cg_limit;
+    airlang_doub pilot_arm;
+    airlang_doub passenger_arm;
+    airlang_doub baggage_arm;
+    airlang_doub fuel_arm;
+    airlang_doub cruise_speed;
+    airlang_doub fuel_burn_rate;
+}  AircraftConfig;
+
+// Function declarations for weight and balance
+AircraftConfig* findAircraftConfig(const airlang_strg aircraft_id);
+airlang_doub calculateTotalWeight(airlang_void);
+airlang_doub calculateWeightBalanceMoment(airlang_void);
+airlang_doub calculateCenterOfGravity(airlang_void);
+const airlang_strg validateWeightAndBalance(airlang_void);
+airlang_doub evaluate_expression_with_wb(const airlang_strg expr);
+airlang_intg initializeAircraftContext(airlang_void);
+
+
 //airlang_doub calculate_wind_components(const airlang_strg airport_code);
 //airlang_intg is_flight_number(const airlang_strg value);
 

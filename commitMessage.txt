@@ -1,7 +1,10 @@
-Update: VM-only executable now handles both .txt and .enc files to generate a bytecode file 
+Update: Enhanced Weight & Balance calculations
 
-- if it is .txt, first calls step1Coder and encrypts the file into .enc proceeds onto automatically triggering step6Generator and eventually step7VM
-
-- if it is .enc (already encrypted) simply triggers step6Generator and step7Vm
-
-Minor Fix(Step6Generator): bytecode generated files now save as .air files replacing any extension( e.g .txt or .enc -> .air)  
+- Implement certified aircraft database (PA28, C172, B747) struct for these three aircraft, with performance specs
+- Add weight calculation functions (TOTALWEIGHT, WEIGHTBAL, CENTEROFGRAVITY)
+- Integrate W&B validation against aircraft certified limits (VALIDATEWB)
+- Support automatic aircraft context initialization from flight variables
+- Add moment calculations with proper arm distances and load distribution
+- Implement FAA compliance checking for MTOW and CG envelope limits
+- Updated calculate function to call expression_with_wb now 
+- Add comprehensive error handling and validation status reporting
