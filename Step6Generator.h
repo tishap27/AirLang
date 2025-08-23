@@ -125,7 +125,13 @@ typedef enum {
 	OP_ELSE,                  // ELSE block  
 	OP_ENDIF,                 // End of IF block
 	OP_CONDITION,
-	OP_ENTER_BLOCK  // fallback generic opcode
+	OP_ENTER_BLOCK,  // fallback generic opcode
+
+	OP_CALC_TOTALWEIGHT,
+	OP_CALC_MOMENT,
+	OP_CALC_CG,
+	OP_CALC_VALIDATEWB
+
 
 }OpCode;
 

@@ -254,6 +254,19 @@ airlang_void displayGeneratedCode(const Generator* cg) {
         case OP_CONDITION:
             printf("CONDITION \"%s\"\n", inst->operand.str_operand);
             break;
+
+        case OP_CALC_TOTALWEIGHT:
+            printf("CALC_TOTALWEIGHT\n");
+            break;
+        case OP_CALC_MOMENT:
+            printf("CALC_MOMENT\n");
+            break;
+        case OP_CALC_CG:
+            printf("CALC_CG\n");
+            break;
+        case OP_CALC_VALIDATEWB:
+            printf("CALC_VALIDATEWB\n");
+            break;
         default:
             printf("UNKNOWN\n");
             break;
@@ -705,6 +718,19 @@ airlang_void generateCalculation(const airlang_strg line, Generator* cg) {
             emitInstruction(cg, OP_LOAD_NUM, 0.0, ""); // Default to 0
         }
     }
+    else if (strstr(expr, "TOTALWEIGHT")) {
+        emitInstruction(cg, OP_CALC_TOTALWEIGHT, 0, "");
+    }
+    else if (strstr(expr, "WEIGHTBAL")) {
+        emitInstruction(cg, OP_CALC_MOMENT, 0, "");
+    }
+    else if (strstr(expr, "CENTEROFGRAVITY")) {
+        emitInstruction(cg, OP_CALC_CG, 0, "");
+    }
+    else if (strstr(expr, "VALIDATEWB")) {
+        emitInstruction(cg, OP_CALC_VALIDATEWB, 0, "");
+    }
+
     else if (strstr(expr, "HEADWIND()")) {
         emitInstruction(cg, OP_CALC_HEADWIND, 0, "");
        // return;
