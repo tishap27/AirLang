@@ -61,7 +61,15 @@ extern airlang_doub calcLastLegDistance();
 extern airlang_doub headwind(airlang_doub wind_dir, airlang_doub wind_speed, airlang_doub runway);
 extern airlang_doub crosswind(airlang_doub wind_dir, airlang_doub wind_speed, airlang_doub runway);
 extern airlang_doub evaluate_expression_with_distance(const airlang_strg expr);
+extern airlang_doub evaluate_expression_with_wb(const airlang_strg expr);
 
+
+//W&B
+extern airlang_intg initializeAircraftContext();
+extern airlang_doub calculateTotalWeight();
+extern airlang_doub calculateWeightBalanceMoment();
+extern airlang_doub calculateCenterOfGravity();
+extern const airlang_strg validateWeightAndBalance();
 
 
 
@@ -195,6 +203,19 @@ airlang_void executeVM(VirtualMachine* vm) {
                 push(vm, createStringValue(current->operand.str_operand));
                 break;
 
+            case OP_LOAD_FUNCTION:  
+                if (strcmp(current->operand.str_operand, "LOAD") == 0) {
+                    // Initialize aircraft context and perform LOAD calculations
+                    sync_variables(vm);
+                    initializeAircraftContext();
+
+                    // This would trigger the LOAD() function from Step5Writer
+                    // The LOAD function should calculate and store W&B values
+                    handle_load_function(vm);
+                    sync_variables_back(vm);
+                }
+                break;
+
             case OP_STORE_VAR:
                // printf("STORE_VAR %s\n", current->operand.str_operand);
                 if (vm->stack_pointer > 0) {
@@ -306,7 +327,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     sync_variables(vm);
                 
 
-                        airlang_doub result = evaluate_expression_with_distance(current->operand.str_operand);
+                        airlang_doub result = evaluate_expression_with_wb(current->operand.str_operand);
                         push(vm, createNumberValue(result));
 
                         //printf("Expression '%s' evaluated to %.2f\n", current->operand.str_operand, result);
@@ -433,6 +454,7 @@ airlang_void executeVM(VirtualMachine* vm) {
                     push(vm, createNumberValue(distance));
                 }
                 break;
+
 
             case OP_CALC_HEADWIND:
                // printf("CALC_HEADWIND\n"); 
@@ -606,6 +628,38 @@ airlang_void executeVM(VirtualMachine* vm) {
                 }
                 break;
 
+            case OP_CALC_TOTALWEIGHT: 
+                sync_variables(vm);
+                initializeAircraftContext();
+                push(vm, createNumberValue(calculateTotalWeight()));
+                sync_variables_back(vm);
+                break;
+
+            case OP_CALC_MOMENT:  
+                sync_variables(vm);
+                initializeAircraftContext();
+                push(vm, createNumberValue(calculateWeightBalanceMoment()));
+                sync_variables_back(vm);
+                break;
+
+            case OP_CALC_CG: 
+                sync_variables(vm);
+                initializeAircraftContext();
+                push(vm, createNumberValue(calculateCenterOfGravity()));
+                sync_variables_back(vm);
+                break;
+
+            case OP_CALC_VALIDATEWB: 
+                sync_variables(vm);
+                initializeAircraftContext();
+                {
+                    const airlang_strg result = validateWeightAndBalance();
+                    airlang_doub status = (strcmp(result, "WITHIN_LIMITS") == 0) ? 1.0 : 0.0;
+                    push(vm, createNumberValue(status));
+                }
+                sync_variables_back(vm);
+                break;
+
             case OP_ENTER_MAIN:
                // printf("ENTER_MAIN\n");
                 break;
@@ -676,9 +730,6 @@ airlang_void executeVM(VirtualMachine* vm) {
             case OP_EXIT_REPORT:
               //  printf("EXIT_REPORT\n");
                 break;
-
-
-
 
             case OP_HALT:
                 printf("HALT\n");
@@ -1266,5 +1317,33 @@ airlang_void extract_airport_from_variable_name(const airlang_strg var_name, air
             airport_out[15] = '\0';
            // printf("DEBUG: Using variable name '%s' as airport code\n", airport_out);
         }
+    }
+}
+
+
+/*
+ ************************************************************
+ * Handle LOAD Function Call
+ *      Processes LOAD() function calls with aircraft configuration
+ *      and performs weight & balance calculations. Synchronizes
+ *      results back to VM variable storage.
+ ************************************************************
+ */
+airlang_void handle_load_function(VirtualMachine* vm) {
+    // The LOAD() function in Step5Writer expects certain variables
+    // Makes sure that aircraft type is set
+    if (initializeAircraftContext()) {
+        // Trigger the weight and balance calculations
+        airlang_doub total_weight = calculateTotalWeight();
+        airlang_doub total_moment = calculateWeightBalanceMoment();
+        airlang_doub cg_position = calculateCenterOfGravity();
+        const airlang_strg wb_status = validateWeightAndBalance();
+
+        // Store results in VM variables
+        storeVariable(vm, "AircraftTotalWeight", createNumberValue(total_weight));
+        storeVariable(vm, "TotalMoment", createNumberValue(total_moment));
+        storeVariable(vm, "CenterOfGravity", createNumberValue(cg_position));
+        storeVariable(vm, "WeightBalanceStatus", createNumberValue(
+            (strcmp(wb_status, "WITHIN_LIMITS") == 0) ? 1.0 : 0.0));
     }
 }

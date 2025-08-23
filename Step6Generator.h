@@ -74,6 +74,7 @@ extern airlang_strg keywordTable[KWT_SIZE];
 typedef enum {
 	OP_LOAD_NUM,
 	OP_LOAD_STR,
+	OP_LOAD_FUNCTION,
 	OP_STORE_VAR,
 	OP_PRINT,
 	OP_HALT,
