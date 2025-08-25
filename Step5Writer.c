@@ -2271,12 +2271,12 @@
 
         airlang_doub total_moment = empty_moment + passenger_moment + baggage_moment + fuel_moment;
 
-        printf("MOMENT CALCULATION:\n");
-        printf("  Empty Moment: %.0f lb-in\n", empty_moment);
-        printf("  Passenger Moment: %.0f lb-in\n", passenger_moment);
-        printf("  Baggage Moment: %.0f lb-in\n", baggage_moment);
-        printf("  Fuel Moment: %.0f lb-in\n", fuel_moment);
-        printf("  TOTAL MOMENT: %.0f lb-in\n", total_moment);
+       // printf("MOMENT CALCULATION:\n");
+       // printf("  Empty Moment: %.0f lb-in\n", empty_moment);
+       // printf("  Passenger Moment: %.0f lb-in\n", passenger_moment);
+       // printf("  Baggage Moment: %.0f lb-in\n", baggage_moment);
+       // printf("  Fuel Moment: %.0f lb-in\n", fuel_moment);
+       // printf("  TOTAL MOMENT: %.0f lb-in\n", total_moment);
 
         return total_moment;
     }
@@ -2307,8 +2307,8 @@
 
         airlang_doub cg_position = total_moment / total_weight;
 
-        printf("CENTER OF GRAVITY CALCULATION:\n");
-        printf("  CG Position: %.2f inches from datum\n", cg_position);
+        //printf("CENTER OF GRAVITY CALCULATION:\n");
+        //printf("  CG Position: %.2f inches from datum\n", cg_position);
         //maybe want to add ASCII art to show CG envelope
         return cg_position;
     }

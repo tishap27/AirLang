@@ -813,7 +813,7 @@ airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condit
     }
     // DEBUG print VM variable values
    // printf("DEBUG: VM Variables - ");
-    for (airlang_intg i = 0; i < vm->variable_count; i++) {
+   /* for (airlang_intg i = 0; i < vm->variable_count; i++) {
         if (vm->variables[i].is_used) {
             printf("%s=", vm->variables[i].name);
             if (vm->variables[i].value.type == VAL_NUMBER) {
@@ -828,6 +828,7 @@ airlang_intg evaluate_condition_vm(VirtualMachine* vm, const airlang_strg condit
         }
     }
     printf("\n");
+    */
     return 0;
 }
 
@@ -965,9 +966,9 @@ airlang_void storeVariable(VirtualMachine* vm , const airlang_strg name , Value 
             //changing current variable to new 
             vm->variables[i].value = value; 
 
-         //   printf("Updated variable '%s' = ", name); 
-            printValue(&value); 
-            printf("\n"); 
+         //  DEBUG printf("Updated variable '%s' = ", name); 
+         //   printValue(&value); 
+         //   printf("\n"); 
             return; 
 
         }
@@ -987,9 +988,9 @@ airlang_void storeVariable(VirtualMachine* vm , const airlang_strg name , Value 
     vm->variables[vm->variable_count].name[sizeof(vm->variables[vm->variable_count].name) - 1] = '\0';
     vm->variables[vm->variable_count].value = value;
 
-   // printf("Created variable '%s' = ", name);
-    printValue(&value);
-    printf("\n");
+   // DEBUG printf("Created variable '%s' = ", name);
+   // printValue(&value);
+   // printf("\n");
 
     vm->variable_count++;
 
