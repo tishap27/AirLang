@@ -65,6 +65,21 @@
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             letter-spacing: -0.5px;
         }
+		.ascii-logo {
+            font-family: 'Courier New', monospace;
+            font-size: 0.4rem;
+            line-height: 1;
+            color: var(--primary-blue);
+            white-space: pre;
+            margin-right: 8px;
+            opacity: 0.9;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
 
         .nav-links {
             display: flex;
@@ -595,10 +610,15 @@
     <header>
         <nav class="container">
             <a href="#" class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-                </svg>
-                AirLang
+                <div class="ascii-logo">
+                             
+              __|__            
+   ------@--o--(_)--o--@------
+                             
+          A I R L A N G        
+                             
+</div>
+                <span class="logo-text">AirLang</span>
             </a>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
@@ -615,7 +635,7 @@
             <div class="hero-content">
                 <div class="hero-text">
                     <h1>AirLang</h1>
-                    <p class="hero-subtitle">Domain-Specific Language for Aviation Flight Planning</p>
+                    <p class="hero-subtitle">Domain-Specific Language for Aviation Flight Planning and Operations</p>
                     <p class="hero-description">
                         A specialized programming language designed for aviation professionals, featuring 
                         natural syntax for flight operations, built-in aviation calculations, and 
@@ -628,11 +648,11 @@
                 </div>
                 <div class="hero-visual">
                     <div class="code-preview">
-<pre><span style="color: #6a737d;">// Flight Planning in AirLang</span>
+<pre><span style="color: #6a737d;">^^ Flight Planning in AirLang</span>
 <span style="color: #d73a49;">MAIN</span> {
   <span style="color: #d73a49;">BRIEFING</span> {
-    <span style="color: #d73a49;">AIRCRAFT</span> { Registration: <span style="color: #032f62;">C-GNBL</span>; }
-    <span style="color: #d73a49;">FLIGHT</span> { Number: <span style="color: #032f62;">AC180</span>; }
+    <span style="color: #d73a49;">AIRCRAFT</span> { Registration: <span style="color: #032f62;">C-GEGL</span>; }
+    <span style="color: #d73a49;">FLIGHT</span> { Number: <span style="color: #032f62;">AL120</span>; }
     <span style="color: #d73a49;">ROUTE</span> { 
       Departure: <span style="color: #005cc5;">45.3225</span>, <span style="color: #005cc5;">-75.6692</span>;
       Arrival: <span style="color: #005cc5;">43.6777</span>, <span style="color: #005cc5;">-79.6248</span>;
@@ -705,7 +725,7 @@
                     <div class="feature-icon">⚡</div>
                     <h3 class="feature-title">Optimized Compiler</h3>
                     <p class="feature-description">
-                        Complete 5-phase compiler implementation with aviation-specific 
+                        Complete 7-phase compiler implementation with aviation-specific 
                         optimizations and comprehensive error handling.
                     </p>
                 </div>
@@ -774,8 +794,8 @@
                     <div class="stat-label">Language Keywords</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">8</div>
-                    <div class="stat-label">Built-in Functions</div>
+                    <div class="stat-number">200+</div>
+                    <div class="stat-label">VM Instructions</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">5000+</div>
@@ -810,7 +830,7 @@
 MAIN {
     BRIEFING {
         AIRCRAFT { 
-            Registration: C-GNBL;
+            Registration: C-GEGL;
             Type: "B737-800";
             MaxTakeoffWeight: 79000;
         }
@@ -820,8 +840,8 @@ MAIN {
             DepartureTime: "14:30Z";
         }
         ROUTE { 
-            Departure: 45.3225, -75.6692;  // CYOW Ottawa
-            Arrival: 43.6777, -79.6248;    // CYYZ Toronto
+            Departure: 45.3225, -75.6692;  ^^ CYOW Ottawa
+            Arrival: 43.6777, -79.6248;    ^^ CYYZ Toronto
         }
     } ENDBRIEFING;
     
@@ -844,29 +864,29 @@ MAIN {
                     <div class="code-content">
                         <pre><code>MAIN {
     LOADSHEET {
-        EmptyWeight = 41000;
-        PassengerCount = 180;
-        CargoWeight = 8500;
-        FuelWeight = 12000;
-        MaxTakeoffWeight = 79000;
+         ^^ Aircraft Configuration
+        AircraftType: "C172";  ^^ Loads certified database entry
+        PassengerCount = 3;
+        BaggageWeight = 50;
+        EstimatedFuelRequired = 300;
         
-        PayloadWeight = PassengerCount * 185 + CargoWeight;
-        TotalWeight = EmptyWeight + PayloadWeight + FuelWeight;
+        ^^ Weight & Balance Calculations
+        TotalWeight = TOTALWEIGHT;           ^^ Automatic calculation
+        CenterOfGravity = CENTEROFGRAVITY;   ^^ CG position from datum
+        WeightMoment = WEIGHTBAL;            ^^ Total moment calculation
         
-        IF TotalWeight > MaxTakeoffWeight THEN
-            PRINT { "WARNING: Aircraft exceeds MTOW" };
-            PRINT { "Excess weight: " + (TotalWeight - MaxTakeoffWeight) };
-        ELSE
-            PRINT { "Weight check: PASSED" };
-            PRINT { "Total weight: " + TotalWeight + " lbs" };
-        ENDIF;
+        ^^ Safety Validation
+        ValidationStatus = VALIDATEWB;       ^^ Returns 1 if within limits
         
-        // Center of Gravity calculations
-        MomentArm = 12.5;
-        CenterOfGravity = (EmptyWeight * 11.8 + PayloadWeight * MomentArm) / TotalWeight;
+        PRINT { "Aircraft: Cessna 172 Skyhawk" };
+        PRINT { "Total Weight: " + TotalWeight + " lbs" };
+        PRINT { "CG Position: " + CenterOfGravity + " inches" };
         
-        IF CenterOfGravity > 13.2 THEN
-            PRINT { "WARNING: CG out of limits" };
+         ^^ Center of Gravity Validation 
+        IF WeightBalanceStatus != 1 THEN 
+		PRINT { "WARNING: Weight & Balance OUT OF LIMITS" };
+		PRINT { "CG Position: " + CenterOfGravity + " inches from datum" }; 
+		PRINT { "CG Position may be unsafe - Check loading!" };
         ENDIF;
     } ENDLOADSHEET;
 } ENDMAIN;</code></pre>
@@ -881,40 +901,84 @@ MAIN {
                         <pre><code>MAIN {
     WEATHER {
         RECEIVEDDATA {
+	    ^^ Process METAR data
             METAR: "CYOW 151400Z 24015G25KT 10SM FEW030 SCT100 M02/M08 A3012";
         } ENDRECEIVEDDATA;
         
         WINDANALYSIS {
+	    ^^ Wind Calculations
             WIND() WITHCONFIG {
                 CYOW = HEADWIND();
                 CYOW = CROSSWIND();
             };
         } ENDWINDANALYSIS;
+	RUNWAYDATA { 
+            RUNWAYHEADING() WITHCONFIG { 
+                CYOW_RUNWAY: 070; 
+	    }; 
+        } ENDRUNWAYDATA; 
         
         SAFETYALERT {
-            Visibility = 10.0;
-            WindSpeed = 25;
-            
-            IF Visibility < 3.0 THEN
-                PRINT { "DISPATCH HOLD: Low visibility" };
-            ELSE
-                IF WindSpeed > 35 THEN
-                    PRINT { "CAUTION: High winds" };
-                ELSE
-                    PRINT { "Weather: SUITABLE for dispatch" };
-                ENDIF;
-            ENDIF;
+            IF CYOW_WIND_GUST > 20 THEN 
+		PRINT{"ALERT: Excessive gusts at CYOW - " + CYOW_WIND_GUST + "kt (Limit: 20kt)"}; 
+            ENDIF; 
+ 
+            IF CYOW_CROSSWIND > 15 THEN 
+                PRINT{"WARNING: High crosswind at CYOW - " + CYOW_CROSSWIND + "kt(Limit: 15kt)"}; 
+           ENDIF;
         } ENDSAFETYALERT;
     } ENDWEATHER;
     
     DISPATCH {
         REPORT {
-            PRINT { "Flight dispatched with weather conditions acceptable" };
-            PRINT { "Wind components calculated and within limits" };
+            PRINT { " Headwind: " + CYOW_HEADWIND + "kt" }; 
+	    PRINT { " Crosswind: " + CYOW_CROSSWIND + "kt" }; 
         } ENDREPORT;
     } ENDDISPATCH;
 } ENDMAIN;</code></pre>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+	
+	 <!-- Roadmap Section -->
+    <section class="section" style="background: #f1f5f9;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Roadmap</h2>
+                <p class="section-subtitle">
+                    Exciting features and enhancements planned for future releases
+                </p>
+            </div>
+            <div class="features-grid" style="margin-top: 3rem;">
+                <div class="feature-card">
+                    <div class="feature-icon">📡</div>
+                    <h3 class="feature-title">Real-time Weather APIs</h3>
+                    <p class="feature-description">
+                        Integration with live METAR/TAF feeds and real-time weather data sources
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Performance Optimization</h3>
+                    <p class="feature-description">
+                        Advanced fuel burn calculations, climb/descent profiles, and route optimization
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛰️</div>
+                    <h3 class="feature-title">ACARS Integration</h3>
+                    <p class="feature-description">
+                        Connect with aircraft communication systems for real-time flight data
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏢</div>
+                    <h3 class="feature-title">Fleet Management</h3>
+                    <p class="feature-description">
+                        Multi-aircraft operations, crew scheduling, and fleet-wide optimization tools
+                    </p>
                 </div>
             </div>
         </div>
@@ -1074,5 +1138,48 @@ MAIN {
             color: #d2a8ff;
         }
     </style>
+	
+	<script>
+function showTab(tabName) {
+
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+
+    document.getElementById(tabName).classList.add('active');
+    
+    // clicked button
+    event.target.classList.add('active');
+}
+
+// scrolling function
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const target = document.getElementById(targetId);
+            
+            if (target) {
+                const headerOffset = 80;
+                const elementPosition = target.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+});
+</script>
+	
 </body>
 </html>

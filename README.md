@@ -272,8 +272,8 @@ Source Code → Step1 → Step2 → Step3 → Step4 → Step5 → Step6 → Step
 \- Magic number validation for bytecode integrity
 
 * *Virtual Machine Execution*
-\- Stack-based VM with 237+ instruction types
-\- Real-time METAR parsing and weather calculations
+\- Stack-based VM with 200+ instruction types
+\- METAR parsing and weather calculations
 \- Built-in headwind/crosswind computation
 \- Variable storage with type checking
 \-Conditional branching and safety alerts
