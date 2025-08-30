@@ -124,6 +124,7 @@ airlang_intg parse_coordinates(const airlang_strg coord_str, airlang_doub* lat, 
 // Math functions for distance calculation
 airlang_doub my_sin(airlang_doub x);
 airlang_doub my_cos(airlang_doub x);
+airlang_doub my_atan(airlang_doub x);
 airlang_doub my_sqrt(airlang_doub n);
 airlang_doub my_atan2(airlang_doub y, airlang_doub x);
 airlang_doub toRadians(airlang_doub degree);

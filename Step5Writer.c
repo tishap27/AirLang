@@ -1251,6 +1251,35 @@
         return 1 - x2 / 2.0 + x4 / 24.0 - x6 / 720.0;
     }
 
+    /*Arctangent function using Taylor series*/
+        airlang_doub my_atan(airlang_doub x) {
+        // For better convergence, use identities for |x| > 1
+        if (x > 1.0) {
+            return PI / 2.0 - my_atan(1.0 / x);
+        }
+        else if (x < -1.0) {
+            return -PI / 2.0 - my_atan(1.0 / x);
+        }
+
+        // Taylor series: x - x^3/3 + x^5/5 - x^7/7 + x^9/9 - x^11/11
+        airlang_doub result = x;
+        airlang_doub x_squared = x * x;
+        airlang_doub x_power = x;
+
+        for (int i = 1; i < 6; i++) {
+            x_power *= x_squared;
+            int denominator = 2 * i + 1;
+            if (i % 2 == 1) {
+                result -= x_power / denominator;
+            }
+            else {
+                result += x_power / denominator;
+            }
+        }
+
+        return result;
+    }
+
     /* Square root using Newton's method iteration */
     airlang_doub my_sqrt(airlang_doub n) {
         if (n < 0) return -1;
@@ -1265,9 +1294,9 @@
 
     /* Arctangent2 function for quadrant-aware angle calculation */
     airlang_doub my_atan2(airlang_doub y, airlang_doub x) {
-        if (x > 0) return y / x;
-        else if (x < 0 && y >= 0) return PI + y / x;
-        else if (x < 0 && y < 0) return -PI + y / x;
+        if (x > 0) return my_atan(y / x);
+        else if (x < 0 && y >= 0) return PI + my_atan(y / x);
+        else if (x < 0 && y < 0) return -PI + my_atan(y / x);
         else if (x == 0 && y > 0) return PI / 2;
         else if (x == 0 && y < 0) return -PI / 2;
         else return 0;
