@@ -1,0 +1,50 @@
+MAIN {
+    BRIEFING {
+        AIRCRAFT { 
+            AircraftID: C-GNBL; 
+            AircraftType: "Boeing 747-400";
+            MaxTakeoffWeight: 833000;
+        }
+        FLIGHT { 
+            FlightNumber: AL123; 
+            FlightDate: '2025-05-15'; 
+        }
+        ROUTE { 
+            DepartureCoords: 45.3225, -75.6692;  ^^ Ottawa
+            ArrivalCoords: 40.6413, -73.7781;    ^^ New York
+        }
+    } ENDBRIEFING;
+
+    LOADSHEET {
+        PassengerCount = 350;
+        CargoWeight = 15000;
+        PayloadWeight = PassengerCount * 200 + CargoWeight;
+        FuelWeight = 180000;
+	^^ Empty Weight
+        TotalWeight = PayloadWeight + FuelWeight + 412000;
+	^^ Great Circle Distance  
+        Distance = AIRPATH;
+        PRINT {"=== WEIGHT AND BALANCE ==="};
+        PRINT {"Passengers: " + PassengerCount};
+        PRINT {"Cargo Weight: " + CargoWeight + " lbs"};
+        PRINT {"Payload: " + PayloadWeight + " lbs"};
+        PRINT {"Total Weight: " + TotalWeight + " lbs"};
+        PRINT {"MTOW: " + MaxTakeoffWeight + " lbs"};
+        
+        IF TotalWeight > MaxTakeoffWeight THEN
+            PRINT {"*** WARNING: Exceeds MTOW ***"};
+        ELSE
+            PRINT {"Weight Check: WITHIN LIMITS"};
+        ENDIF;
+    } ENDLOADSHEET;
+
+    DISPATCH {
+ 	REPORT{
+        PRINT {""};
+        PRINT {"=== FLIGHT PLANNING ==="};
+        PRINT {"Route Distance: " + Distance + " nautical miles"};
+        PRINT {"Flight " + FlightNumber + " cleared for dispatch"};
+        PRINT {"=== END OF DISPATCH ==="};
+	}ENDREPORT;
+    } ENDDISPATCH;
+} ENDMAIN;

@@ -1,10 +1,6 @@
-Update: Enhanced Weight & Balance calculations
+Add project structure: documentation, examples, and standalone distribution
 
-- Implement certified aircraft database (PA28, C172, B747) struct for these three aircraft, with performance specs
-- Add weight calculation functions (TOTALWEIGHT, WEIGHTBAL, CENTEROFGRAVITY)
-- Integrate W&B validation against aircraft certified limits (VALIDATEWB)
-- Support automatic aircraft context initialization from flight variables
-- Add moment calculations with proper arm distances and load distribution
-- Implement FAA compliance checking for MTOW and CG envelope limits
-- Updated calculate function to call expression_with_wb now 
-- Add comprehensive error handling and validation status reporting
+- docs/: BNF grammar specification and VM instruction API reference
+- examples/: Sample AirLang programs (.txt source and .air bytecode)  
+- standalone/: Complete executable distribution with AirLang.exe and demo programs
+- Remove old test files (FlightPlan.air, code.air, input.txt)

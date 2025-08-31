@@ -1,0 +1,12 @@
+%AirLang Hello World%
+
+MAIN {
+   BRIEFING {
+
+   }ENDBRIEFING;
+   DISPATCH {
+      REPORT {
+	PRINT {"Hello World"};
+      }ENDREPORT;
+   }ENDDISPATCH;
+}ENDMAIN; 

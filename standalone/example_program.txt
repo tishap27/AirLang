@@ -1,0 +1,23 @@
+MAIN {
+    BRIEFING {
+        AIRCRAFT {
+	AircraftID: C-GNBL;
+	AircraftType: "Boeing 747-400";
+	}
+        FLIGHT { 
+	FlightNumber: AL123;
+	FlightDate: '2025-05-15'; 
+	}
+    } ENDBRIEFING;
+    
+    DISPATCH {
+	REPORT{
+        PRINT {"=== Welcome to AirLang! ==="};
+        PRINT {"Aircraft: " + AircraftType};
+        PRINT {"Registration: " + AircraftID};
+        PRINT {"Flight: " + FlightNumber};
+        PRINT {"Date: " + FlightDate};
+        PRINT {"=== Basic Demo Complete ==="};
+        }ENDREPORT;
+    } ENDDISPATCH;
+} ENDMAIN;
