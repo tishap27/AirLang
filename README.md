@@ -15,7 +15,7 @@ Author: Tisha Patel
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/tishap27/AirLang)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/tishap27/AirLang/standalone)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](./standalone/)
 
 ## 🌟 Why AirLang?
 
@@ -48,7 +48,7 @@ DISPATCH STATUS: CLEARED FOR DEPARTURE
 ## 🚀 Quick Start
 
 ### Download & Run (Easiest)
-1. **Download:** [AirLang-v1.0.exe](https://github.com/tishap27/AirLang/standalone)
+1. **Download:** [AirLang-v1.0.exe](./standalone/)
 2. **Run:** Double-click the executable
 3. **Try:** Use the included example files or write your own
 
@@ -163,7 +163,7 @@ More examples in [`/examples`](./examples/) directory.
 |----------|-------------|
 | [**User Guide**](./docs/USER_GUIDE.md) | Complete programming reference |
 | [**Language Syntax**](./docs/grammar/syntax_guide.md) | All language constructs and grammar |
-| [**Tokens Reference**](./docs/grammar/token.md) | Built-in aviation functions |
+| [**Tokens Reference**](./docs/grammar/Token.md) | Built-in aviation functions |
 | [**VM Architecture**](./docs/api/vm_instructions.md) | Virtual machine instruction set |
 | [**Examples**](./examples/) | Sample programs and tutorials |
 
