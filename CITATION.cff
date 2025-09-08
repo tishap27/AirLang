@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "AirLang: A Domain-Specific Language for Aviation Flight Planning and Operations"
+authors:
+  - family-names: "Patel"
+    given-names: "Tisha"
+    orcid: "https://orcid.org/0000-0000-0000-0000" # Optional: replace with your ORCID if you have one
+repository-code: "https://github.com/tishap27/AirLang"
+url: "https://github.com/tishap27/AirLang"
+abstract: "AirLang is a domain-specific language designed for aviation flight planning and operations."
+keywords:
+  - "domain-specific language"
+  - "aviation"
+  - "flight planning"
+  - "DSL"
+license: CC-BY-4.0
+version: "1.0.0" # Update with your current version
+date-released: "2025-09-01" # Update with your release date
+preferred-citation:
+  type: unpublished
+  title: "AirLang: A Domain-Specific Language for Aviation Flight Planning and Operations"
+  authors:
+    - family-names: "Patel"
+      given-names: "Tisha"
+  year: 2025
+  month: 9
+  doi: "10.13140/RG.2.2.25987.57120"
+  notes: "Preprint"
+  url: "https://www.researchgate.net/publication/395303012_AirLang_A_Domain-Specific_Language_for_Aviation_Flight_Planning_and_Operations"
