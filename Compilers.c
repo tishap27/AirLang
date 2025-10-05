@@ -263,7 +263,7 @@ airlang_intg main(int argc, char** argv) {
 			printf("Encryption completed successfully!\n\n");
 
 			// Step 2: Generate bytecode from encrypted file
-			printf("--- Step 6: BYTECODE GENERATION ---\n");
+			printf("--- BYTECODE GENERATION ---\n");
 			printf("Generating bytecode from encrypted file...\n");
 
 			char* gen_argv[3];

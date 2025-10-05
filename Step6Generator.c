@@ -93,7 +93,7 @@ airlang_void processFileGeneration(const airlang_strg source, const airlang_strg
     writeBinaryFile(cg);
 
     printf("\nCode generation completed successfully!\n");
-    printf("Output file: %s\n", output_filename);
+   // printf("Output file: %s\n", output_filename);
 
 
     free(cg);
@@ -316,7 +316,7 @@ airlang_void generateCode(const airlang_strg source_content, Generator* cg) {
 
 	emitInstruction(cg, OP_HALT, 0, "");
 
-	printf("Code Generation complete. Generated %d instructions.\n", cg->instruction_count);
+	//printf("Code Generation complete. Generated %d instructions.\n", cg->instruction_count);
 }
 
 
@@ -566,18 +566,18 @@ airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
                 emitInstruction(cg, OP_LOAD_STR, 0, value_str);
                 emitInstruction(cg, OP_STORE_COORDS, 0, var_name);
 
-                printf("DEBUG: Parsing coordinates: %s for variable: %s\n", value_str, var_name);
+                //printf("DEBUG: Parsing coordinates: %s for variable: %s\n", value_str, var_name);
 
 
                 // Parse and cache coordinates for later distance calculation:
                 airlang_doub lat, lon;
                 if (parse_coordinates(value_str, &lat, &lon)) {
-                    printf("DEBUG: Parsed lat=%.4f, lon=%.4f\n", lat, lon);
+                   // printf("DEBUG: Parsed lat=%.4f, lon=%.4f\n", lat, lon);
                     if (strcmp(var_name, "DepartureCoords") == 0) {
                         generator_dep_lat = lat;
                         generator_dep_lon = lon;
                         coords_initialized |= 1;
-                        printf("DEBUG: Set departure coordinates\n");
+                        //printf("DEBUG: Set departure coordinates\n");
                     }
                     else if (strcmp(var_name, "ArrivalCoords") == 0) {
                         generator_arr_lat = lat;
@@ -802,10 +802,9 @@ airlang_void writeBinaryFile(const Generator* cg) {
     fclose(file);
     printf("Binary file written: %s (%d instructions) \n", cg->output_filename, cg->instruction_count);
 
-    printf("\n BYTECODE DEBUG \n");
+    //printf("\n BYTECODE DEBUG \n");
     for (int i = 0; i < cg->instruction_count; i++) {
-        printf("Instruction %d: OpCode=%d, String='%s'\n",
-            i, cg->instructions[i].opCode, cg->instructions[i].operand.str_operand);
+       // printf("Instruction %d: OpCode=%d, String='%s'\n",i, cg->instructions[i].opCode, cg->instructions[i].operand.str_operand);
     }
 
 }
@@ -956,7 +955,7 @@ airlang_void generateBlockStart(const airlang_strg line, Generator* cg) {
 
     if (mapping != NULL) {
         emitInstruction(cg, mapping->enter_op, 0, mapping->block_name);
-        printf("Generated ENTER_%s block (keyword: %d)\n", mapping->block_name, keyword);
+        //printf("Generated ENTER_%s block (keyword: %d)\n", mapping->block_name, keyword);
     }
     else {
         printf("Warning: Unknown block start keyword: %s\n", first_word);

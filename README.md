@@ -47,17 +47,29 @@ DISPATCH STATUS: CLEARED FOR DEPARTURE
 
 ## 🚀 Quick Start
 
-### Download & Run (Easiest)
-1. **Download:** [AirLang-v1.0.exe](./standalone/)
-2. **Run:** Double-click the executable
-3. **Try:** Use the included example files or write your own
-
+### Download 
+1. **Download:** **[⬇️ AirLang ZIP](https://github.com/tishap27/AirLang/archive/refs/heads/main.zip)**
+2. **Extract** to any folder (e.g., `C:\AirLang`)
+3. **Open Command Prompt** in that folder and run:
+```cmd
+   airlang install
+```
+4. **Restart your terminal** and type:
+```cmd
+    airlang help
+```
+**Usage**
+```cmd
+airlang run flight_plan_demo.txt
+airlang help
+airlang version
+```
 ### Build from Source
 ```bash
-git clone https://github.com/tishap27/AirLang.git
-cd AirLang
-gcc -o airlang *.c
-./airlang your_flight_plan.air
+1. Clone: git clone https://github.com/tishap27/AirLang.git
+2. Open AirLang.sln in Visual Studio 2022
+3. Build → Build Solution (Ctrl+Shift+B)
+4. Run: x64\Debug\airlang.exe your_flight_plan.air
 ```
 
 ## 📋 Key Features
