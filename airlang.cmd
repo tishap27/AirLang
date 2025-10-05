@@ -52,7 +52,10 @@ echo.
 set INSTALL_DIR=%~dp0
 
 :: Check if airlang.exe exists
-if exist "%INSTALL_DIR%x64\Debug\airlang.exe" (
+if exist "%INSTALL_DIR%standalone\AirLang.exe" (
+    set EXE_PATH=%INSTALL_DIR%standalone\AirLang.exe
+    echo [OK] Found: standalone\AirLang.exe
+)else if exist "%INSTALL_DIR%x64\Debug\airlang.exe" (
     set EXE_PATH=%INSTALL_DIR%x64\Debug\airlang.exe
     echo [OK] Found: x64\Debug\airlang.exe
 ) else if exist "%INSTALL_DIR%x64\Release\airlang.exe" (
@@ -181,7 +184,13 @@ exit /b 0
 set SCRIPT_DIR=%~dp0
 
 :: Try to find airlang.exe
-if exist "%SCRIPT_DIR%x64\Debug\airlang.exe" (
+if exist "%SCRIPT_DIR%standalone\AirLang.exe" (
+    "%SCRIPT_DIR%standalone\AirLang.exe" %*
+    exit /b %errorlevel%
+) else if exist "%INSTALL_DIR%standalone\airLang.exe" (
+    set EXE_PATH=%INSTALL_DIR%standalone\airlang.exe
+    echo [OK] Found: standalone\airlang.exe
+)else if exist "%SCRIPT_DIR%x64\Debug\airlang.exe" (
     "%SCRIPT_DIR%x64\Debug\airlang.exe" %*
     exit /b %errorlevel%
 ) else if exist "%SCRIPT_DIR%x64\Release\airlang.exe" (
