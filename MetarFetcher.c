@@ -119,7 +119,8 @@ airlang_intg fetch_metar_from_api(const char* icao_code) {
         }
 
         if (chunk.memory != NULL) {
-            printf("Full JSON:\n%s\n", chunk.memory);
+            //DEBUG
+            //printf("Full JSON:\n%s\n", chunk.memory);
 
             // Extract raw METAR from JSON
             char* metar_pos = strstr(chunk.memory, "\"rawOb\":");

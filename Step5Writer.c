@@ -1588,8 +1588,14 @@
                                 printf("METAR data fetched from AviationWeather.gov\n");
                             }
                         }
+                        else {
+                            // Fetch failed - show error
+                            printf("ERROR: Failed to fetch METAR for '%s'\n", value);
+                            printf("Please check:\n");
+                            printf(" - ICAO code is correct (e.g., KJFK, CYOW)\n");
+                        }
                     }
-                    else {
+                    else if (strncmp(value, "METAR ", 6) == 0) {
                         // if user types in full metar handle that
                         assign_string_variable("METAR_REQUEST_URL", value);
 
@@ -1605,6 +1611,44 @@
                         }
                         else {
                             printf("METAR request received from service\n");
+                        }
+                    }
+                    //Invalid format 
+                    else {
+                        printf("ERROR: Invalid METAR request format: '%s'\n", value);
+                        printf("\n");
+                        printf("Valid formats:\n");
+                        printf("  1. ICAO Code (4 letters):  REQUEST METAR FROM \"KJFK\";\n");
+                        printf("  2. Full METAR string:      REQUEST METAR FROM \"METAR KJFK 290151Z ...\";\n");
+                        printf("\n");
+
+                        // Provide specific feedback
+                        if (strlen(value) < 4) {
+                            printf("Your input '%s' is too short (%d chars). ICAO codes are exactly 4 letters.\n",
+                                value, (int)strlen(value));
+                        }
+                        else if (strlen(value) > 4 && strncmp(value, "METAR", 5) != 0) {
+                            printf("Your input '%s' doesn't start with 'METAR'. Manual entries must begin with 'METAR '.\n",
+                                value);
+                        }
+                        else if (strlen(value) > 4) {
+                            printf("Your input is %d characters. Did you mean to type a full METAR string?\n",
+                                (int)strlen(value));
+                            printf("If so, it must start with 'METAR ' (note the space).\n");
+                        }
+                        else {
+                            // Check if contains non-alpha characters
+                            int has_non_alpha = 0;
+                            for (i = 0; i < 4 && value[i]; i++) {
+                                if (!isalpha(value[i])) {
+                                    has_non_alpha = 1;
+                                    break;
+                                }
+                            }
+                            if (has_non_alpha) {
+                                printf("ICAO codes must contain only letters (A-Z). '%s' contains invalid characters.\n",
+                                    value);
+                            }
                         }
                     }
                     return;
