@@ -66,7 +66,7 @@ static size_t write_metar_callback(void* contents, size_t size, size_t nmemb, vo
     return realsize;
 }
 
-int fetch_metar_from_api(const char* icao_code) {
+airlang_intg fetch_metar_from_api(const char* icao_code) {
     CURL* curl;
     CURLcode res;
     struct MemoryStruct chunk;
@@ -117,36 +117,39 @@ int fetch_metar_from_api(const char* icao_code) {
             free(chunk.memory);
             return 0;
         }
+        printf("Full JSON:\n%s\n", chunk.memory);
 
         // Extract raw METAR from JSON
         char* metar_pos = strstr(chunk.memory, "\"rawOb\":");
         if (metar_pos) {
-            char* start = strchr(metar_pos, '"') + 1;
-            start = strchr(start, '"') + 1;
-            char* end = strchr(start, '"');
+            char* start = strstr(metar_pos, ":");
 
-            if (end) {
-                int len = (int)(end - start);
-                if (len > 0 && len < 512) {
-                    char metar_string[512] = { 0 };
-                    strncpy_s(metar_string, sizeof(metar_string), start, len);
-                    metar_string[len] = '\0';
+            if (start) {
+                start = strchr(start, '"') + 1; // move past the opening "
+                char* end = strchr(start, '"');
+                if (end && end > start) {
+                    int len = (int)(end - start);
+                    if (len > 0 && len < 512) {
+                        char metar_string[512] = { 0 };
+                        strncpy_s(metar_string, sizeof(metar_string), start, len);
+                        metar_string[len] = '\0';
 
-                    // Store METAR
-                    char var_name[64];
-                    snprintf(var_name, sizeof(var_name), "METAR_%s", icao_upper);
-                    assign_string_variable(var_name, metar_string);
+                        // Store METAR
+                        char var_name[64];
+                        snprintf(var_name, sizeof(var_name), "METAR_%s", icao_upper);
+                        assign_string_variable(var_name, metar_string);
 
-                    printf("METAR received for %s\n", icao_upper);
-                    printf("Raw METAR: %s\n", metar_string);
+                        printf("METAR received for %s\n", icao_upper);
+                        printf("Raw METAR: %s\n", metar_string);
 
-                    // Parse it
-                    parseMetar(metar_string, icao_upper);
+                        // Parse it
+                        parseMetar(metar_string, icao_upper);
 
-                    curl_easy_cleanup(curl);
-                    curl_global_cleanup();
-                    free(chunk.memory);
-                    return 1;
+                        curl_easy_cleanup(curl);
+                        curl_global_cleanup();
+                        free(chunk.memory);
+                        return 1;
+                    }
                 }
             }
         }

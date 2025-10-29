@@ -34,7 +34,11 @@
 #ifndef METAR_FETCHER_H
 #define METAR_FETCHER_H
 
+#ifndef COMPILERS_H_
+#include "Compilers.h"
+#endif
+
 // Forward declarations - no curl headers here!
-int fetch_metar_from_api(const char* icao_code);
+airlang_intg fetch_metar_from_api(const char* icao_code);
 
 #endif
