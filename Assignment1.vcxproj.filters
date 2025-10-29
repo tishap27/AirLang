@@ -63,6 +63,9 @@
     <ClCompile Include="Main7Vm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MetarFetcher.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compilers.h">
@@ -87,6 +90,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Step7Vm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MetarFetcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

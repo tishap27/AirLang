@@ -209,6 +209,7 @@
     <ClCompile Include="Main5Writer.c" />
     <ClCompile Include="Main6Generator.c" />
     <ClCompile Include="Main7Vm.c" />
+    <ClCompile Include="MetarFetcher.c" />
     <ClCompile Include="Step1Coder.c" />
     <ClCompile Include="Step2Reader.c" />
     <ClCompile Include="Step3Scanner.c" />
@@ -219,6 +220,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compilers.h" />
+    <ClInclude Include="MetarFetcher.h" />
     <ClInclude Include="Step1Coder.h" />
     <ClInclude Include="Step2Reader.h" />
     <ClInclude Include="Step3Scanner.h" />

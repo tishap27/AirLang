@@ -632,10 +632,10 @@
                     printf("%s = %.2lf\n", variables[i].name, variables[i].value.num_value);
                 }
             }
-            else if (variables[i].type == BOOLEAN) {
+            else if (variables[i].type == AIRLANG_BOOLEAN) {
                 printf("%s = %s\n", variables[i].name, variables[i].value.bool_value ? "true" : "false");
             }
-            else if (variables[i].type == CHAR) {
+            else if (variables[i].type == AIRLANG_CHAR) {
                 printf("%s = '%c'\n", variables[i].name, variables[i].value.char_value);
             }
         }
@@ -783,10 +783,10 @@
                     printf("%s = %.2lf\n", variables[i].name, variables[i].value.num_value);
                 }
             }
-            else if (variables[i].type == BOOLEAN) {
+            else if (variables[i].type == AIRLANG_BOOLEAN) {
                 printf("%s = %s\n", variables[i].name, variables[i].value.bool_value ? "true" : "false");
             }
-            else if (variables[i].type == CHAR) {
+            else if (variables[i].type == AIRLANG_CHAR) {
                 printf("%s = '%c'\n", variables[i].name, variables[i].value.char_value);
             }
         }
@@ -1549,7 +1549,7 @@
 
         trimWhitespace(expression);
 
-        //REQUEST METAR FROM "blabla"
+        //REQUEST METAR FROM "ICAO airport code"
         if (strstr(expression, "REQUEST METAR FROM") != NULL) {
             //GO FOR QUOTES
 
@@ -1559,29 +1559,53 @@
             if (quoteStart != NULL) {
                 quoteEnd = strchr(quoteStart + 1, QUOTES);
                 if (quoteEnd != NULL) {
-                    airlang_intg urlLen = (airlang_intg)(quoteEnd - quoteStart - 1);
-                    airlang_char url[256] = { 0 };
+                    airlang_intg len = (airlang_intg)(quoteEnd - quoteStart - 1);
+                    airlang_char value[256] = { 0 };
 
                     // Safely copy URL
                     airlang_intg i;
-                    for (i = 0; i < urlLen && i < sizeof(url) - 1; i++) {
-                        url[i] = quoteStart[1 + i];
+                    for (i = 0; i < len && i < sizeof(value) - 1; i++) {
+                        value[i] = quoteStart[1 + i];
                     }
-                    url[i] = '\0';
-                    assign_string_variable("METAR_REQUEST_URL", url);
+                    value[i] = '\0';
+                    // Check if it's a 4-letter ICAO code
+                    if (strlen(value) == 4 &&
+                        isalpha(value[0]) && isalpha(value[1]) &&
+                        isalpha(value[2]) && isalpha(value[3])) {
 
-                    if (initial_phase) {
-                        size_t outLen = strlen(output_buffer);
-                        const char* msg = "METAR request received from service\n";
-                        size_t msgLen = strlen(msg);
-
-                        if (outLen + msgLen + 1 < sizeof(output_buffer)) {
-                            memcpy(output_buffer + outLen, msg, msgLen);
-                            output_buffer[outLen + msgLen] = '\0';
+                        // Fetch real METAR
+                        if (fetch_metar_from_api(value)) {
+                            if (initial_phase) {
+                                size_t outLen = strlen(output_buffer);
+                                const char* msg = "METAR data fetched from AviationWeather.gov\n";
+                                size_t msgLen = strlen(msg);
+                                if (outLen + msgLen + 1 < sizeof(output_buffer)) {
+                                    memcpy(output_buffer + outLen, msg, msgLen);
+                                    output_buffer[outLen + msgLen] = '\0';
+                                }
+                            }
+                            else {
+                                printf("METAR data fetched from AviationWeather.gov\n");
+                            }
                         }
                     }
                     else {
-                        printf("METAR request received from service\n");
+                        // if user types in full metar handle that
+                        assign_string_variable("METAR_REQUEST_URL", value);
+
+                        if (initial_phase) {
+                            size_t outLen = strlen(output_buffer);
+                            const char* msg = "METAR request received from service\n";
+                            size_t msgLen = strlen(msg);
+
+                            if (outLen + msgLen + 1 < sizeof(output_buffer)) {
+                                memcpy(output_buffer + outLen, msg, msgLen);
+                                output_buffer[outLen + msgLen] = '\0';
+                            }
+                        }
+                        else {
+                            printf("METAR request received from service\n");
+                        }
                     }
                     return;
                 }

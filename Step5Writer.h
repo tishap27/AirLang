@@ -34,12 +34,7 @@
 ************************************************************
 */
 
-/*
- *.............................................................................
- * MAIN ADVICE:
- * Please check the "TODO" labels to develop your activity.
- *.............................................................................
- */
+#include "MetarFetcher.h"
 
 #ifndef COMPILERS_H_
 #include "Compilers.h"
@@ -83,7 +78,7 @@
 #define TRUE "true"
 #define FALSE "false"
 
-typedef enum { NUMERIC, STRING, BOOLEAN, CHAR } VarType;
+typedef enum { NUMERIC, STRING, AIRLANG_BOOLEAN, AIRLANG_CHAR } VarType;
 
 typedef struct {
     airlang_char name[32];
