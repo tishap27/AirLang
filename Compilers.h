@@ -57,7 +57,11 @@
 #define AirLang_TRUE  1        //afirmative
 #define AirLang_FALSE 0		  // negative 
 
+#ifndef ERROR
 #define ERROR (-1)
+#endif // !1
+
+
 
 #define INVALID NULL
 #define EOF_CHAR '\0'
