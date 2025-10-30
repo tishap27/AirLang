@@ -1,6 +1,5 @@
-Add: METAR fetching module with API integration
+fix: add User-Agent fallback for CloudFront blocking
 
-- Introduce MetarFetcher.h declaring fetch_metar_from_api()
-- Implement fetch_metar_from_api() with libcurl to retrieve METAR data from AviationWeather.gov
-- Modify Step5Writer.c handleRequestStatement() to support automatic METAR fetching by ICAO code
-- Also retains compatibility with manual full URL METAR requests
+Implements automatic retry with browser User-Agent when CloudFront
+blocks custom User-Agent requests.Maintains backward compatibility.
+Resolves API access issues starting Oct 29, 2025.

@@ -102,13 +102,30 @@ airlang_intg fetch_metar_from_api(const char* icao_code) {
 
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "AirLang-DSL/1.0");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_metar_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&chunk);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
 
+        // First attempt: Try with original User-Agent
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "AirLang-DSL/1.0");
         res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK || chunk.size == 0 || strstr(chunk.memory, "403 ERROR")) {
+            //DEBUG
+            //printf("First attempt blocked, retrying with browser User-Agent...\n");
+           
+            //reset memory
+            free(chunk.memory);
+            chunk.memory = malloc(1);
+            chunk.size = 0;
+
+
+            // Retry with Chrome User-Agent
+            curl_easy_setopt(curl, CURLOPT_USERAGENT,
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36");
+            res = curl_easy_perform(curl);
+        }
 
         if (res != CURLE_OK) {
             printf("ERROR: Failed to fetch METAR: %s\n", curl_easy_strerror(res));
