@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1] - 2025-10-29
+
+### 🔧 Fixed
+- **API compatibility** - Added User-Agent fallback to handle CloudFront blocking
+- **Silent retry** - Automatically retries with browser User-Agent when custom User-Agent is blocked
+- **Network resilience** - Improved connection reliability across different network environments
+
+### 📊 Technical Details
+- Implements graceful degradation: tries "AirLang-DSL/1.0" first, falls back to Chrome User-Agent
+- No user-facing changes - fallback is transparent
+- Resolves 403 errors from aviationweather.gov API starting Oct 29, 2025
+
+### ✅ Backward Compatibility
+- All v2.0 functionality preserved
+- No breaking changes
+- Existing scripts run unchanged
+
+---
+
 ## [2.0] - 2025-10-28
 
 ### 🚀 Added
