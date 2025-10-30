@@ -36,6 +36,23 @@
             margin: 0 auto;
             padding: 0 20px;
         }
+	.badge-new {
+    	background: linear-gradient(135deg, #10b981, #059669);
+    	color: white;
+    	padding: 0.25rem 0.75rem;
+    	border-radius: 12px;
+    	font-size: 0.7rem;
+    	font-weight: 700;
+    	text-transform: uppercase;
+    	letter-spacing: 0.5px;
+    	margin-left: 0.5rem;
+    	display: inline-block;
+    	box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+	}
+	.feature-card {
+   	 cursor: pointer;
+	}
+
 
         /* Header */
         header {
@@ -705,14 +722,14 @@
                         constraints to prevent unsafe flight configurations.
                     </p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🌤️</div>
-                    <h3 class="feature-title">Weather Integration</h3>
-                    <p class="feature-description">
-                        Native METAR parsing and weather data integration for automated 
-                        dispatch decisions and condition monitoring.
-                    </p>
-                </div>
+                <div class="feature-card" onclick="scrollToWeatherTab()">
+    		    <div class="feature-icon">🌦️</div>
+    		    <h3 class="feature-title">Real-Time Weather Integration <span class="badge-new">NEW</span></h3>
+    		    <p class="feature-description">
+         		Live METAR fetching from AviationWeather.gov API with automatic parsing, 
+        		wind analysis, and real-time weather data integration.
+   		    </p>
+		</div>
                 <div class="feature-card">
                     <div class="feature-icon">📋</div>
                     <h3 class="feature-title">Structured Workflow</h3>
@@ -819,6 +836,7 @@
                 <button class="tab-button active" onclick="showTab('flight-planning')">Flight Planning</button>
                 <button class="tab-button" onclick="showTab('weight-balance')">Weight & Balance</button>
                 <button class="tab-button" onclick="showTab('weather-analysis')">Weather Analysis</button>
+		<button class="tab-button" onclick="showTab('realtime-metar')">Real-Time METAR <span class="badge-new" style="font-size: 0.6rem; padding: 0.15rem 0.5rem;">NEW</span></button>
             </div>
 
             <div id="flight-planning" class="tab-content active">
@@ -940,6 +958,96 @@ MAIN {
                 </div>
             </div>
         </div>
+
+<div id="realtime-metar" class="tab-content">
+    <div style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 2px solid #7dd3fc;">
+        <h3 style="color: #0f172a; margin-bottom: 1rem; font-size: 1.5rem;">
+            🌦️ Live Weather Data from AviationWeather.gov API
+        </h3>
+        <p style="color: #475569; margin-bottom: 1rem;">
+            No manual METAR entry required - fetch real-time weather data directly from the API!
+        </p>
+    </div>
+    
+    <div class="code-block">
+        <div class="code-header">live_weather.air</div>
+        <div class="code-content">
+            <pre><code>^^ Request live METAR from API
+REQUEST METAR FROM "CYOW";
+REQUEST METAR FROM "KJFK";
+
+MAIN {
+    WEATHER {
+        RECEIVEDDATA {
+            ^^ Automatically fetches latest weather
+            METAR: "CYOW";  ^^ Live from AviationWeather.gov
+            METAR: "KJFK";  ^^ Parsed automatically
+        } ENDRECEIVEDDATA;
+        
+        RUNWAYDATA {
+            RUNWAYHEADING() WITHCONFIG {
+                CYOW_RUNWAY: 070;
+                KJFK_RUNWAY: 040;
+            };
+        } ENDRUNWAYDATA;
+        
+        WINDANALYSIS {
+            ^^ Wind components calculated from live data
+            WIND() WITHCONFIG {
+                CYOW = HEADWIND();
+                CYOW = CROSSWIND();
+                KJFK = HEADWIND();
+                KJFK = CROSSWIND();
+            };
+        } ENDWINDANALYSIS;
+    } ENDWEATHER;
+    
+    DISPATCH {
+        REPORT {
+            PRINT { "Weather data received and analyzed" };
+        } ENDREPORT;
+    } ENDDISPATCH;
+} ENDMAIN;</code></pre>
+        </div>
+    </div>
+
+    <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-top: 2rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem; line-height: 1.8; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+        <div style="color: #60a5fa; margin-bottom: 0.5rem;">→ Fetching METAR for CYOW...</div>
+        <div style="color: #10b981; margin-bottom: 0.5rem;">✓ METAR received for CYOW</div>
+        <div style="color: #fbbf24; margin-bottom: 1rem;">  Raw METAR: METAR CYOW 292300Z 06006KT 15SM FEW060 FEW250 06/M01 A3014</div>
+        
+        <div style="color: #60a5fa; margin-bottom: 0.5rem;">→ Fetching METAR for KJFK...</div>
+        <div style="color: #10b981; margin-bottom: 0.5rem;">✓ METAR received for KJFK</div>
+        <div style="color: #fbbf24; margin-bottom: 1rem;">  Raw METAR: METAR KJFK 292351Z 05012KT 10SM FEW030 OVC042 12/07 A3012</div>
+        
+        <div style="color: #10b981; margin-top: 1.5rem; margin-bottom: 0.5rem;">Weather variables automatically extracted:</div>
+        <div style="color: #e5e7eb;">
+          CYOW_WIND_DIR = 60   |  CYOW_WIND_SPEED = 6   |  CYOW_TEMP = 6<br>
+          CYOW_HEADWIND = 5.91 |  CYOW_CROSSWIND = 1.04<br><br>
+          KJFK_WIND_DIR = 50   |  KJFK_WIND_SPEED = 12  |  KJFK_TEMP = 12<br>
+          KJFK_HEADWIND = 11.82|  KJFK_CROSSWIND = 2.08
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2.5rem;">
+        <div style="background: white; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #0066cc; box-shadow: 0 4px 12px rgba(0,102,204,0.1);">
+            <div style="font-weight: 600; color: #0066cc; margin-bottom: 0.5rem;">📡 Live API Integration</div>
+            <div style="color: #475569; font-size: 0.9rem;">Direct connection to AviationWeather.gov - always current data</div>
+        </div>
+        <div style="background: white; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #0066cc; box-shadow: 0 4px 12px rgba(0,102,204,0.1);">
+            <div style="font-weight: 600; color: #0066cc; margin-bottom: 0.5rem;">⚡ Automatic Parsing</div>
+            <div style="color: #475569; font-size: 0.9rem;">Wind, temp, visibility, pressure extracted instantly</div>
+        </div>
+        <div style="background: white; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #0066cc; box-shadow: 0 4px 12px rgba(0,102,204,0.1);">
+            <div style="font-weight: 600; color: #0066cc; margin-bottom: 0.5rem;">🌍 Multiple Airports</div>
+            <div style="color: #475569; font-size: 0.9rem;">Fetch unlimited stations in a single script</div>
+        </div>
+        <div style="background: white; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #0066cc; box-shadow: 0 4px 12px rgba(0,102,204,0.1);">
+            <div style="font-weight: 600; color: #0066cc; margin-bottom: 0.5rem;">🛡️ Error Handling</div>
+            <div style="color: #475569; font-size: 0.9rem;">Graceful fallback with detailed error messages</div>
+        </div>
+    </div>
+</div>
     </section>
 	
 	 <!-- Roadmap Section -->
@@ -997,7 +1105,7 @@ MAIN {
                 language development.
             </p>
             <div style="margin-top: 2rem;">
-                <a href="#" class="btn btn-primary">Read Full Paper</a>
+                <a href="http://dx.doi.org/10.13140/RG.2.2.25987.57120" target="_blank" class="btn btn-primary">Read Full Paper</a>
                 <a href="https://github.com/tishap27/airlang/tree/main/docs" class="btn btn-secondary">Technical Documentation</a>
             </div>
         </div>
@@ -1035,6 +1143,24 @@ MAIN {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <script>
+
+	function scrollToWeatherTab() {
+    // Show the Real-Time METAR tab
+    showTab('realtime-metar');
+    
+    // Scroll to examples section
+    const section = document.getElementById('examples');
+    if (section) {
+        const headerOffset = 80;
+        const elementPosition = section.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    }
+}
         function showTab(tabName) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(content => {
