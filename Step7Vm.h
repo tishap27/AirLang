@@ -106,6 +106,7 @@ typedef struct {
 airlang_void initVM(VirtualMachine* vm);
 
 airlang_intg loadBytecode(VirtualMachine* vm, const airlang_strg filename);
+airlang_void displayVMVariables(VirtualMachine* vm);
 airlang_void executeVM(VirtualMachine* vm);
 airlang_void cleanupVM(VirtualMachine* vm);
 

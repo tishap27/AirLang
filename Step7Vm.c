@@ -163,6 +163,92 @@ airlang_intg loadBytecode(VirtualMachine* vm, const airlang_strg filename) {
     return 1;
 }
 
+/*
+ ************************************************************
+ * VM Variable Display System
+ *      Dynamically displays all airport-prefixed variables
+ *      without hardcoding field names. Automatically adapts
+ *      to new METAR fields or airport data formats.
+ * Purpose:
+ *      Provides flexible variable display for any airport data
+ ************************************************************
+ */
+airlang_void displayVMVariables(VirtualMachine* vm) {
+    if (vm->variable_count == 0) {
+        printf("\nNo variables stored.\n");
+        return;
+    }
+
+    printf("\n========================\n");
+    printf("Variable values:\n");
+
+    // Track which airports we've seen
+    airlang_char airports[10][16] = { 0 };
+    airlang_intg airport_count = 0;
+
+    // First pass: identify all unique airport prefixes
+    for (airlang_intg i = 0; i < vm->variable_count; i++) {
+        if (vm->variables[i].is_used) {
+            // Skip internal variables (REQUEST_, TEMP_, etc.)
+            if (strncmp(vm->variables[i].name, "REQUEST_", 8) == 0) {
+                continue;
+            }
+
+            // Look for variables with underscore (airport prefix pattern)
+            airlang_char* underscore = strchr(vm->variables[i].name, '_');
+            if (underscore != NULL) {
+                airlang_intg prefix_len = (airlang_intg)(underscore - vm->variables[i].name);
+
+                // Valid airport code length (3-5 chars like CYOW, KJFK, etc.)
+                if (prefix_len >= 3 && prefix_len <= 5) {
+                    airlang_char prefix[16];
+                    strncpy(prefix, vm->variables[i].name, prefix_len);
+                    prefix[prefix_len] = '\0';
+
+                    // Check if we've seen this airport prefix already
+                    airlang_intg found = 0;
+                    for (airlang_intg j = 0; j < airport_count; j++) {
+                        if (strcmp(airports[j], prefix) == 0) {
+                            found = 1;
+                            break;
+                        }
+                    }
+
+                    // Add new airport prefix
+                    if (!found && airport_count < 10) {
+                        strcpy(airports[airport_count], prefix);
+                        airport_count++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Second pass: display all variables grouped by airport
+    for (airlang_intg a = 0; a < airport_count; a++) {
+        printf("=== %s ===\n", airports[a]);
+
+        // Display ALL variables that start with this airport prefix
+        for (airlang_intg i = 0; i < vm->variable_count; i++) {
+            if (vm->variables[i].is_used) {
+                // Check if variable name starts with current airport prefix
+                if (strncmp(vm->variables[i].name, airports[a], strlen(airports[a])) == 0) {
+                    printf("%s = ", vm->variables[i].name);
+
+                    if (vm->variables[i].value.type == VAL_NUMBER) {
+                        printf("%.2f\n", vm->variables[i].value.data.number);
+                    }
+                    else if (vm->variables[i].value.type == VAL_STRING) {
+                        printf("%s\n", vm->variables[i].value.data.string);
+                    }
+                }
+            }
+        }
+        printf("\n");
+    }
+
+    printf("========================\n");
+}
 
 /*
  ************************************************************
@@ -767,6 +853,9 @@ airlang_void executeVM(VirtualMachine* vm) {
     }
 
     printf("=== EXECUTION COMPLETED ===\n");
+
+    // Display all variables
+    displayVMVariables(vm);
 }
 
 
