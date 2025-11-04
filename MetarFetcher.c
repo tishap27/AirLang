@@ -182,3 +182,23 @@ airlang_intg fetch_metar_from_api(const char* icao_code) {
     curl_global_cleanup();
     return 0;
 }
+
+/*
+ ************************************************************
+ * Fetch METAR Data (VM Interface)
+ *		Wrapper function for VM to fetch METAR data. Provides
+ *		void return type interface for bytecode execution while
+ *		utilizing the existing API fetch implementation.
+ * Parameters:
+ *		station_id: ICAO airport code (const airlang_strg)
+ * Return:
+ *		None (airlang_void)
+ * Purpose:
+ *		VM-compatible interface for METAR data fetching
+ ************************************************************
+ */
+airlang_void fetchMetarData(const airlang_strg station_id) {
+    if (!fetch_metar_from_api(station_id)) {
+        printf("WARNING: METAR fetch failed for %s, using default values\n", station_id);
+    }
+}

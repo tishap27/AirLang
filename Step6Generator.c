@@ -267,6 +267,9 @@ airlang_void displayGeneratedCode(const Generator* cg) {
         case OP_CALC_VALIDATEWB:
             printf("CALC_VALIDATEWB\n");
             break;
+        case OP_FETCH_METAR:
+            printf("FETCH_METAR \"%s\"\n", inst->operand.str_operand);
+            break;
         default:
             printf("UNKNOWN\n");
             break;
@@ -572,7 +575,7 @@ airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
                 // Parse and cache coordinates for later distance calculation:
                 airlang_doub lat, lon;
                 if (parse_coordinates(value_str, &lat, &lon)) {
-                   // printf("DEBUG: Parsed lat=%.4f, lon=%.4f\n", lat, lon);
+                    // printf("DEBUG: Parsed lat=%.4f, lon=%.4f\n", lat, lon);
                     if (strcmp(var_name, "DepartureCoords") == 0) {
                         generator_dep_lat = lat;
                         generator_dep_lon = lon;
@@ -592,29 +595,53 @@ airlang_void generateAssignment(const airlang_strg line, Generator* cg) {
                 emitInstruction(cg, OP_STORE_DATE, 0, var_name);
             }
             else {
-                // Check if value is numeric
-                airlang_doub num_val;
-                if (sscanf(value_str, "%lf", &num_val) == 1) {
-                    // Numeric assignment
-                    emitInstruction(cg, OP_LOAD_NUM, num_val, "");
-                    //emitInstruction(cg, OP_STORE_VAR, 0, value_str);
+                // Check if this is a METAR assignment
+                if (strcmp(var_name, "METAR") == 0) {
+                    // Extract station code from value_str and create proper variable name
+                    removeQuotes(value_str);
+
+                    // Check if it's a 4-letter ICAO code
+                    if (strlen(value_str) == 4 && isalpha(value_str[0]) && isalpha(value_str[1]) &&
+                        isalpha(value_str[2]) && isalpha(value_str[3])) {
+
+                        // Create METAR_XXXX variable name
+                        airlang_char proper_var_name[64];
+                        snprintf(proper_var_name, sizeof(proper_var_name), "METAR_%s", value_str);
+
+                        emitInstruction(cg, OP_LOAD_STR, 0, value_str);
+                        emitInstruction(cg, OP_STORE_VAR, 0, proper_var_name);
+                    }
+                    else {
+                        // It's not a simple ICAO code, skip it (already fetched)
+                        // Don't generate any instruction
+                        return;
+                    }
                 }
                 else {
+                    // Check if value is numeric
+                    airlang_doub num_val;
+                    if (sscanf(value_str, "%lf", &num_val) == 1) {
+                        // Numeric assignment
+                        emitInstruction(cg, OP_LOAD_NUM, num_val, "");
+                        //emitInstruction(cg, OP_STORE_VAR, 0, value_str);
+                    }
+                    else {
 
-                    removeQuotes(value_str);
-                    emitInstruction(cg, OP_LOAD_STR, 0, value_str);
-                    // String assignment
-                    // Remove quotes if present
-                    //if (value_str[0] == '"') {
-                      //  value_str++;
-                       // airlang_intg len = (airlang_intg)strlen(trimmed_val);
-                       // if (len > 0 && trimmed_val[len - 1] == '"') {
-                            //trimmed_val[len - 1] = '\0';
-                       // }
+                        removeQuotes(value_str);
+                        emitInstruction(cg, OP_LOAD_STR, 0, value_str);
+                        // String assignment
+                        // Remove quotes if present
+                        //if (value_str[0] == '"') {
+                          //  value_str++;
+                           // airlang_intg len = (airlang_intg)strlen(trimmed_val);
+                           // if (len > 0 && trimmed_val[len - 1] == '"') {
+                                //trimmed_val[len - 1] = '\0';
+                           // }
+                    }
+                    // emitInstruction(cg, OP_LOAD_STR, 0, trimmed_val);
+                     //emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
+                    emitInstruction(cg, OP_STORE_VAR, 0, var_name);
                 }
-                // emitInstruction(cg, OP_LOAD_STR, 0, trimmed_val);
-                 //emitInstruction(cg, OP_STORE_VAR, 0, trimmed_var);
-                emitInstruction(cg, OP_STORE_VAR, 0, var_name);
             }
         }
     }
@@ -1182,25 +1209,40 @@ airlang_void generateEndIfStatement(Generator* cg) {
  */
 airlang_void generateRequestStatement(const airlang_strg line, Generator* cg) {
     airlang_char service_type[64];
-    airlang_char url[256];
+    airlang_char station[256];
 
-    // Parse: REQUEST METAR FROM "https://airlangMetar.fly"
-    if (sscanf(line, "REQUEST %63s FROM %255s", service_type, url) == 2) {
-        // Remove quotes and semicolon from URL
-        removeQuotes(url);
+    // Parse: REQUEST METAR FROM "CYOW" or REQUEST METAR FROM "https://..."
+    if (sscanf(line, "REQUEST %63s FROM %255s", service_type, station) == 2) {
+        // Remove quotes and semicolon from station
+        removeQuotes(station);
 
         // Remove semicolon if present
-        int len = (airlang_intg)strlen(url);
-        if (len > 0 && url[len - 1] == ';') {
-            url[len - 1] = '\0';
+        int len = (airlang_intg)strlen(station);
+        if (len > 0 && station[len - 1] == ';') {
+            station[len - 1] = '\0';
         }
 
-        // Generate proper instructions
-        emitInstruction(cg, OP_LOAD_STR, 0, url);
-
-        // Create proper variable name
-        airlang_char var_name[128];
-        snprintf(var_name, sizeof(var_name), "REQUEST_%s_FROM", service_type);
-        emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+        // Check if it's a METAR request
+        if (strcmp(service_type, "METAR") == 0) {
+            // Check if station is a URL or a station code
+            if (strstr(station, "http://") != NULL || strstr(station, "https://") != NULL) {
+                // It's a URL - use old behavior (store as variable)
+                emitInstruction(cg, OP_LOAD_STR, 0, station);
+                airlang_char var_name[128];
+                snprintf(var_name, sizeof(var_name), "REQUEST_%s_FROM", service_type);
+                emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+            }
+            else {
+                // It's a station code - generate FETCH_METAR to fetch actual data
+                emitInstruction(cg, OP_FETCH_METAR, 0, station);
+            }
+        }
+        else {
+            // For other request types, just store as variable
+            emitInstruction(cg, OP_LOAD_STR, 0, station);
+            airlang_char var_name[128];
+            snprintf(var_name, sizeof(var_name), "REQUEST_%s_FROM", service_type);
+            emitInstruction(cg, OP_STORE_VAR, 0, var_name);
+        }
     }
 }

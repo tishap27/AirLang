@@ -83,6 +83,10 @@
 #define FALSE 0
 #endif
 
+// METAR Fetching Functions
+extern airlang_intg fetch_metar_from_api(const char* icao_code);
+extern airlang_void fetchMetarData(const airlang_strg station_id);
+
 typedef enum { NUMERIC, STRING, AIRLANG_BOOLEAN, AIRLANG_CHAR } VarType;
 
 typedef struct {

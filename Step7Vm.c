@@ -71,7 +71,8 @@ extern airlang_doub calculateWeightBalanceMoment();
 extern airlang_doub calculateCenterOfGravity();
 extern const airlang_strg validateWeightAndBalance();
 
-
+extern airlang_void fetchMetarData(const airlang_strg station_id);
+extern airlang_void parseMetar(const airlang_strg metar_string, const airlang_strg station_id);
 
 /*
  ************************************************************
@@ -659,6 +660,25 @@ airlang_void executeVM(VirtualMachine* vm) {
                 }
                 sync_variables_back(vm);
                 break;
+            case OP_FETCH_METAR:
+                //printf("FETCH_METAR %s\n", current->operand.str_operand);
+            {
+                airlang_char station[16];
+                strncpy(station, current->operand.str_operand, sizeof(station) - 1);
+                station[sizeof(station) - 1] = '\0';
+
+                // Sync variables so fetchMetarData can access them
+                sync_variables(vm);
+
+                // Fetch METAR from aviation weather service
+                fetchMetarData(station);
+
+                // Sync variables back to VM after fetching
+                sync_variables_back(vm);
+
+                //printf("METAR fetched and parsed for %s\n", station);
+            }
+            break;
 
             case OP_ENTER_MAIN:
                // printf("ENTER_MAIN\n");

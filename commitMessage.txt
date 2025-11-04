@@ -1,5 +1,9 @@
-fix: add User-Agent fallback for CloudFront blocking
+feat(vm): add real-time METAR fetching to VM execution
 
-Implements automatic retry with browser User-Agent when CloudFront
-blocks custom User-Agent requests.Maintains backward compatibility.
-Resolves API access issues starting Oct 29, 2025.
+- Virtual Machine now fetches METAR data at runtime
+- Implements OP_FETCH_METAR opcode
+- Integrates fetchMetarData() into bytecode execution
+- Backward compatible with URL-based REQUEST syntax
+- Resolves wind/runway variable availability in VM
+
+Version: v2.1.0
