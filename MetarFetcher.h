@@ -40,5 +40,6 @@
 
 // Forward declarations - no curl headers here!
 airlang_intg fetch_metar_from_api(const char* icao_code);
+airlang_void fetchMetarData(const airlang_strg station_id);
 
 #endif

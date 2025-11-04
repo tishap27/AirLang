@@ -1,0 +1,43 @@
+%AirLang Hello World%
+
+REQUEST METAR FROM "CYOW";
+REQUEST METAR FROM "KJFK";
+MAIN {
+   BRIEFING {
+
+   }ENDBRIEFING;
+ WEATHER {
+        RECEIVEDDATA {
+            METAR: "CYOW";
+	    METAR: "KJFK";
+	    METAR: "CYVR";
+            METAR: "METAR CYYZ 251630Z 24012KT 6SM -RA SCT010 BKN020 09/07 A2998 RMK";
+        } ENDRECEIVEDDATA;
+
+        RUNWAYDATA {
+            RUNWAYHEADING() WITHCONFIG {
+                CYOW_RUNWAY: 070;
+                CYYZ_RUNWAY: 230;
+            };
+        } ENDRUNWAYDATA;
+
+        WINDANALYSIS {
+            ^^ Using (wind_dir, wind_speed, runway_heading) FIRST TWO FROM METAR , HDG SHOULD BE IN INPUT
+
+            WIND() WITHCONFIG {
+		KJFK = HEADWIND();
+	        KJFK = CROSSWIND();
+                CYOW = HEADWIND();
+                CYOW = CROSSWIND();
+		CYYZ = HEADWIND();
+                CYYZ = CROSSWIND();
+                
+            };
+        } ENDWINDANALYSIS;
+} ENDWEATHER;
+   DISPATCH {
+      REPORT {
+	PRINT {"Hello World"};
+      }ENDREPORT;
+   }ENDDISPATCH;
+}ENDMAIN; 
