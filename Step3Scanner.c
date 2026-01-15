@@ -1,7 +1,7 @@
 /*
 ************************************************************
 * COMPILERS COURSE - Algonquin College
-* Code version: Fall, 2024
+* Code version: Summer, 2025
 * Author: Tisha Patel
 * Professors: Paulo Sousa
 ************************************************************
@@ -28,7 +28,7 @@
 * Compiler: MS Visual Studio 2022
 * Course: CST 8152 – Compilers, Lab Section: [011, 012]
 * Assignment: A22, A32.
-* Date: May 01 2024
+* Date: May 01 2025
 * Purpose: This file contains all functionalities from Scanner.
 * Function list: (...).
 ************************************************************

@@ -35,12 +35,7 @@
 ************************************************************
 */
 
-/*
- *.............................................................................
- * MAIN ADVICE:
- * Please check the "TODO" labels to develop your activity.
- *.............................................................................
- */
+
 
 #ifndef COMPILERS_H_
 #include "Compilers.h"
@@ -88,8 +83,6 @@
 #define CHARSEOF			(-1)		/* EOF Code for Reader */
 
 /* STRUCTURES DEFINITION: SUFIXED BY LANGUAGE NAME .................................. */
-
-/* TODO: Adjust datatypes */
 
 /* Offset declaration */
 typedef struct position {

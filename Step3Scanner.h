@@ -27,7 +27,7 @@
 * Compiler: MS Visual Studio 2022
 * Course: CST 8152 – Compilers, Lab Section: [011, 012]
 * Assignment: A22, A32.
-* Date: May 01 2024
+* Date: May 01 2025
 * Purpose: This file is the main header for Scanner (.h)
 * Function list: (...).
 *************************************************************/

@@ -35,13 +35,6 @@
 ************************************************************
 */
 
-/*
- *.............................................................................
- * MAIN ADVICE:
- * - Please check the "TODO" labels to develop your activity.
- * - Review the functions to use "Defensive Programming".
- *.............................................................................
- */
 
 #include <ctype.h>
 #include <string.h>
@@ -72,11 +65,6 @@
 *   mode = operational mode
 * Return value: bPointer (pointer to reader)
 * Algorithm: Allocation of memory according to inicial (default) values.
-* TODO ......................................................
-*	- Adjust datatypes for your LANGUAGE.
-*   - Use defensive programming
-*	- Check boundary conditions
-*	- Check flags.
 *************************************************************
 */
 

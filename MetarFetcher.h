@@ -1,7 +1,5 @@
 /*
 ************************************************************
-* COMPILERS COURSE - Algonquin College
-* Code version: Summer, 2025
 * Author: Tisha Patel
 ************************************************************
 #
@@ -25,7 +23,6 @@
 ************************************************************
 * File name: MetarFetcher.h
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012]
 * Date: Oct 28, 2025
 * Professor: Paulo Sousa
 * Purpose: Header file declaring the METAR fetching functions

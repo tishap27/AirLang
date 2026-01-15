@@ -1,7 +1,5 @@
 /*
 ************************************************************
-* COMPILERS COURSE - Algonquin College
-* Code version: Summer, 2025
 * Author: Tisha Patel
 ************************************************************
 #
@@ -25,9 +23,7 @@
 ************************************************************
 * File name: MetarFetcher.c
 * Compiler: MS Visual Studio 2022
-* Course: CST 8152 – Compilers, Lab Section: [011, 012]
 * Date: Oct 28, 2025
-* Professor: Paulo Sousa
 * Purpose: This file implements the METAR data fetching module
 * including API interaction using libcurl and JSON parsing.
 ************************************************************
