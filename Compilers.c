@@ -45,15 +45,6 @@
 #include "Compilers.h"
 #endif
 
-/*
- * ............................................................................
- * ADVICE 1:
- * Please check the "TODO" labels to develop your activity.
- *
- * ADVICE 2: This file must be updated according to each assignment
- * (see the progression: reader > scanner > parser).
- * ............................................................................
- */
 
 /*
 ***********************************************************

@@ -1,7 +1,7 @@
 /*
 ************************************************************
 * COMPILERS COURSE - Algonquin College
-* Code version: Fall, 2024
+* Code version: Summer, 2025
 * Author: Tisha Patel
 * Professors: Paulo Sousa
 ************************************************************
