@@ -401,7 +401,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ## 🎓 Academic Context
 
-This project was developed as part of Computer Engineering Technology program at Algonquin College, demonstrating:
+This project was developed applies concept from the Computer Engineering Technology program at Algonquin College, demonstrating:
 
 - **Compiler Design Principles** applied to domain-specific languages
 - **Aviation Domain Expertise** informing language design
