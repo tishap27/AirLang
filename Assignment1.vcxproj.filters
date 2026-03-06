@@ -66,6 +66,12 @@
     <ClCompile Include="MetarFetcher.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="embedded\AirLang_Demo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="embedded\AirLang_Runtime.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compilers.h">
@@ -93,6 +99,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MetarFetcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="embedded\AirLang.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
