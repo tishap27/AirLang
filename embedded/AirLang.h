@@ -98,6 +98,10 @@ extern "C" {
 #define AIRLANG_VERSION_PATCH  0
 #define AIRLANG_VERSION_STR    "3.0.0-embedded"
 
+#define AIR_PI         3.14159265358979323846
+#define AIR_EARTH_KM   6371.0
+#define AIR_KM_TO_NM   0.539957
+
 /* -- compile-time switches ----------------------------------------- */
 /*
  * Define AIRLANG_NO_CURL (compiler flag or before this include)
@@ -319,8 +323,7 @@ extern "C" {
       *   Uses the same Taylor-series sin/cos as the original.
       *   @return nautical miles
       */
-    double AIR_GreatCircleNM(double lat1_deg, double lon1_deg,
-        double lat2_deg, double lon2_deg);
+    double AIR_GreatCircleNM(double lat1_deg, double lon1_deg,double lat2_deg, double lon2_deg);
 
     /**
      * AIR_CalcWind
@@ -330,9 +333,7 @@ extern "C" {
      *   @param wind_speed_kt   wind speed in knots
      *   @param runway_hdg_deg  runway heading true (0-360)
      */
-    AIR_WindComponents AIR_CalcWind(double wind_dir_deg,
-        double wind_speed_kt,
-        double runway_hdg_deg);
+    AIR_WindComponents AIR_CalcWind(double wind_dir_deg,double wind_speed_kt,double runway_hdg_deg);
 
     /**
      * AIR_ParseMETAR
