@@ -419,7 +419,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Tisha Patel**
 - **GitHub:** [@tishap27](https://github.com/tishap27)
-- **Email:** tishaapatel08@gmail.com
+- **Email:** [tishaapatel08@gmail.com](mailto:tishaapatel08@gmail.com)
 - **Project Website:** [AirLang Official Site](https://tishap27.github.io/AirLang/)
 
 ---
