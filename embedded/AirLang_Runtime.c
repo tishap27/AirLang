@@ -30,10 +30,23 @@
 
 
 
+ //internal variable
+typedef enum { RT_NUM = 0, RT_STR = 1 } RT_VarType;
+
+typedef struct {
+    char       name[64];
+    RT_VarType type;
+    double     num;
+    char       str[256];
+} RT_Var;
+
+// runtime context 
 struct AIR_Runtime {
     AIR_OutputCallback cb;
     void* cb_data;
     int                verbose;
+    RT_Var             vars[AIR_MAX_VARS];
+    int                var_count;
 };
 
 
@@ -63,10 +76,81 @@ const char* AIR_Version(void) { return AIRLANG_VERSION_STR; }
 
 AIR_Status      AIR_RunString(AIR_Runtime* rt, const char* s) { (void)rt;(void)s; return AIR_OK; }
 AIR_Status      AIR_RunFile(AIR_Runtime* rt, const char* f) { (void)rt;(void)f; return AIR_OK; }
-AIR_Status      AIR_GetNumber(AIR_Runtime* rt, const char* n, double* o) { (void)rt;(void)n; if (o)*o = 0; return AIR_ERR_NOT_FOUND; }
-AIR_Status      AIR_GetString(AIR_Runtime* rt, const char* n, const char** o) { (void)rt;(void)n;(void)o; return AIR_ERR_NOT_FOUND; }
-AIR_Status      AIR_GetVariable(AIR_Runtime* rt, const char* n, AIR_Variable* o) { (void)rt;(void)n;(void)o; return AIR_ERR_NOT_FOUND; }
-AIR_Status      AIR_GetAllVariables(AIR_Runtime* rt, AIR_Variable* v, int m, int* c) { (void)rt;(void)v;(void)m; if (c)*c = 0; return AIR_OK; }
+
+static int rt_find(AIR_Runtime* rt, const char* name) {
+    int i;
+    for (i = 0; i < rt->var_count; i++)
+        if (strcmp(rt->vars[i].name, name) == 0) return i;
+    return -1;
+}
+
+static void rt_set_num(AIR_Runtime* rt, const char* name, double val) {
+    int i = rt_find(rt, name);
+    if (i == -1) {
+        if (rt->var_count >= AIR_MAX_VARS) return;
+        i = rt->var_count++;
+        strncpy(rt->vars[i].name, name, 63);
+    }
+    rt->vars[i].type = RT_NUM;
+    rt->vars[i].num = val;
+}
+static void rt_set_str(AIR_Runtime* rt, const char* name, const char* val) {
+    int i = rt_find(rt, name);
+    if (i == -1) {
+        if (rt->var_count >= AIR_MAX_VARS) return;
+        i = rt->var_count++;
+        strncpy(rt->vars[i].name, name, 63);
+    }
+    rt->vars[i].type = RT_STR;
+    strncpy(rt->vars[i].str, val, 255);
+}
+
+AIR_Status AIR_GetNumber(AIR_Runtime* rt, const char* name, double* out) {
+    int i;
+    if (!rt || !name || !out) return AIR_ERR_NULL;
+    i = rt_find(rt, name);
+    if (i == -1) return AIR_ERR_NOT_FOUND;
+    if (rt->vars[i].type != RT_NUM) return AIR_ERR_TYPE;
+    *out = rt->vars[i].num;
+    return AIR_OK;
+}
+
+AIR_Status AIR_GetString(AIR_Runtime* rt, const char* name, const char** out) {
+    int i;
+    if (!rt || !name || !out) return AIR_ERR_NULL;
+    i = rt_find(rt, name);
+    if (i == -1) return AIR_ERR_NOT_FOUND;
+    if (rt->vars[i].type != RT_STR) return AIR_ERR_TYPE;
+    *out = rt->vars[i].str;
+    return AIR_OK;
+}
+
+AIR_Status AIR_GetVariable(AIR_Runtime* rt, const char* name, AIR_Variable* out) {
+    int i;
+    if (!rt || !name || !out) return AIR_ERR_NULL;
+    i = rt_find(rt, name);
+    if (i == -1) return AIR_ERR_NOT_FOUND;
+    out->name = rt->vars[i].name;
+    out->type = (rt->vars[i].type == RT_NUM) ? AIR_TYPE_NUMBER : AIR_TYPE_STRING;
+    out->number = rt->vars[i].num;
+    out->string = rt->vars[i].str;
+    return AIR_OK;
+}
+
+AIR_Status AIR_GetAllVariables(AIR_Runtime* rt, AIR_Variable* vars,
+    int max, int* count) {
+    int i;
+    if (!rt || !count) return AIR_ERR_NULL;
+    *count = rt->var_count;
+    if (!vars) return AIR_OK;
+    for (i = 0; i < rt->var_count && i < max; i++) {
+        vars[i].name = rt->vars[i].name;
+        vars[i].type = (rt->vars[i].type == RT_NUM) ? AIR_TYPE_NUMBER : AIR_TYPE_STRING;
+        vars[i].number = rt->vars[i].num;
+        vars[i].string = rt->vars[i].str;
+    }
+    return AIR_OK;
+}
 //double          AIR_GreatCircleNM(double a, double b, double c, double d) { (void)a;(void)b;(void)c;(void)d; return 0.0; }
 //AIR_WindComponents AIR_CalcWind(double a, double b, double c) { AIR_WindComponents r = { 0 };(void)a;(void)b;(void)c; return r; }
 //AIR_METARResult AIR_ParseMETAR(const char* s) { AIR_METARResult r;memset(&r, 0, sizeof(r));r.wind_dir = -1;(void)s; return r; }
