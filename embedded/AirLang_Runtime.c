@@ -25,6 +25,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "AirLang.h"
 #include <stdlib.h>
+#include <stdio.h>  
 #include <string.h>
 #include <ctype.h>
 
@@ -396,7 +397,32 @@ AIR_Status AIR_RunString(AIR_Runtime* rt, const char* source) {
     free(buf);
     return AIR_OK;
 }
-AIR_Status      AIR_RunFile(AIR_Runtime* rt, const char* f) { (void)rt;(void)f; return AIR_OK; }
+AIR_Status AIR_RunFile(AIR_Runtime* rt, const char* filepath) {
+    FILE* f;
+    char* buf;
+    long  len;
+    AIR_Status s;
+
+    if (!rt || !filepath) return AIR_ERR_NULL;
+
+    f = fopen(filepath, "r");
+    if (!f) return AIR_ERR_FILE;
+
+    fseek(f, 0, SEEK_END);
+    len = ftell(f);
+    rewind(f);
+
+    buf = (char*)malloc(len + 1);
+    if (!buf) { fclose(f); return AIR_ERR_ALLOC; }
+
+    fread(buf, 1, len, f);
+    buf[len] = '\0';
+    fclose(f);
+
+    s = AIR_RunString(rt, buf);
+    free(buf);
+    return s;
+}
 
 static int rt_find(AIR_Runtime* rt, const char* name) {
     int i;
