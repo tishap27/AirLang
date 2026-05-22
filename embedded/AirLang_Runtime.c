@@ -29,6 +29,12 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifdef _WIN32
+#  define rt_strtok(s, d, c) strtok_s(s, d, c)
+#else
+#  define rt_strtok(s, d, c) strtok_r(s, d, c)
+#endif
+
 static int  rt_find(AIR_Runtime* rt, const char* name);
 static void rt_set_num(AIR_Runtime* rt, const char* name, double val);
 static void rt_set_str(AIR_Runtime* rt, const char* name, const char* val);
@@ -123,7 +129,7 @@ static double rt_eval_expr(AIR_Runtime* rt, const char* expr) {
         }
         if (c1 != -1 && c2 != -1) {
             double la1, lo1, la2, lo2;
-            char t1[128], t2[128]; char* cm;
+            char t1[128], t2[128]; char* cm; 
             strncpy(t1, rt->vars[c1].str, 127);
             strncpy(t2, rt->vars[c2].str, 127);
             cm = strchr(t1, ','); if (cm) { *cm = '\0'; la1 = atof(t1); lo1 = atof(cm + 1); }
@@ -172,7 +178,7 @@ static double rt_eval_expr(AIR_Runtime* rt, const char* expr) {
 
     /* tokenize by operators */
     strncpy(tmp, clean, 255);
-    tok = strtok_s(tmp, "+-*/", &ctx2);
+    tok = rt_strtok(tmp, "+-*/", &ctx2);
     while (tok && val_count < 10) {
         if (isdigit((unsigned char)tok[0]) ||
             (tok[0] == '-' && isdigit((unsigned char)tok[1]))) {
@@ -183,7 +189,7 @@ static double rt_eval_expr(AIR_Runtime* rt, const char* expr) {
             vals[val_count++] = (vi != -1 && rt->vars[vi].type == RT_NUM)
                 ? rt->vars[vi].num : 0.0;
         }
-        tok = strtok_s(NULL, "+-*/", &ctx2);
+        tok = rt_strtok(NULL, "+-*/", &ctx2);
     }
 
     /* evaluate with precedence */
@@ -389,10 +395,10 @@ AIR_Status AIR_RunString(AIR_Runtime* rt, const char* source) {
     buf = (char*)malloc(strlen(source) + 1);
     if (!buf) return AIR_ERR_ALLOC;
     strcpy(buf, source);
-    line = strtok_s(buf, "\n", &ctx);
+    line = rt_strtok(buf, "\n", &ctx);
     while (line) {
         rt_calculate(rt, line);
-        line = strtok_s(NULL, "\n", &ctx);
+        line = rt_strtok(NULL, "\n", &ctx);
     }
     free(buf);
     return AIR_OK;
