@@ -13,7 +13,133 @@ Author: Tisha Patel
 # AirLang ✈️
 *A domain-specific programming language designed for aviation flight planning and dispatch operations*
 
-> **🚀 NEW: Version 2.0** - Real-time METAR integration now available! [Jump to v2.0 features ↓](#-version-20---real-time-metar-integration)
+> **🚀 NEW: Version 3.0** - Embedded runtime now available! [Jump to v3.0 features ↓](#️-version-30---embedded-runtime)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/tishap27/AirLang)
+[![Version](https://img.shields.io/badge/version-3.0-blue)](https://github.com/tishap27/AirLang/releases/tag/v3.0)
+
+---
+
+## ⚙️ Version 3.0 - Embedded Runtime
+
+### What's New
+
+Previous versions of AirLang were a standalone compiler pipeline, you ran a binary, fed it a `.air` file, and it executed. v3.0 packages the entire language as a self-contained C library. Two files, no installation, drop into any C project and call AirLang directly from your own code.
+
+**Before v3.0 (standalone compiler):**
+```bash
+./airlang flightplan.air
+```
+
+**After v3.0 (embedded in your C project):**
+```c
+#include "AirLang.h"
+AIR_Runtime *rt = AIR_Init();
+AIR_RunString(rt, "MAIN { DISPATCH { Distance = AIRPATH; } ENDDISPATCH; } ENDMAIN;");
+AIR_Free(rt);
+```
+
+### Features
+-  **Drop-in library** - just `AirLang.h` and `AirLang_Runtime.c`, nothing else
+-  **Cross-platform** - builds on Windows (MSVC) and Linux (GCC/WSL)
+-  **No dependencies** - compile offline with `-DAIRLANG_NO_CURL`
+-  **Direct math API** - call `AIR_GreatCircleNM`, `AIR_CalcWind`, `AIR_ParseMETAR` without a runtime
+-  **Optional live METAR** - fetch from AviationWeather.gov with libcurl
+-  **Backward compatible** - all v2.0 language syntax still works
+
+### What the Runtime Supports
+
+- All AirLang block types: `MAIN`, `BRIEFING`, `AIRCRAFT`, `FLIGHT`, `ROUTE`, `LOADSHEET`, `DISPATCH`, `WEATHER`, `WINDANALYSIS`, `SAFETYALERT`, `RECEIVEDDATA`, `RUNWAYDATA`
+- Variable assignment with colon and equals syntax
+- Arithmetic expressions with operator precedence
+- `AIRPATH` great-circle distance in nautical miles
+- `HEADWIND()` and `CROSSWIND()` components
+- `IF` / `ELSE` / `ENDIF` control flow
+- `PRINT` with variable interpolation
+- Inline METAR parsing and variable injection
+- Live METAR fetch from AviationWeather.gov (requires libcurl)
+- Aircraft weight and balance database: `PA28`, `C172`, `B747`
+- Direct math API: `AIR_GreatCircleNM`, `AIR_CalcWind`, `AIR_ParseMETAR`
+
+### Embedded Folder
+```text
+embedded/
+├── AirLang.h            public API header
+├── AirLang_Runtime.c    full implementation
+├── AirLang_Demov1.c       7 working examples
+└── EMBEDDED_README.md   detailed API reference
+```
+
+### Example Usage
+```c
+#include "AirLang.h"
+
+AIR_Runtime *rt = AIR_Init();
+
+AIR_RunString(rt,
+    "MAIN {\n"
+    "  BRIEFING {\n"
+    "    ROUTE {\n"
+    "      DepartureCoords: 45.3225, -75.6692;\n"
+    "      ArrivalCoords:   43.6777, -79.6248;\n"
+    "    }\n"
+    "  } ENDBRIEFING;\n"
+    "  DISPATCH {\n"
+    "    Distance = AIRPATH;\n"
+    "    PRINT {\"Distance: \" + Distance + \" nm\"};\n"
+    "  } ENDDISPATCH;\n"
+    "} ENDMAIN;\n"
+);
+
+double d = 0;
+AIR_GetNumber(rt, "Distance", &d);  /* 196.04 nm */
+AIR_Free(rt);
+```
+
+**Output:**  
+Distance: 196.04 nm
+
+### Direct Math API
+No runtime needed for pure calculations:
+```c
+double nm = AIR_GreatCircleNM(45.32, -75.66, 43.67, -79.62);
+
+AIR_WindComponents w = AIR_CalcWind(270, 15, 270);
+/* w.headwind = 15.0, w.crosswind = 0.0 */
+
+AIR_METARResult mr = AIR_ParseMETAR("METAR CYOW 251630Z 27015G25KT 15SM 08/06 A2995");
+/* mr.wind_dir=270, mr.temp_c=8, mr.altimeter_inhg=29.95 */
+```
+
+### Installation for v3.0
+
+### Build  
+### No network (recommended for first test):  
+```bash 
+gcc -Wall -DAIRLANG_NO_CURL your_app.c AirLang_Runtime.c -lm -o app
+```
+### With live METAR fetching:  
+```bash
+gcc -Wall your_app.c AirLang_Runtime.c -lcurl -lm -o app
+```
+
+### Windows MSVC:
+```bash   
+cl /W3 /DAIRLANG_NO_CURL your_app.c AirLang_Runtime.c
+```
+
+### Version History
+| Version | Description |
+|---------|-------------|
+| v1.0 | Scanner, parser, writer — AirLang language defined |
+| v2.0 | Code generator, VM, bytecode execution, live METAR |
+| v3.0 | Embedded runtime — drop-in C library, no pipeline needed |
+
+For full API documentation see `embedded/EMBEDDED_README.md`.
+For the complete compiler pipeline see the Step1 through Step7 source files.
+
+> ** Version 2.0** - Real-time METAR integration now available! [Jump to v2.0 features ↓](#-version-20---real-time-metar-integration)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/tishap27/AirLang)
